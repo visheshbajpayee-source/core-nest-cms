@@ -4,4 +4,11 @@ export { default as EmployeeLayout } from './EmployeeLayout';
 export { default as DashboardContent } from './DashboardContent';
 
 // Export dashboard components
-export * from './dashboard';
+export {
+  GreetingCard,
+  StatsCard,
+  DailyWorkLog,
+  CalendarWidget,
+  MyFocus,
+  NoticeBoard,
+} from './dashboard';

@@ -2,9 +2,10 @@
 
 import React from 'react';
 
+
 export default function Sidebar() {
   return (
-    <aside className="w-64 bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col">
+    <aside className="w-64 h-screen bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col">
       <div className="p-6 flex items-center gap-2 border-b border-slate-700">
         <div className="w-8 h-8 bg-teal-500 rounded flex items-center justify-center">
           <span className="text-xl">◆</span>
@@ -16,7 +17,7 @@ export default function Sidebar() {
 
       <nav className="flex-1 py-4">
         <NavItem icon="" label="Dashboard" active />
-        <NavItem icon="" label="Employee Directory" />
+        <NavItem icon="" label="Leave"  />
         <NavItem icon="" label="Attendance" />
         <NavItem icon="" label="Daily Work Log" />
         <NavItem icon="" label="Projects" />

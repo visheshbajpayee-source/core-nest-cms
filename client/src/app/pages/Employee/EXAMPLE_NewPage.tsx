@@ -10,7 +10,7 @@
 'use client';
 
 import React from 'react';
-import EmployeeLayout from '../../components/EmployeeLayout';
+import { EmployeeLayout } from '../../components';
 
 // Example: Employee Directory Page
 export default function EmployeeDirectory() {

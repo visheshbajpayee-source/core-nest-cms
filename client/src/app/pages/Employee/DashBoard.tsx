@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import EmployeeLayout from '../../components/EmployeeLayout';
-import DashboardContent from '../../components/DashboardContent';
+import { EmployeeLayout, DashboardContent } from '../../components';
 
 export default function Dashboard() {
   return (

@@ -1,20 +1,36 @@
-import express, { Request, Response } from "express";
-import cors from "cors";
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/auth';
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "CMS Backend API is running" });
-});
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/core_nest_cms';
 
-app.get("/health", (req: Request, res: Response) => {
-  res.json({ status: "ok" });
-});
+app.use('/api/auth', authRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.get('/', (req, res) => res.json({ success: true, message: 'API running' }));
+
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
+    console.log(" MongoDB Connected Successfully");
+    
+    app.listen(PORT, () => {
+      console.log(` Server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error(" DB connection error:", err.message);
+    process.exit(1);
+  });
+
+
+export default app;
+

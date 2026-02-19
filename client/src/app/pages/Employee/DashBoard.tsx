@@ -7,6 +7,7 @@ export default function Dashboard() {
   return (
     <EmployeeLayout>
       <DashboardContent />
+      
     </EmployeeLayout>
   );
 }

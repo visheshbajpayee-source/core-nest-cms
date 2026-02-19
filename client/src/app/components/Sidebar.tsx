@@ -72,7 +72,7 @@ export default function Sidebar() {
     { label: "Leave", path: "/leave", icon: "📝" },
     { label: "Daily Work Log", path: "/employee/daily-work-log", icon: "🗒️" },
     { label: "Projects", path: "/employee/projects", icon: "📂" },
-    { label: "Announcements", path: "/employee/announcements", icon: "📢" },
+    { label: "Announcements", path: "/announcements", icon: "📢" },
     { label: "Reports", path: "/employee/reports", icon: "📊" },
     { label: "Settings", path: "/employee/settings", icon: "⚙️" },
   ];

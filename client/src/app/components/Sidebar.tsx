@@ -68,7 +68,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { label: "Dashboard", path: "/employee/dashboard", icon: "🏠" },
+    { label: "Dashboard", path: "/dashboard", icon: "🏠" },
     { label: "Attendance", path: "/employee/attendance", icon: "📅" },
     { label: "Leave", path: "/leave", icon: "📝" },
     { label: "Daily Work Log", path: "/employee/daily-work-log", icon: "🗒️" },
@@ -90,16 +90,6 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 py-4">
-<<<<<<< HEAD
-        <NavItem icon="" label="Dashboard" active />
-        <NavItem icon="" label="Leave"  />
-        <NavItem icon="" label="Attendance" />
-        <NavItem icon="" label="Daily Work Log" />
-        <NavItem icon="" label="Projects" />
-        <NavItem icon="" label="Announcements" />
-        <NavItem icon="" label="Reports" />
-        <NavItem icon="" label="Settings" />
-=======
         {navItems.map((item) => (
           <NavItem
             key={item.path}
@@ -109,7 +99,6 @@ export default function Sidebar() {
             active={pathname === item.path}
           />
         ))}
->>>>>>> 03dcb8f5ce2570cf0c473746a2371af56b853ff7
       </nav>
 
       <div className="p-4 border-t border-slate-700 flex items-center gap-3">

@@ -54,14 +54,14 @@ export default function Dashboard() {
         </div>
 
         <nav className="flex-1 py-4">
-          <NavItem icon="📊" label="Dashboard" active />
-          <NavItem icon="👥" label="Employee Directory" />
-          <NavItem icon="📅" label="Attendance" />
-          <NavItem icon="📝" label="Daily Work Log" />
-          <NavItem icon="📁" label="Projects" />
-          <NavItem icon="📢" label="Announcements" />
-          <NavItem icon="📈" label="Reports" />
-          <NavItem icon="⚙️" label="Settings" />
+          <NavItem icon="" label="Dashboard" active />
+          <NavItem icon="" label="Employee Directory" />
+          <NavItem icon="" label="Attendance" />
+          <NavItem icon="" label="Daily Work Log" />
+          <NavItem icon="" label="Projects" />
+          <NavItem icon="" label="Announcements" />
+          <NavItem icon="" label="Reports" />
+          <NavItem icon="" label="Settings" />
         </nav>
 
         <div className="p-4 border-t border-slate-700 flex items-center gap-3">

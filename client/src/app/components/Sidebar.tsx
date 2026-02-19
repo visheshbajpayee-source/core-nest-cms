@@ -67,7 +67,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { label: "Dashboard", path: "/employee/dashboard", icon: "🏠" },
+    { label: "Dashboard", path: "/dashboard", icon: "🏠" },
     { label: "Attendance", path: "/employee/attendance", icon: "📅" },
     { label: "Leave", path: "/leave", icon: "📝" },
     { label: "Daily Work Log", path: "/employee/daily-work-log", icon: "🗒️" },

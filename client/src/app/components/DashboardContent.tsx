@@ -8,7 +8,7 @@ import {
   CalendarWidget,
   MyFocus,
   NoticeBoard,
-} from './dashboard';
+} from '.';
 
 export default function DashboardContent() {
   const workLogEntries = [

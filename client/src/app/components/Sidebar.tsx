@@ -30,7 +30,9 @@ export default function Sidebar() {
           <span className="text-xl">◆</span>
         </div>
         <div>
-          <div className="font-bold text-sm">Core Nest CMS</div>
+          <Link href="/employee/dashboard" className="text-white hover:text-teal-300">
+            <div className="font-bold text-sm">Core Nest CMS</div>
+          </Link>
         </div>
       </div>
 

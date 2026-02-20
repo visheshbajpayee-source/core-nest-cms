@@ -8,6 +8,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+<<<<<<< HEAD
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
@@ -17,8 +18,22 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+=======
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.22.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.1",
+    "routes": "^2.1.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+>>>>>>> de1b27da35635ccbb73fd20844fc6ad0829defee
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.0.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.0"

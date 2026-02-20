@@ -111,6 +111,6 @@ export default function AnnouncementsPage() {
 
         </div>
       </div>
-    </div>
+    </div> // just to check
   );
 }

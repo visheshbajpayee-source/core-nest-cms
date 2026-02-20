@@ -33,8 +33,8 @@ export default function Attendance() {
                 <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold w-max">
                   <span className="w-2 h-2 bg-green-700 rounded-full inline-block"></span>
                   Present
-                </div>
-                <button className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-6 py-3 rounded-lg shadow transition">Check Out</button>
+                </div> 
+                <button className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-6 py-3 rounded-lg shadow transition">Check Out</button>
                 <button className="border border-slate-200 text-slate-500 font-semibold px-6 py-2 rounded-lg transition hover:bg-slate-100">Request Break</button>
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function Attendance() {
               </div>
             </div>
             <div className="bg-linear-to-b from-indigo-100 to-white rounded-2xl p-6 border-none">
-              <h4 className="text-indigo-700 font-semibold text-sm mb-2">Company Policy</h4>
+              <h4 className="text-teal-500 font-semibold text-sm mb-2">Company Policy</h4>
               <p className="text-xs text-slate-500">Remember to check in before 09:30 AM to avoid late marking.</p>
             </div>
           </div>

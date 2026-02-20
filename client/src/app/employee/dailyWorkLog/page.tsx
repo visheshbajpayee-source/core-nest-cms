@@ -1,14 +1,16 @@
 import DailyWorkLog from "@/app/components/DailyWorkLog";
-import { EmployeeLayout } from "@/app/components";
+
+import EmployeeLayout from "../layout";
+
 export default function DailyWorkLogRoute() {
   return (
 
      <div >
           
-            <EmployeeLayout>
+            {/* <EmployeeLayout> */}
          
          <DailyWorkLog/>
-              </EmployeeLayout> 
+              {/* </EmployeeLayout>  */}
         </div>
   );
 }

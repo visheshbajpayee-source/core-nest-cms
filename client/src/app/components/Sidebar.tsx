@@ -17,19 +17,22 @@ export default function Sidebar() {
     { label: "Daily Work Log", path: "/employee/dailyWorkLog", icon: "🗒️" },
     { label: "Projects", path: "/employee/projects", icon: "📂" },
     { label: "Announcements", path: "/employee/announcements", icon: "📢" },
-    { label: "Reports", path: "/employee/reports", icon: "📊" },
-    { label: "Settings", path: "/employee/settings", icon: "⚙️" },
+    // { label: "Reports", path: "/employee/reports", icon: "📊" },
+    // { label: "Settings", path: "/employee/settings", icon: "⚙️" },
+    // { label: "Profile", path: "/employee/profile", icon: "👤" },
   ];
 
   
   return (
-    <aside className="w-64 h-screen bg-linear-to-b from-slate-800 to-slate-900 text-white flex flex-col">
+    <aside className="fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col z-10">
       <div className="p-6 flex items-center gap-2 border-b border-slate-700">
         <div className="w-8 h-8 bg-teal-500 rounded flex items-center justify-center">
           <span className="text-xl">◆</span>
         </div>
         <div>
-          <div className="font-bold text-sm">Core Nest CMS</div>
+          <Link href="/employee/dashboard" className="text-white hover:text-teal-300">
+            <div className="font-bold text-sm">Core Nest CMS</div>
+          </Link>
         </div>
       </div>
 
@@ -54,7 +57,15 @@ export default function Sidebar() {
             <div className="font-medium">Disha Sharma</div>
           </div>
         </div>
+<<<<<<< HEAD
       </Link>
+=======
+        <div className="text-sm">
+          {/* <div className="font-medium">Disha Sharma</div> */}
+             <Link href="/employee/profile" className="text-slate-300 hover:text-white">View Profile</Link> 
+        </div>
+      </div>
+>>>>>>> 30b10317f91233e5a0ce622ba1dae19ed4c1c33e
     </aside>
   );
 }

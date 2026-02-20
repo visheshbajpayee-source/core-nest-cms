@@ -17,8 +17,9 @@ export default function Sidebar() {
     { label: "Daily Work Log", path: "/employee/dailyWorkLog", icon: "🗒️" },
     { label: "Projects", path: "/employee/projects", icon: "📂" },
     { label: "Announcements", path: "/employee/announcements", icon: "📢" },
-    { label: "Reports", path: "/employee/reports", icon: "📊" },
-    { label: "Settings", path: "/employee/settings", icon: "⚙️" },
+    // { label: "Reports", path: "/employee/reports", icon: "📊" },
+    // { label: "Settings", path: "/employee/settings", icon: "⚙️" },
+    // { label: "Profile", path: "/employee/profile", icon: "👤" },
   ];
 
   
@@ -50,7 +51,8 @@ export default function Sidebar() {
           DS
         </div>
         <div className="text-sm">
-          <div className="font-medium">Disha Sharma</div>
+          {/* <div className="font-medium">Disha Sharma</div> */}
+             <Link href="/employee/profile" className="text-slate-300 hover:text-white">View Profile</Link> 
         </div>
       </div>
     </aside>

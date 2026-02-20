@@ -23,7 +23,7 @@ export default function Sidebar() {
 
   
   return (
-    <aside className="w-64 h-screen bg-linear-to-b from-slate-800 to-slate-900 text-white flex flex-col">
+    <aside className="fixed left-0 top-0 w-64 h-screen bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col z-10">
       <div className="p-6 flex items-center gap-2 border-b border-slate-700">
         <div className="w-8 h-8 bg-teal-500 rounded flex items-center justify-center">
           <span className="text-xl">◆</span>

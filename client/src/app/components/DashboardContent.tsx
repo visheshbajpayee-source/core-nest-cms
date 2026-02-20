@@ -36,9 +36,9 @@ export default function DashboardContent() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Header Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
         <GreetingCard 
           userName="Disha"
           attendancePercentage={92}
@@ -53,13 +53,13 @@ export default function DashboardContent() {
       </div>
 
       {/* Daily Work Log & Calendar Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
         <DailyWorkLog entries={workLogEntries} onAddLog={handleAddLog} />
         <CalendarWidget month="November" year={2024} totalDays={30} currentDay={18} />
       </div>
 
       {/* My Focus & Notice Board Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <MyFocus tasks={myTasks} />
         <NoticeBoard notices={notices} holidays={holidays} />
       </div>

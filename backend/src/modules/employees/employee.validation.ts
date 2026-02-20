@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RoleEnum } from "../../common/constants/roles";
 
 export const createEmployeeSchema = z.object({
   fullName: z.string().min(2),
@@ -13,7 +14,7 @@ export const createEmployeeSchema = z.object({
 
   phoneNumber: z.string().optional(),
 
-  role: z.enum(["admin", "manager", "employee"]),
+  role: z.enum(Object.values(RoleEnum)),
 
   department: z.string(),
 
@@ -21,3 +22,5 @@ export const createEmployeeSchema = z.object({
 
   dateOfJoining: z.string(), // frontend sends string
 });
+
+export type IcreateEmployeeDto = z.infer<typeof createEmployeeSchema>;

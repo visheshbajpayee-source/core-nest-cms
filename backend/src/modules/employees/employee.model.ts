@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import { IEmployee } from "./employee.interface";
+import bcrypt from "bcrypt";
 
 const employeeSchema = new Schema<IEmployee>(
   {
@@ -71,6 +72,18 @@ const employeeSchema = new Schema<IEmployee>(
     timestamps: true,
   }
 );
+
+/**
+ * 🔐 Hash password before saving
+ */
+employeeSchema.pre("save", async function () {
+  const employee = this as any;
+
+  if (!employee.isModified("password")) return;
+
+  const salt = await bcrypt.genSalt(10);
+  employee.password = await bcrypt.hash(employee.password, salt);
+});
 
 export const Employee = model<IEmployee>(
   "Employee",

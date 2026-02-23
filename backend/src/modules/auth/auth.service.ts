@@ -22,14 +22,9 @@ const authService = async (
   }
 
   //  2. Verify password using bcrypt
-  const isMatch = await bcrypt.compare(
-    data.password,
-    user.password || ""
-  );
-
-  if (!isMatch) {
-    throw ApiError.unauthorized("Invalid email or password");
-  }
+  if (user.password !== data.password) {
+  throw ApiError.unauthorized("Invalid email or password");
+}
 
   // 3. Mark attendance (automatic check-in)
   // This should NOT break login if attendance fails

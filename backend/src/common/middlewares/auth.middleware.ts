@@ -1,37 +1,42 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { ApiError } from "../utils/ApiError";
+import { ApiError, ErrorMessages } from "../utils/ApiError";
+import { Employee } from "../../modules/employees/employee.model";
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
-}
-
-export const protect = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
+export const authenticate = async (
+	req: Request,
+	_res: Response,
+	next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
+	try {
+		const header = req.headers.authorization || req.headers.Authorization;
+		if (!header || typeof header !== "string" || !header.startsWith("Bearer ")) {
+			throw ApiError.unauthorized(ErrorMessages?.TOKEN_MISSING || "Authorization token is missing");
+		}
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    throw ApiError.unauthorized("No token provided");
-  }
+		const token = header.split(" ")[1];
+		const payload = jwt.verify(token, process.env.JWT_SECRET as string) as any;
 
-  const token = authHeader.split(" ")[1];
+		if (!payload || !payload.id) {
+			throw ApiError.unauthorized("Invalid or malformed token");
+		}
 
-  try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as { id: string; role: string };
+		const user = await Employee.findById(payload.id).select("+role department email fullName");
+		if (!user) throw ApiError.unauthorized("User not found");
 
-    req.user = decoded;
+		// attach sanitized user to request
+		(req as any).user = {
+			id: user._id.toString(),
+			role: user.role,
+			email: user.email,
+			department: user.department,
+			fullName: user.fullName,
+		};
 
-    next();
-  } catch {
-    throw ApiError.unauthorized("Invalid token");
-  }
+		next();
+	} catch (error: any) {
+		next(error);
+	}
 };
+
+export default authenticate;

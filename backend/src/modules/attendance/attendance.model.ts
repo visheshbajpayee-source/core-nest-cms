@@ -8,28 +8,24 @@ const attendanceSchema = new Schema<IAttendance>(
       ref: "Employee",
       required: true,
     },
-
     date: {
       type: Date,
       required: true,
     },
-
     checkInTime: {
       type: Date,
     },
-
     status: {
       type: String,
-      enum: ["present", "absent", "on_leave", "holiday"],
-      required: true,
+      enum: ["present", "on_leave", "holiday"],
+      // required: true,
+        default: "present",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// 🔐 Ensure one attendance per employee per date
+// 🔒 Prevent duplicate attendance per day
 attendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
 
 export const Attendance = model<IAttendance>(

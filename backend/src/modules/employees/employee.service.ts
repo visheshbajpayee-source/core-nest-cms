@@ -33,7 +33,7 @@ export const createEmployee = async (
 /**
  * GET ALL
  */
-export const getAllEmployees = async (): Promise<EmployeeResponseDto[]> => {
+export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto[]> => {
   try {
     const employees = await Employee.find();
 

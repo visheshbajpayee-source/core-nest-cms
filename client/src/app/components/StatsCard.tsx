@@ -58,7 +58,6 @@ export default function StatsCard({
     <div className="bg-white rounded-xl shadow-sm p-6">
       <div className="grid grid-cols-3 gap-4 mb-6">
         <StatBox icon="📋" label="Leave Left" value={leaveLeft} color="teal" />
-        <StatBox icon="📊" label="Remaining" value={remaining} color="orange" />
         <StatBox icon="🕐" label="Today's Status" value={todayStatus} color="purple" />
       </div>
 

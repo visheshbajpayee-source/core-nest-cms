@@ -121,7 +121,7 @@ The system supports three distinct roles with varying levels of access:
 ---
 
 ### 2. Employee Management
-
+  
 **Employee Profile:**
 - Each employee has a profile with the following information:
   - Full Name

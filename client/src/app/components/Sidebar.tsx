@@ -35,7 +35,6 @@ export default function Sidebar() {
           </Link>
         </div>
       </div>
-
       <nav className="flex-1 py-4">
         {navItems.map((item) => (
           <NavItem

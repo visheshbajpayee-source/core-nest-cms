@@ -57,15 +57,12 @@ export default function Sidebar() {
             <div className="font-medium">Disha Sharma</div>
           </div>
         </div>
-<<<<<<< HEAD
       </Link>
-=======
-        <div className="text-sm">
-          {/* <div className="font-medium">Disha Sharma</div> */}
-             <Link href="/employee/profile" className="text-slate-300 hover:text-white">View Profile</Link> 
-        </div>
+
+      <div className="text-sm px-6 py-3">
+        {/* <div className="font-medium">Disha Sharma</div> */}
+        <Link href="/employee/profile" className="text-slate-300 hover:text-white">View Profile</Link> 
       </div>
->>>>>>> 30b10317f91233e5a0ce622ba1dae19ed4c1c33e
     </aside>
   );
 }

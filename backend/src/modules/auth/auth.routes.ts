@@ -1,11 +1,10 @@
-import { Router, Request, Response } from "express";
-import { loginController } from "./auth.controller";
+import { Router } from "express";
+import loginController  from "./auth.controller";
+import { validate } from "../../common/middlewares/validate.middleware";
+import { loginSchema } from "./auth.validation";
 
-const router: Router = Router();
+const router : Router = Router();
 
-router.get("/", (_req: Request, res: Response) => {
-  res.json({ success: true, message: "Auth route working" });
-});
+router.post("/", validate(loginSchema), loginController);
 
-router.post("/login", loginController);
 export default router;

@@ -1,19 +1,28 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "./auth.middleware";
 import { ApiError } from "../utils/ApiError";
 
+/**
+ * Role-based authorization middleware
+ * @param allowedRoles - list of roles allowed to access route
+ */
 export const authorize = (...allowedRoles: string[]) => {
-	return (req: Request, _res: Response, next: NextFunction) => {
-		const user = (req as any).user;
-		if (!user) return next(ApiError.unauthorized());
+  return (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
 
-		if (allowedRoles.length === 0) return next();
+    // Check if user exists (should already be attached by auth.middleware)
+    if (!req.user) {
+      throw ApiError.unauthorized("User not authenticated");
+    }
 
-		if (!allowedRoles.includes(user.role)) {
-			return next(ApiError.forbidden(ApiError.ErrorMessages?.ACCESS_DENIED || "Access denied"));
-		}
+    // Check if user's role is allowed
+    if (!allowedRoles.includes(req.user.role)) {
+      throw ApiError.forbidden("You do not have permission to perform this action");
+    }
 
-		next();
-	};
+    next();
+  };
 };
-
-export default authorize;

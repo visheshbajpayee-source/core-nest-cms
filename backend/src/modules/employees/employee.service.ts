@@ -4,6 +4,7 @@ import {
   UpdateEmployeeDto,
   EmployeeResponseDto,
 } from "../../dto/user.dto";
+import { ApiError } from "../../common/utils/ApiError";
 
 /**
  * CREATE
@@ -26,12 +27,12 @@ export const createEmployee = async (
       status: employee.status,
     };
   } catch (error: any) {
-    throw new Error(error.message || "Failed to create employee");
+    throw ApiError.internalServer(error.message || "Failed to create employee");
   }
 };
 
 /**
- * GET ALL
+ * GET ALL (with filters + search)
  */
 export const getAllEmployees = async (
   filters: Record<string, any> = {}
@@ -67,20 +68,22 @@ export const getAllEmployees = async (
       status: employee.status,
     }));
   } catch (error: any) {
-    throw new Error("Failed to fetch employees");
+    throw ApiError.internalServer("Failed to fetch employees");
   }
 };
 
 /**
- * GET BY ID
+ * GET BY EMPLOYEE ID (NOT Mongo _id)
  */
 export const getEmployeeById = async (
-  id: string
+  employeeId: string
 ): Promise<EmployeeResponseDto | null> => {
   try {
-    const employee = await Employee.findById(id);
+    const employee = await Employee.findOne({ employeeId });
 
-    if (!employee) return null;
+    if (!employee) {
+      throw ApiError.notFound("Employee not found");
+    }
 
     return {
       id: employee._id.toString(),
@@ -94,23 +97,27 @@ export const getEmployeeById = async (
       status: employee.status,
     };
   } catch (error: any) {
-    throw new Error("Failed to fetch employee");
+    throw ApiError.internalServer("Failed to fetch employee");
   }
 };
 
 /**
- * UPDATE
+ * UPDATE by employeeId
  */
 export const updateEmployee = async (
-  id: string,
+  employeeId: string,
   data: UpdateEmployeeDto
 ): Promise<EmployeeResponseDto | null> => {
   try {
-    const employee = await Employee.findByIdAndUpdate(id, data, {
-      new: true,
-    });
+    const employee = await Employee.findOneAndUpdate(
+      { employeeId },
+      data,
+      { new: true }
+    );
 
-    if (!employee) return null;
+    if (!employee) {
+      throw ApiError.notFound("Employee not found");
+    }
 
     return {
       id: employee._id.toString(),
@@ -124,20 +131,25 @@ export const updateEmployee = async (
       status: employee.status,
     };
   } catch (error: any) {
-    throw new Error("Failed to update employee");
+    throw ApiError.internalServer("Failed to update employee");
   }
 };
 
 /**
- * DELETE
+ * DELETE by employeeId
  */
 export const deleteEmployee = async (
-  id: string
+  employeeId: string
 ): Promise<boolean> => {
   try {
-    const result = await Employee.findByIdAndDelete(id);
-    return !!result;
+    const result = await Employee.findOneAndDelete({ employeeId });
+
+    if (!result) {
+      throw ApiError.notFound("Employee not found");
+    }
+
+    return true;
   } catch (error: any) {
-    throw new Error("Failed to delete employee");
+    throw ApiError.internalServer("Failed to delete employee");
   }
 };

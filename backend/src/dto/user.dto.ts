@@ -31,3 +31,20 @@ export interface EmployeeResponseDto {
   status: string;
   profilePicture?: string;
 }
+
+// Login DTO
+export interface LoginUserDto {
+  email: string;
+  password: string;
+}
+
+// Login DTO
+export interface LoginResponseDto {
+  accessToken: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    role: string;
+  };
+}

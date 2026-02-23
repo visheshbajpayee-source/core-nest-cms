@@ -1,47 +1,44 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { ApiError } from "../../common/utils/ApiError";
+import { LoginUserDto, LoginResponseDto } from "../../dto/user.dto";
 import { Employee } from "../employees/employee.model";
-import { generateToken } from "../../config/jwt";
-import { LoginDto, AuthResponseDto } from "./auth.types";
 
-export const login = async (
-  data: LoginDto
-): Promise<AuthResponseDto> => {
+const authService = async (data: LoginUserDto): Promise<LoginResponseDto> => {
+    // Find user and include password for verification
+    const user = await Employee.findOne({ email: data.email }).select("+password");
 
-  const { email, password } = data;
+    if (!user) {
+        throw ApiError.unauthorized("Invalid email or password");
+    }
 
-  const employee = await Employee
-    .findOne({ email })
-    .select("+password");
+    // Verify password
+    // const isMatch = await bcrypt.compare(data.password, (user as any).password || "");
+    // if (!isMatch) {
+    //     console.log(`recieved password: ${data.password}, stored hash: ${(user as any).password}`);
+    //     throw ApiError.unauthorized("Invalid email or password");
+    // }
+    if(user.password !== data.password){
+        console.log(`recieved password: ${data.password}, stored hash: ${(user as any).password}`);
+        throw ApiError.unauthorized("Invalid email or password");
+    }
 
-  if (!employee) {
-    throw new Error("Invalid email or password");
-  }
-
-  if (employee.status !== "active") {
-    throw new Error("Your account is inactive. Contact admin.");
-  }
-
-  const isMatch = await bcrypt.compare(
-    password,
-    employee.password
+    // Generate JWT
+    const token = jwt.sign(
+    { id: user._id, role: user.role, email: user.email },
+    process.env.JWT_SECRET as string,
+    { expiresIn: "15m" }
   );
 
-  if (!isMatch) {
-    throw new Error("Invalid email or password");
-  }
-
-  const token = generateToken({
-    id: employee._id.toString(),
-    role: employee.role,
-  });
-
-  return {
-    token,
-    user: {
-      id: employee._id.toString(),
-      fullName: employee.fullName,
-      email: employee.email,
-      role: employee.role,
-    },
-  };
+    return {
+        accessToken: token,
+        user: {
+            id: user._id.toString(),
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+        },
+    };
 };
+
+export default authService;

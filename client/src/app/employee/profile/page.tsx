@@ -1,220 +1,175 @@
 'use client';
 
 import React, { useState } from 'react';
+import ProfileCard from './ProfileCard';
+import ProfileForm from './ProfileForm';
+
+interface ProfileData {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  department: string;
+  designation: string;
+  joinDate: string;
+  employeeId: string;
+  role: 'admin' | 'manager' | 'employee';
+  profilePicture?: string;
+  address?: string;
+  dateOfBirth?: string;
+}
+
+const mockProfileData: ProfileData = {
+  fullName: 'Disha Sharma',
+  email: 'disha.sharma@example.com',
+  phoneNumber: '+91 8765432109',
+  department: 'Engineering',
+  designation: 'Senior Software Engineer',
+  joinDate: '2022-03-15',
+  employeeId: 'ENG-2022-001',
+  role: 'employee',
+  profilePicture: undefined,
+  address: '123 Tech Street, Bangalore, India',
+  dateOfBirth: '1996-07-20',
+};
 
 export default function ProfilePage() {
+  const [profileData, setProfileData] = useState<ProfileData>(mockProfileData);
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: 'Disha Sharma',
-    email: 'disha.sharma@company.com',
-    employeeId: 'EMP001',
-    department: 'Marketing',
-    position: 'Marketing Executive',
-    joinDate: '2023-06-15',
-    phone: '+91 9876543210',
-    address: '123 Business Street, Mumbai, Maharashtra 400001',
-    supervisor: 'Rajesh Kumar',
-    workLocation: 'Mumbai Office'
-  });
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
     setIsEditing(false);
-    // Add save logic here
-    console.log('Profile updated:', profileData);
+    setProfileData(mockProfileData);
+  };
+
+  const handleSaveProfile = async (updatedData: Partial<ProfileData>) => {
+    setIsSaving(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      setProfileData((prev) => ({
+        ...prev,
+        ...updatedData,
+      }));
+      setIsEditing(false);
+      
+      // Show success message (you can integrate with a toast library here)
+      console.log('Profile updated successfully:', updatedData);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">My Profile</h1>
-        <p className="text-slate-600">Manage your personal information and account settings</p>
+    <div className="p-4 sm:p-6 lg:p-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">My Profile</h1>
+        <p className="text-gray-600">View and manage your profile information</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Card */}
+        {/* Profile Card (Left Sidebar) */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-semibold mb-4">
-                DS
-              </div>
-              <h2 className="text-xl font-semibold text-slate-800 mb-2">{profileData.name}</h2>
-              <p className="text-slate-600 mb-1">{profileData.position}</p>
-              <p className="text-slate-500 text-sm">{profileData.department}</p>
-              <div className="mt-4 w-full">
-                <div className="text-sm text-slate-600 mb-2">
-                  <span className="font-medium">Employee ID:</span> {profileData.employeeId}
-                </div>
-                <div className="text-sm text-slate-600">
-                  <span className="font-medium">Joined:</span> {new Date(profileData.joinDate).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="bg-white rounded-lg shadow-sm border p-6 mt-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Quick Stats</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-slate-600">Attendance</span>
-                <span className="font-semibold text-green-600">92%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Projects</span>
-                <span className="font-semibold text-blue-600">3 Active</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Leave Balance</span>
-                <span className="font-semibold text-orange-600">5/12 Days</span>
-              </div>
-            </div>
-          </div>
+          <ProfileCard 
+            profileData={profileData}
+            isEditing={isEditing}
+            onEditClick={handleEditClick}
+          />
         </div>
 
-        {/* Profile Information */}
+        {/* Profile Form (Main Content) */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-800">Personal Information</h3>
-                <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="px-4 py-2 text-sm bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors"
-                >
-                  {isEditing ? 'Cancel' : 'Edit Profile'}
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={profileData.name}
-                      onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                  ) : (
-                    <p className="text-slate-800">{profileData.name}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={profileData.email}
-                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                  ) : (
-                    <p className="text-slate-800">{profileData.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Phone Number</label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      value={profileData.phone}
-                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                  ) : (
-                    <p className="text-slate-800">{profileData.phone}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Department</label>
-                  <p className="text-slate-800">{profileData.department}</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Position</label>
-                  <p className="text-slate-800">{profileData.position}</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Supervisor</label>
-                  <p className="text-slate-800">{profileData.supervisor}</p>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Address</label>
-                  {isEditing ? (
-                    <textarea
-                      value={profileData.address}
-                      onChange={(e) => setProfileData({...profileData, address: e.target.value})}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                  ) : (
-                    <p className="text-slate-800">{profileData.address}</p>
-                  )}
-                </div>
-              </div>
-
-              {isEditing && (
-                <div className="mt-6 flex gap-3">
-                  <button
-                    onClick={handleSave}
-                    className="px-6 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="px-6 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Account Settings */}
-          <div className="bg-white rounded-lg shadow-sm border mt-6">
-            <div className="p-6 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800">Account Settings</h3>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-slate-800">Email Notifications</h4>
-                    <p className="text-sm text-slate-600">Receive notifications about work updates</p>
-                  </div>
-                  <button className="w-12 h-6 bg-teal-500 rounded-full relative transition-colors">
-                    <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform"></div>
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-slate-800">SMS Alerts</h4>
-                    <p className="text-sm text-slate-600">Get important alerts via SMS</p>
-                  </div>
-                  <button className="w-12 h-6 bg-slate-300 rounded-full relative transition-colors">
-                    <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
-                  </button>
-                </div>
-                <hr className="border-slate-200" />
-                <button className="text-red-600 hover:text-red-700 font-medium">
-                  Change Password
-                </button>
-              </div>
-            </div>
-          </div>
+          {isEditing ? (
+            <ProfileForm
+              profileData={profileData}
+              onSave={handleSaveProfile}
+              onCancel={handleCancelEdit}
+              isSaving={isSaving}
+            />
+          ) : (
+            <ProfileDetails profileData={profileData} />
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+interface ProfileDetailsProps {
+  profileData: ProfileData;
+}
+
+function ProfileDetails({ profileData }: ProfileDetailsProps) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+      {/* Basic Information */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 pb-3 border-b border-gray-200">
+          Basic Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DetailField label="Full Name" value={profileData.fullName} />
+          <DetailField label="Email" value={profileData.email} />
+          <DetailField label="Phone Number" value={profileData.phoneNumber} />
+          <DetailField label="Date of Birth" value={profileData.dateOfBirth || 'Not provided'} />
+        </div>
+      </section>
+
+      {/* Professional Information */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 pb-3 border-b border-gray-200">
+          Professional Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DetailField label="Employee ID" value={profileData.employeeId} />
+          <DetailField label="Department" value={profileData.department} />
+          <DetailField label="Designation" value={profileData.designation} />
+          <DetailField label="Date of Joining" value={new Date(profileData.joinDate).toLocaleDateString()} />
+          <DetailField label="Role" value={profileData.role.charAt(0).toUpperCase() + profileData.role.slice(1)} />
+        </div>
+      </section>
+
+      {/* Address Information */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 pb-3 border-b border-gray-200">
+          Address
+        </h2>
+        <DetailField label="Address" value={profileData.address || 'Not provided'} />
+      </section>
+
+      {/* Documents Section */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 pb-3 border-b border-gray-200">
+          Documents
+        </h2>
+        <div className="bg-gray-50 rounded-lg p-6 text-center">
+          <div className="text-gray-400 text-4xl mb-2">📄</div>
+          <p className="text-gray-600 font-medium">No documents uploaded yet</p>
+          <p className="text-gray-500 text-sm mt-1">You can upload documents like ID proof, certificates, and offer letters</p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+interface DetailFieldProps {
+  label: string;
+  value: string;
+}
+
+function DetailField({ label, value }: DetailFieldProps) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+      <p className="text-base text-gray-800 font-medium">{value}</p>
     </div>
   );
 }

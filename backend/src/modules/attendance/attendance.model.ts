@@ -15,6 +15,13 @@ const attendanceSchema = new Schema<IAttendance>(
     checkInTime: {
       type: Date,
     },
+    checkOutTime: {
+  type: Date,
+},
+
+workHours: {
+  type: Number,
+},
     status: {
       type: String,
       enum: ["present", "on_leave", "holiday"],
@@ -25,7 +32,7 @@ const attendanceSchema = new Schema<IAttendance>(
   { timestamps: true }
 );
 
-// 🔒 Prevent duplicate attendance per day
+// Prevent duplicate attendance per day
 attendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
 
 export const Attendance = model<IAttendance>(

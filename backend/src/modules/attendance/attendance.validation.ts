@@ -17,5 +17,6 @@ export const updateAttendanceSchema = z.object({
 });
 export const addAttendanceSchema = z.object({
   employeeId: z.string().optional(),
-  date: z.string().optional(),
+  date: z.date().optional(),
 });
+export type AddAttendance = z.infer<typeof addAttendanceSchema>; 

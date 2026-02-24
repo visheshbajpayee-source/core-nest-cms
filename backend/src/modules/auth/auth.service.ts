@@ -27,7 +27,7 @@ const authService = async (data: LoginUserDto): Promise<LoginResponseDto> => {
     const token = jwt.sign(
     { id: user._id, role: user.role, email: user.email },
     process.env.JWT_SECRET as string,
-    { expiresIn: "15m" }
+    { expiresIn: "3h" }
   );
 
     return {

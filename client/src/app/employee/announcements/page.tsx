@@ -1,5 +1,5 @@
 
-import Announcement from "@/app/components/Announcements";
+import Announcement from "@/app/EmployeeComponents/Announcements";
 
 export default function AnnouncementRoute() {
   return (  

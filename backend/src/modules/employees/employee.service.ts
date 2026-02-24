@@ -54,18 +54,23 @@ export const getAllEmployees = async (
       ];
     }
 
-    const employees = await Employee.find(queryObj);
+    const employees = await Employee.find(queryObj)
+      .populate("department", "name")
+      .populate("designation", "title");
 
     return employees.map((employee) => ({
       id: employee._id.toString(),
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: employee.department.toString(),
-      designation: employee.designation.toString(),
+      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
+      departmentId: (employee.department as any)?._id?.toString() ?? "",
+      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
+      designationId: (employee.designation as any)?._id?.toString() ?? "",
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      phoneNumber: employee.phoneNumber,
     }));
   } catch (error: any) {
     throw ApiError.internalServer("Failed to fetch employees");
@@ -79,7 +84,9 @@ export const getEmployeeById = async (
   employeeId: string
 ): Promise<EmployeeResponseDto | null> => {
   try {
-    const employee = await Employee.findOne({ employeeId });
+    const employee = await Employee.findOne({ employeeId })
+      .populate("department", "name")
+      .populate("designation", "title");
 
     if (!employee) {
       throw ApiError.notFound("Employee not found");
@@ -90,11 +97,14 @@ export const getEmployeeById = async (
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: employee.department.toString(),
-      designation: employee.designation.toString(),
+      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
+      departmentId: (employee.department as any)?._id?.toString() ?? "",
+      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
+      designationId: (employee.designation as any)?._id?.toString() ?? "",
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     throw ApiError.internalServer("Failed to fetch employee");
@@ -113,7 +123,7 @@ export const updateEmployee = async (
       { employeeId },
       data,
       { new: true }
-    );
+    ).populate("department", "name").populate("designation", "title");
 
     if (!employee) {
       throw ApiError.notFound("Employee not found");
@@ -124,11 +134,14 @@ export const updateEmployee = async (
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: employee.department.toString(),
-      designation: employee.designation.toString(),
+      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
+      departmentId: (employee.department as any)?._id?.toString() ?? "",
+      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
+      designationId: (employee.designation as any)?._id?.toString() ?? "",
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     throw ApiError.internalServer("Failed to update employee");

@@ -44,13 +44,13 @@ export default function AdminEmployeeTable({
 									<th className="px-4 py-2 text-left font-medium text-slate-600 sm:px-6">
 										Name
 									</th>
-									<th className="px-4 py-2 text-left font-medium text-slate-600 sm:px-6">
+									<th className="hidden px-4 py-2 text-left font-medium text-slate-600 sm:table-cell sm:px-6">
 										Email
 									</th>
-									<th className="px-4 py-2 text-left font-medium text-slate-600 sm:px-6">
+									<th className="hidden px-4 py-2 text-left font-medium text-slate-600 md:table-cell md:px-6">
 										Department
 									</th>
-									<th className="px-4 py-2 text-left font-medium text-slate-600 sm:px-6">
+									<th className="hidden px-4 py-2 text-left font-medium text-slate-600 md:table-cell md:px-6">
 										Role
 									</th>
 									<th className="px-4 py-2 text-left font-medium text-slate-600 sm:px-6">
@@ -67,16 +67,19 @@ export default function AdminEmployeeTable({
 										<td className="whitespace-nowrap px-4 py-2 text-xs text-slate-500 sm:px-6">
 											{emp.employeeId}
 										</td>
-										<td className="whitespace-nowrap px-4 py-2 text-sm font-medium text-slate-900 sm:px-6">
-											{emp.fullName}
+										<td className="whitespace-nowrap px-4 py-2 sm:px-6">
+											<div className="text-sm font-medium text-slate-900">{emp.fullName}</div>
+											{/* Show email + dept below name on mobile */}
+											<div className="mt-0.5 text-xs text-slate-500 sm:hidden">{emp.email}</div>
+											<div className="mt-0.5 text-xs text-slate-400 md:hidden">{emp.department || ""}</div>
 										</td>
-										<td className="whitespace-nowrap px-4 py-2 text-xs text-slate-600 sm:px-6">
+										<td className="hidden whitespace-nowrap px-4 py-2 text-xs text-slate-600 sm:table-cell sm:px-6">
 											{emp.email}
 										</td>
-										<td className="whitespace-nowrap px-4 py-2 text-xs text-slate-600 sm:px-6">
+										<td className="hidden whitespace-nowrap px-4 py-2 text-xs text-slate-600 md:table-cell md:px-6">
 											{emp.department || "-"}
 										</td>
-										<td className="whitespace-nowrap px-4 py-2 text-xs text-slate-600 sm:px-6">
+										<td className="hidden whitespace-nowrap px-4 py-2 text-xs text-slate-600 md:table-cell md:px-6">
 											{emp.role.charAt(0).toUpperCase() + emp.role.slice(1)}
 										</td>
 										<td className="whitespace-nowrap px-4 py-2 sm:px-6">

@@ -41,7 +41,7 @@ export default function DashboardContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
         <GreetingCard 
           userName="Disha"
-          attendancePercentage={92}
+          attendancePercentage={75}
           focusToday="Finalize 1s Marketing Plan"
           quote='"The only way to do great work is to love what you do." - Steve Jobs'
         />

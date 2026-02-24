@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { EmployeeFormState } from "./adminTypes";
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
 interface AdminEmployeeFormProps {
 	form: EmployeeFormState;
@@ -14,6 +16,13 @@ interface AdminEmployeeFormProps {
 	onCancelEdit: () => void;
 }
 
+
+  const departments: string[] = [
+    "Engineering",
+    "Human Resources",
+    "Sales"
+  ];
+
 export default function AdminEmployeeForm({
 	form,
 	editingId,
@@ -22,6 +31,20 @@ export default function AdminEmployeeForm({
 	onSubmit,
 	onCancelEdit,
 }: AdminEmployeeFormProps) {
+	// const [departments, setDepartments] = useState<{ _id: string; name: string }[]>([]);
+	const [designations, setDesignations] = useState<{ _id: string; title: string }[]>([]);
+
+	useEffect(() => {
+		const t = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+		const h = { "Content-Type": "application/json", Authorization: `Bearer ${t}` };
+		Promise.all([
+			fetch(`${API}/departments`, { headers: h }).then((r) => r.json()),
+			fetch(`${API}/designations`, { headers: h }).then((r) => r.json()),
+		]).then(([depts, desigs]) => {
+			if (depts.success && Array.isArray(depts.data)) setDepartments(depts.data);
+			if (desigs.success && Array.isArray(desigs.data)) setDesignations(desigs.data);
+		}).catch(() => {});
+	}, []);
 	return (
 		<div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 lg:p-6">
 			<h2 className="mb-4 text-lg font-medium text-slate-800">
@@ -116,31 +139,53 @@ export default function AdminEmployeeForm({
 
 				<div className="grid gap-3 sm:grid-cols-2">
 					<div>
-						<label className="mb-1 block text-sm font-medium text-slate-700">
-							Department (ID)
-						</label>
-						<input
-							type="text"
+						{/* <label className="mb-1 block text-sm font-medium text-slate-700">
+							Department
+						</label> */}
+						{/* <select
 							name="department"
 							value={form.department}
 							onChange={onChange}
+							required
 							className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-							placeholder="Department ObjectId"
-						/>
+						>
+							<option value="">Select department
+											    {departments.map((dept) => (
+          <option key={dept} value={dept}>
+            {dept}
+          </option>
+        ))}
+							</option>
+			
+						</select> */}
+
+						  {/* <select className="border p-2 rounded w-64">
+        <option value="">Select Department</option>
+
+        {departments.map((dept) => (
+          <option key={dept} value={dept}>
+            {dept}
+          </option>
+        ))}
+      </select> */}
 					</div>
 
 					<div>
 						<label className="mb-1 block text-sm font-medium text-slate-700">
-							Designation (ID)
+							Designation
 						</label>
-						<input
-							type="text"
+						<select
 							name="designation"
 							value={form.designation}
 							onChange={onChange}
+							required
 							className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-							placeholder="Designation ObjectId"
-						/>
+						>
+							<option value="">Select designation</option>
+							{designations.map((d) => (
+								<option key={d._id} value={d._id}>{d.title}</option>
+							))}
+						</select>
 					</div>
 				</div>
 

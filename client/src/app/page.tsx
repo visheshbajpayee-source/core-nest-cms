@@ -1,5 +1,5 @@
 
-import DashboardContent from "@/app/components/DashboardContent";
+import DashboardContent from "@/app/EmployeeComponents/DashboardContent";
 import EmployeeLayout from "./employee/layout";
 import EmployeeDirectoryPage from "./Admin/EmployeeDirectory/page";
 
@@ -9,8 +9,8 @@ export default function Home() {
         {/* <EmployeeLayout>
             <DashboardContent />
             
-          </EmployeeLayout>
-          */}
+          </EmployeeLayout> */}
+         
           <EmployeeDirectoryPage />
     </div>
   );

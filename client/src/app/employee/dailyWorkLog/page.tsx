@@ -1,4 +1,4 @@
-import DailyWorkLog from "@/app/components/DailyWorkLog";
+import DailyWorkLog from "@/app/EmployeeComponents/DailyWorkLog";
 
 import EmployeeLayout from "../layout";
 

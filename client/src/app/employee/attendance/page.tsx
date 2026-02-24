@@ -1,5 +1,5 @@
 
-import Attendance from "@/app/components/Attendance";
+import Attendance from "@/app/EmployeeComponents/Attendance";
 import EmployeeLayout from "../layout";
 export default function AttendanceRoute() {
   return (  

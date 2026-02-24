@@ -8,7 +8,9 @@ export interface Employee {
 	email: string;
 	role: Role;
 	department: string;
+	departmentId?: string;
 	designation: string;
+	designationId?: string;
 	dateOfJoining: string;
 	status: Status;
 	phoneNumber?: string;

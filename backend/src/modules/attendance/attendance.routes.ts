@@ -1,6 +1,6 @@
 import { Router } from "express";
-import authenticate from "../../common/middlewares/auth.middleware";
-import authorize from "../../common/middlewares/role.middleware";
+import {protect} from "../../common/middlewares/auth.middleware";
+import {authorize} from "../../common/middlewares/role.middleware";
 import { validate } from "../../common/middlewares/validate.middleware";
 
 import {
@@ -20,7 +20,7 @@ const router: Router = Router();
  */
 router.get(
   "/me",
-  authenticate,
+  protect,
   getMyAttendanceController
 );
 
@@ -30,7 +30,7 @@ router.get(
  */
 router.get(
   "/",
-  authenticate,
+  protect,
   authorize("admin", "manager"),
   getAttendanceController
 );
@@ -41,7 +41,7 @@ router.get(
  */
 router.patch(
   "/:id",
-  authenticate,
+  protect,
   authorize("admin"),
   validate(updateAttendanceSchema),
   updateAttendanceController
@@ -52,7 +52,7 @@ router.patch(
  */
 router.post(
   "/",
-  authenticate,
+  protect,
   authorize("admin"),
   validate(updateAttendanceSchema),
   addAttendance

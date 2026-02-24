@@ -163,16 +163,16 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Signup Link */}
+          {/* Signup Link
           <p className="text-center text-gray-600 text-xs sm:text-sm mt-6">
             Don't have an account?{' '}
             <Link
-              href="/employee/signup"
+              href="/signup"
               className="text-teal-600 hover:text-teal-700 font-semibold transition"
             >
               Sign up
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

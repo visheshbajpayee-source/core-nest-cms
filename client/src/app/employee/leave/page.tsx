@@ -1,4 +1,4 @@
-import Leave from "@/app/components/Leave";
+import Leave from "@/app/components/LeaveComponent/Leave";
 import EmployeeLayout from "../layout";
 
 export default function LeaveRoute() {

@@ -34,7 +34,7 @@ const authService = async (
     console.error("⚠ Attendance marking failed:", error);
   }
 
-  // 🔑 4. Generate JWT token
+  // 4. Generate JWT token
   const token = jwt.sign(
     {
       id: user._id,
@@ -45,7 +45,7 @@ const authService = async (
     { expiresIn: "1h" }
   );
 
-  // 📤 5. Return login response
+  //  5. Return login response
   return {
     accessToken: token,
     user: {

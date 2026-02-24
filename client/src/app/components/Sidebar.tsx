@@ -30,7 +30,9 @@ export default function Sidebar() {
           <span className="text-xl">◆</span>
         </div>
         <div>
-          <div className="font-bold text-sm">Core Nest CMS</div>
+          <Link href="/employee/dashboard" className="text-white hover:text-teal-300">
+            <div className="font-bold text-sm">Core Nest CMS</div>
+          </Link>
         </div>
       </div>
 
@@ -46,14 +48,20 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-700 flex items-center gap-3">
-        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-sm font-semibold">
-          DS
+      <Link href="/employee/Profile">
+        <div className="p-4 border-t border-slate-700 flex items-center gap-3 hover:bg-slate-700 transition cursor-pointer">
+          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-sm font-semibold">
+            DS
+          </div>
+          <div className="text-sm">
+            <div className="font-medium">Disha Sharma</div>
+          </div>
         </div>
-        <div className="text-sm">
-          {/* <div className="font-medium">Disha Sharma</div> */}
-             <Link href="/employee/profile" className="text-slate-300 hover:text-white">View Profile</Link> 
-        </div>
+      </Link>
+
+      <div className="text-sm px-6 py-3">
+        {/* <div className="font-medium">Disha Sharma</div> */}
+        <Link href="/employee/profile" className="text-slate-300 hover:text-white">View Profile</Link> 
       </div>
     </aside>
   );

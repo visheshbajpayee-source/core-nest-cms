@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
+import { loginUser } from '@/app/services/auth.service';
+import { useRouter } from "next/navigation";
+// import Link from 'next/link';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -9,6 +11,8 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +23,13 @@ export default function Login() {
       // Add your login logic here
       console.log('Login attempt:', { email, password, rememberMe });
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+        const data = await loginUser({
+        email,
+        password,
+      });
+
+      console.log(data);
+       router.push("/employee/dashboard");
     } catch (err) {
       setError('Invalid credentials. Please try again.');
     } finally {

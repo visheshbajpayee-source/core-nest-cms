@@ -23,9 +23,10 @@ export async function createWorkLogController(req: Request, res: Response, next:
   try {
     const user = (req as any).user;
     const body = req.body;
-
-    // default employee to the requester
+    // default employee to the requester; allow admin to create for employeeId present in URL
+    const urlEmployeeId = (req as any).params?.employeeId;
     const payload: any = { ...body, employee: user.id };
+    if (urlEmployeeId && user.role === "admin") payload.employee = urlEmployeeId;
     if (typeof payload.date === "string") payload.date = new Date(payload.date);
 
     const item = await createWorkLog(payload);
@@ -38,7 +39,11 @@ export async function createWorkLogController(req: Request, res: Response, next:
 export async function getWorkLogsController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const { employee, date, project } = req.query;
+    const { date, project } = req.query;
+    const paramEmployeeId = (req as any).params?.employeeId;
+
+    // prefer employee id from URL if present
+    const employeeQuery = paramEmployeeId || (req.query.employee as any) || undefined;
 
     // Employee: only their logs
     if (user.role === "employee") {
@@ -54,14 +59,13 @@ export async function getWorkLogsController(req: Request, res: Response, next: N
 
       const members = await Employee.find({ department: mgr.department }).select("_id");
       const memberIds = members.map((m: any) => m._id.toString());
-
-      const items = await getWorkLogs({ date: date as any });
+      const items = await getWorkLogs({ date: date as any, employee: employeeQuery });
       const filtered = items.filter((i: any) => memberIds.includes(i.employee.toString()));
       return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", filtered);
     }
 
     // Admin: can filter
-    const items = await getWorkLogs({ employee: employee as any, date: date as any, project: project as any });
+    const items = await getWorkLogs({ employee: employeeQuery as any, date: date as any, project: project as any });
     return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", items);
   } catch (error) {
     next(error);
@@ -146,10 +150,12 @@ export async function deleteWorkLogController(req: Request, res: Response, next:
 export async function dailySummaryController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const { employeeId } = req.params;
+    const paramEmployeeId = (req as any).params?.employeeId;
     const { date } = req.query;
 
     if (!date) throw ApiError.badRequest("date query param is required (YYYY-MM-DD)");
+
+    const employeeId = paramEmployeeId || (req.query.employeeId as any);
 
     // Employee can only request their own summary
     if (user.role === "employee" && user.id !== employeeId) throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);

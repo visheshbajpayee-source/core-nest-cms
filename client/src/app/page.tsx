@@ -1,5 +1,5 @@
 
-import DashboardContent from "@/app/components/DashboardContent";
+import DashboardContent from "@/app/EmployeeComponents/DashboardContent";
 import EmployeeLayout from "./employee/layout";
 
 export default function Home() {

@@ -1,0 +1,6 @@
+{
+	"dependencies": {
+		"bcrypt": "^6.0.0",
+		"http-status-code": "^2.1.0"
+	}
+}

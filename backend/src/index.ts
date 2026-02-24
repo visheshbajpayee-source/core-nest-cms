@@ -1,20 +1,23 @@
-import express, { Request, Response } from "express";
-import cors from "cors";
+import dotenv from "dotenv";
+import app from "./app";
+import { connectDB } from "./config/database";
 
-const app = express();
+dotenv.config();
+
 const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI as string;
 
-app.use(cors());
-app.use(express.json());
+const startServer = async (): Promise<void> => {
+  if (!MONGO_URI) {
+    console.error("❌ MONGO_URI not defined");
+    process.exit(1);
+  }
 
-app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "CMS Backend API is running" });
-});
+  await connectDB(MONGO_URI);
 
-app.get("/health", (req: Request, res: Response) => {
-  res.json({ status: "ok" });
-});
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+};
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+startServer(); 

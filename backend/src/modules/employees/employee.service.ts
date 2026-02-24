@@ -34,27 +34,9 @@ export const createEmployee = async (
 /**
  * GET ALL (with filters + search)
  */
-export const getAllEmployees = async (
-  filters: Record<string, any> = {}
-): Promise<EmployeeResponseDto[]> => {
+export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto[]> => {
   try {
-    const queryObj: any = {};
-
-    if (filters.department) queryObj.department = filters.department;
-    if (filters.designation) queryObj.designation = filters.designation;
-    if (filters.status) queryObj.status = filters.status;
-    if (filters.role) queryObj.role = filters.role;
-
-    if (filters.search) {
-      const re = new RegExp(filters.search, "i");
-      queryObj.$or = [
-        { fullName: re },
-        { email: re },
-        { employeeId: re },
-      ];
-    }
-
-    const employees = await Employee.find(queryObj);
+    const employees = await Employee.find();
 
     return employees.map((employee) => ({
       id: employee._id.toString(),

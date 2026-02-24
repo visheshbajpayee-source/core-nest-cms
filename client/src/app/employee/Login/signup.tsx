@@ -310,7 +310,7 @@ export default function Signup() {
           <p className="text-center text-gray-600 text-xs sm:text-sm mt-6">
             Already have an account?{' '}
             <Link
-              href="/employee/Login"
+              href="/"
               className="text-teal-600 hover:text-teal-700 font-semibold transition"
             >
               Sign in

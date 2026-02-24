@@ -42,7 +42,7 @@ const authService = async (
       email: user.email,
     },
     process.env.JWT_SECRET as string,
-    { expiresIn: "1h" }
+    { expiresIn: "1d" }
   );
 
   // 📤 5. Return login response

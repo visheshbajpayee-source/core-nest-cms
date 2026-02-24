@@ -1,7 +1,7 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 import { IDesignation } from "./designation.interface";
 
-const designationSchema = new Schema<IDesignation>(
+const designationSchema: Schema<IDesignation> = new Schema(
   {
     title: {
       type: String,
@@ -9,10 +9,13 @@ const designationSchema = new Schema<IDesignation>(
       unique: true,
       trim: true,
     },
-
     description: {
       type: String,
       trim: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -20,7 +23,8 @@ const designationSchema = new Schema<IDesignation>(
   }
 );
 
-export const Designation = model<IDesignation>(
-  "Designation",
-  designationSchema
-);
+// Optional: index explicitly (clean practice)
+designationSchema.index({ title: 1 }, { unique: true });
+
+export const Designation: Model<IDesignation> =
+  mongoose.model<IDesignation>("Designation", designationSchema);

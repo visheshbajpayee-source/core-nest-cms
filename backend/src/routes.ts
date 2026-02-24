@@ -4,6 +4,8 @@ import employeeRoutes from "./modules/employees/employee.routes";
 import designationRoutes from "./modules/designation/designation.routes";
 import departmentRoutes from "./modules/department/department.routes";
 import worklogRoutes from "./modules/worklogs/worklog.routes";
+import projectRoutes from "./modules/projects/project.routes";
+import taskRoutes from "./modules/tasks/task.routes";
 
 const router: Router = Router();
 
@@ -16,5 +18,7 @@ router.use("/worklogs", worklogRoutes);
 
 // Mount worklogs under employee id: /:employeeId/worklogs
 router.use("/:employeeId/worklogs", worklogRoutes);
+router.use("/projects", projectRoutes);
+router.use("/tasks", taskRoutes);
 
 export default router;

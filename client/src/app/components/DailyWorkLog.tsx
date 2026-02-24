@@ -1,69 +1,64 @@
 'use client';
 
-import React from 'react';
-
-interface WorkLogEntry {
-  time: string;
-  task: string;
-  team: string;
-  status: 'Completed' | 'In Progress' | string;
-}
+import { useCallback } from 'react';
+import WorkLogForm from './worklog/WorkLogForm';
+import WorkLogList from './worklog/WorkLogList';
+import WorkLogStats from './worklog/WorkLogStats';
+import WorkLogEmpty from './worklog/WorkLogEmpty';
+import { useWorkLog, type WorkLogEntry } from './worklog/useWorkLog';
+import { useWorkLogForm } from './worklog/useWorkLogForm';
 
 interface DailyWorkLogProps {
-  entries?: WorkLogEntry[];
-  onAddLog?: () => void;
+  initialEntries?: WorkLogEntry[];
 }
 
-export default function DailyWorkLog({
-  entries = [
-    { time: '09:00', task: 'Daily Standup', team: 'Alpha Project', status: 'Completed' },
-    { time: '09:30', task: 'Q3 Marketing Plan', team: '3.0', status: 'In Progress' },
-  ],
-  onAddLog,
-}: DailyWorkLogProps) {
+export default function DailyWorkLog({ initialEntries = [] }: DailyWorkLogProps) {
+  const { entries, addEntry, updateEntry, deleteEntry } = useWorkLog(initialEntries);
+  const {
+    showForm,
+    setShowForm,
+    formData,
+    editingId,
+    handleInputChange,
+    handleSubmit,
+    handleCancel,
+    openEditForm,
+    toggleForm,
+  } = useWorkLogForm(addEntry, updateEntry);
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (confirm('Are you sure you want to delete this work log entry?')) {
+        deleteEntry(id);
+      }
+    },
+    [deleteEntry]
+  );
+
   return (
-    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-800">Daily Work Log</h2>
-        <button 
-          onClick={onAddLog}
-          className="px-4 py-2 bg-teal-500 text-white text-sm rounded-lg hover:bg-teal-600 transition"
+    <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 lg:p-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Daily Work Log</h1>
+          <p className="text-sm sm:text-base text-gray-600">Track your daily tasks and progress</p>
+        </div>
+        <button
+          onClick={toggleForm}
+          className="w-full sm:w-auto px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition text-sm sm:text-base"
         >
-          Add Log
+          {showForm ? 'Cancel' : '+ Add Work Log'}
         </button>
       </div>
-      
-      <div className="text-sm text-gray-500 mb-4">Add your completed work log for today</div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-2 text-xs font-semibold text-gray-600">Today's Entries</th>
-              <th className="text-left py-3 px-2 text-xs font-semibold text-gray-600">Team Name</th>
-              <th className="text-left py-3 px-2 text-xs font-semibold text-gray-600">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((entry, idx) => (
-              <tr key={idx} className="border-b border-gray-100">
-                <td className="py-3 px-2">
-                  <div className="text-sm text-gray-500">{entry.time}</div>
-                  <div className="text-sm font-medium text-gray-800">{entry.task}</div>
-                </td>
-                <td className="py-3 px-2 text-sm text-gray-700">{entry.team}</td>
-                <td className="py-3 px-2">
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    entry.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {entry.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Form */}
+      {showForm && <WorkLogForm formData={formData} editingId={editingId} onInputChange={handleInputChange} onSubmit={handleSubmit} onCancel={handleCancel} />}
+
+      {/* Stats */}
+      {entries.length > 0 && <WorkLogStats entries={entries} />}
+
+      {/* List or Empty */}
+      {entries.length === 0 ? <WorkLogEmpty onCreateClick={() => setShowForm(true)} /> : <WorkLogList entries={entries} onEdit={openEditForm} onDelete={handleDelete} />}
     </div>
   );
 }

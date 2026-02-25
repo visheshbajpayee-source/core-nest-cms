@@ -14,7 +14,6 @@ router.use("/designations", designationRoutes);
 router.use("/login", authRoutes);
 router.use("/employees", employeeRoutes);
 router.use("/attendance", attendanceRoutes);
-
 router.use("/departments", departmentRoutes);
 // Keep existing top-level worklogs route
 router.use("/worklogs", worklogRoutes);

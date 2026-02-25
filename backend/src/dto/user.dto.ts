@@ -1,5 +1,3 @@
-
-
 export interface CreateEmployeeDto {
   fullName: string;
   email: string;

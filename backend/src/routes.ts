@@ -11,6 +11,7 @@ import holidayRoutes from "./modules/holiday/holiday.routes";
 
 import announcementRoutes from "./modules/announcements/announcement.routes";
 
+import documentRoutes from "./modules/documents/documents.routes";
 
 const router: Router = Router();
 
@@ -29,6 +30,7 @@ router.use("/:employeeId/worklogs", worklogRoutes);
 router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/attendance", attendanceRoutes);
+router.use("/documents", documentRoutes);
 
 
 // Announcements

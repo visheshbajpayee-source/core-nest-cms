@@ -1,11 +1,11 @@
-/**
+/*
  * Normalize date to start of day
  */
 export const normalizeDate = (date: Date): Date => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 };
 
-/**
+/*
  * Count working days (Mon–Fri)
  */
 export const countWorkingDays = (

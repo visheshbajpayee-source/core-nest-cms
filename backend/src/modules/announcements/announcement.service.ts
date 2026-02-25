@@ -2,6 +2,7 @@ import { Announcement } from "./announcement.model";
 import { CreateAnnouncementDto, AnnouncementResponseDto } from "./announcement.dto";
 import { ApiError } from "../../common/utils/ApiError";
 import { Types } from "mongoose";
+import { Employee } from "../employees/employee.model";
 
 export const createAnnouncement = async (
   data: CreateAnnouncementDto,
@@ -39,23 +40,31 @@ export const getActiveAnnouncementsForUser = async (
   try {
     const now = new Date();
 
-    const query: any = {
-      $or: [
-        { target: "all" },
-      ],
-      $and: [
-        { $or: [{ expiryDate: { $exists: false } }, { expiryDate: { $gt: now } }] },
-      ],
-    };
+    const docs = await Announcement.find({
+      $or: [{ expiryDate: { $exists: false } }, { expiryDate: { $gt: now } }],
+    }).sort({ publishedAt: -1 });
 
-    if (user?.department) {
-      query.$or.push({ $and: [{ target: "department" }, { department: user.department }] });
-    }
+    const creatorIds = [...new Set(docs.map((d) => d.createdBy.toString()))];
+    const creators = await Employee.find({ _id: { $in: creatorIds } }).select("_id role department");
+    const creatorMap = new Map(creators.map((c: any) => [c._id.toString(), c]));
 
-    // Sort by publishedAt desc
-    const docs = await Announcement.find(query).sort({ publishedAt: -1 });
+    const filtered = docs.filter((doc: any) => {
+      const creator = creatorMap.get(doc.createdBy.toString());
+      if (!creator) return false;
 
-    return docs.map((doc) => ({
+      // Admin-created announcements are visible to everyone.
+      if (creator.role === "admin") return true;
+
+      // Manager-created announcements are only visible to same-department users.
+      if (creator.role === "manager") {
+        if (!user?.department || !doc.department) return false;
+        return doc.department.toString() === user.department.toString();
+      }
+
+      return false;
+    });
+
+    return filtered.map((doc: any) => ({
       id: doc._id.toString(),
       title: doc.title,
       content: doc.content,
@@ -79,22 +88,29 @@ export const getArchivedAnnouncementsForUser = async (
   try {
     const now = new Date();
 
-    const query: any = {
-      $and: [
-        { expiryDate: { $exists: true } },
-        { expiryDate: { $lte: now } },
-      ],
-    };
+    const docs = await Announcement.find({
+      $and: [{ expiryDate: { $exists: true } }, { expiryDate: { $lte: now } }],
+    }).sort({ publishedAt: -1 });
 
-    // users can see archived announcements that were targeted at all or their department
-    query.$or = [{ target: "all" }];
-    if (user?.department) {
-      query.$or.push({ $and: [{ target: "department" }, { department: user.department }] });
-    }
+    const creatorIds = [...new Set(docs.map((d) => d.createdBy.toString()))];
+    const creators = await Employee.find({ _id: { $in: creatorIds } }).select("_id role department");
+    const creatorMap = new Map(creators.map((c: any) => [c._id.toString(), c]));
 
-    const docs = await Announcement.find(query).sort({ publishedAt: -1 });
+    const filtered = docs.filter((doc: any) => {
+      const creator = creatorMap.get(doc.createdBy.toString());
+      if (!creator) return false;
 
-    return docs.map((doc) => ({
+      if (creator.role === "admin") return true;
+
+      if (creator.role === "manager") {
+        if (!user?.department || !doc.department) return false;
+        return doc.department.toString() === user.department.toString();
+      }
+
+      return false;
+    });
+
+    return filtered.map((doc: any) => ({
       id: doc._id.toString(),
       title: doc.title,
       content: doc.content,

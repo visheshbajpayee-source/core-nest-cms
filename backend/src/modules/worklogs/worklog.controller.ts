@@ -11,6 +11,7 @@ import {
 } from "./worklog.service";
 import { Employee } from "../employees/employee.model";
 
+// Utility: check whether two dates fall on the same calendar day
 const isSameDay = (d1: Date, d2: Date) => {
   return (
     d1.getFullYear() === d2.getFullYear() &&
@@ -18,6 +19,16 @@ const isSameDay = (d1: Date, d2: Date) => {
     d1.getDate() === d2.getDate()
   );
 };
+
+/*
+ Controller notes (Worklogs):
+ - Role rules enforced here:
+   * Employee: can create/read/update/delete only their own worklogs; updates/deletes allowed only for today's logs.
+   * Manager: can view logs for members of their department; cannot modify others' logs.
+   * Admin: full access including creating logs for other employees via URL param.
+ - Endpoints prefer employee id from URL when provided (e.g., /:employeeId/worklogs).
+ - Date filtering expects ISO date strings and is normalized to a day's range.
+*/
 
 export async function createWorkLogController(req: Request, res: Response, next: NextFunction) {
   try {

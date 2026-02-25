@@ -10,6 +10,7 @@ import {
 import { Employee } from "./employee.model";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
+import { Types } from "mongoose";
 
 export async function createEmployeeController(req: Request, res: Response, next: NextFunction) {
     try {
@@ -26,6 +27,18 @@ export async function createEmployeeController(req: Request, res: Response, next
     }
 }
 
+// Controller notes:
+// - `createEmployeeController` validates input and creates an employee record.
+// - `getEmployeesController` enforces role-based visibility:
+//    * Admin: full view with optional filters
+//    * Manager: limited to their own department (enforced via `req.user.role === 'manager'`)
+//    * Employee: not supported here (use getEmployeeController for self)
+// - `getEmployeeController` allows employees to view only their own profile and managers to view
+//   employees within their department.
+// - `updateEmployeeController` restricts updates: employees can only change limited fields on their own
+//   profile; admins can perform full updates.
+// - `deleteEmployeeController` is admin-only.
+
 export async function getEmployeesController(req: Request, res: Response, next: NextFunction) {
     try {
         const user = (req as any).user;
@@ -38,9 +51,12 @@ export async function getEmployeesController(req: Request, res: Response, next: 
         if (role) filters.role = role;
         if (search) filters.search = search;
 
-        // Manager can only view within their department
+        // Manager can only view employee-role users from their own department
         if (user?.role === "manager") {
-            filters.department = user.department;
+            const managerDoc = await Employee.findById(user.id).select("department");
+            if (!managerDoc) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+            filters.department = managerDoc.department;
+            filters.role = "employee";
         }
 
         const items = await getAllEmployees(filters);
@@ -63,11 +79,25 @@ export async function getEmployeeController(req: Request, res: Response, next: N
         const emp = await getEmployeeById(id);
         if (!emp) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
 
-        // Manager should only view employees in their department
+        // Manager can view self profile; otherwise only employee-role users in manager's department
         if (user?.role === "manager") {
-            const employeeDoc = (await Employee.findById(id)) as any;
+            const managerDoc = await Employee.findById(user.id).select("_id employeeId department");
+            if (!managerDoc) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+
+            const isSelf = id === managerDoc._id.toString() || id === managerDoc.employeeId;
+            if (isSelf) {
+                return ApiResponse.sendSuccess(res, 200, "Employee fetched", emp);
+            }
+
+            const targetQuery = Types.ObjectId.isValid(id)
+                ? { $or: [{ _id: id }, { employeeId: id }] }
+                : { employeeId: id };
+            const employeeDoc = await Employee.findOne(targetQuery).select("department role");
             if (!employeeDoc) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
-            if (employeeDoc.department.toString() !== user.department.toString()) {
+            if (
+                employeeDoc.role !== "employee" ||
+                employeeDoc.department.toString() !== managerDoc.department.toString()
+            ) {
                 throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);
             }
         }
@@ -84,10 +114,13 @@ export async function updateEmployeeController(req: Request, res: Response, next
         const { id } = req.params;
         const payload = req.body;
 
-        // Employee can only edit own limited fields
-        if (user?.role === "employee") {
-            if (user.id !== id) throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);
-            // allow only phoneNumber and profilePicture
+        // Employee and manager can only edit own limited fields
+        if (user?.role === "employee" || user?.role === "manager") {
+            const actor = await Employee.findById(user.id).select("_id employeeId");
+            if (!actor) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+            const isSelf = id === actor._id.toString() || id === actor.employeeId;
+            if (!isSelf) throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);
+
             const allowed: any = {};
             if (payload.phoneNumber) allowed.phoneNumber = payload.phoneNumber;
             if (payload.profilePicture) allowed.profilePicture = payload.profilePicture;

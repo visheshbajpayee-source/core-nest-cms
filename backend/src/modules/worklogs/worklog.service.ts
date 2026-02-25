@@ -2,6 +2,15 @@ import { WorkLog } from "./worklog.model";
 import { IWorkLog } from "./worklog.interface";
 import { ApiError } from "../../common/utils/ApiError";
 
+/*
+ Service notes (Worklogs):
+ - Lightweight wrapper around the WorkLog Mongoose model.
+ - `createWorkLog`, `updateWorkLog`, `deleteWorkLog` perform basic CRUD and normalize errors.
+ - `getWorkLogs` accepts filters { employee, project, date } and normalizes date to a day's range.
+ - `getDailySummary` aggregates logs for a single employee and returns total hours.
+ - For performance, most queries keep `employee` as an ObjectId rather than populating the entire document.
+*/
+
 export const createWorkLog = async (data: Partial<IWorkLog>) => {
   try {
     const wl = await WorkLog.create(data);

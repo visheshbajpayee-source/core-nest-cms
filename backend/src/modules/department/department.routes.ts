@@ -1,60 +1,54 @@
-import { Router, Request, Response, NextFunction } from "express";
-import { Department } from "./department.model";
-import { ApiResponse } from "../../common/utils/ApiResponse";
-import { ApiError } from "../../common/utils/ApiError";
+import { Router } from "express";
+import * as departmentController from "./department.controller";
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
+import { validate } from "../../common/middlewares/validate.middleware";
+import {
+  createDepartmentSchema,
+  updateDepartmentSchema,
+} from "./department.validation";
 
-const router: Router = Router();
+const router:Router = Router();
 
-// GET all departments  (admin + manager)
-router.get("/", protect, authorize("admin", "manager"), async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    const departments = await Department.find().populate("head", "fullName email employeeId").lean();
-    return ApiResponse.sendSuccess(res, 200, "Departments fetched", departments);
-  } catch (e) { next(e); }
-});
+/**
+ * Admin Only Routes
+ */
+router.post(
+  "/",
+  protect,
+  authorize("admin"),
+  validate(createDepartmentSchema),
+  departmentController.createDepartment
+);
 
-// GET single department
-router.get("/:id", protect, authorize("admin", "manager"), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const dept = await Department.findById(req.params.id).populate("head", "fullName email employeeId").lean();
-    if (!dept) throw ApiError.notFound("Department not found");
-    return ApiResponse.sendSuccess(res, 200, "Department fetched", dept);
-  } catch (e) { next(e); }
-});
+router.patch(
+  "/:id",
+  protect,
+  authorize("admin"),
+  validate(updateDepartmentSchema),
+  departmentController.updateDepartment
+);
 
-// POST create department (admin only)
-router.post("/", protect, authorize("admin"), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { name, description, head } = req.body;
-    if (!name) throw ApiError.badRequest("Department name is required");
-    const dept = await Department.create({ name, description, head: head || undefined });
-    return ApiResponse.sendSuccess(res, 201, "Department created", dept);
-  } catch (e) { next(e); }
-});
+router.patch(
+  "/:id/deactivate",
+  protect,
+  authorize("admin"),
+  departmentController.deactivateDepartment
+);
 
-// PUT update department (admin only)
-router.put("/:id", protect, authorize("admin"), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { name, description, head } = req.body;
-    const dept = await Department.findByIdAndUpdate(
-      req.params.id,
-      { name, description, head: head || undefined },
-      { new: true, runValidators: true }
-    ).populate("head", "fullName email employeeId");
-    if (!dept) throw ApiError.notFound("Department not found");
-    return ApiResponse.sendSuccess(res, 200, "Department updated", dept);
-  } catch (e) { next(e); }
-});
+/**
+ * Accessible to all authenticated users
+ */
+router.get(
+  "/",
+  protect,
+  departmentController.getAllDepartments
+);
 
-// DELETE department (admin only)
-router.delete("/:id", protect, authorize("admin"), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const dept = await Department.findByIdAndDelete(req.params.id);
-    if (!dept) throw ApiError.notFound("Department not found");
-    return ApiResponse.sendSuccess(res, 200, "Department deleted", null);
-  } catch (e) { next(e); }
-});
+router.get(
+  "/:id",
+  protect,
+  departmentController.getDepartmentById
+);
 
 export default router;

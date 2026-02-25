@@ -34,10 +34,9 @@ export const createEmployee = async (
 /**
  * GET ALL (with filters + search)
  */
-export const getAllEmployees = async (
-  filters: Record<string, any> = {}
-): Promise<EmployeeResponseDto[]> => {
+export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto[]> => {
   try {
+    let employees = await Employee.find();
     const queryObj: any = {};
 
     if (filters.department) queryObj.department = filters.department;
@@ -54,7 +53,7 @@ export const getAllEmployees = async (
       ];
     }
 
-    const employees = await Employee.find(queryObj)
+    employees = await Employee.find(queryObj)
       .populate("department", "name")
       .populate("designation", "title");
 

@@ -2,10 +2,10 @@
 export { default as Sidebar } from './Sidebar';
 export { default as DashboardContent } from './DashboardContent';
 export { default as GreetingCard } from './GreetingCard';
-export { default as StatsCard } from './StatsCard';
+export { default as StatsCard } from '../(protect)/employee1/dashboard/components/StatsCard';
 export { default as DailyWorkLog } from './DailyWorkLog';
-export { default as CalendarWidget } from './CalendarWidget';
-export { default as MyFocus } from './MyFocus';
+export { default as CalendarWidget } from '../(protect)/employee1/dashboard/components/CalendarWidget';
+export { default as MyFocus } from '../(protect)/employee1/dashboard/components/MyFocus';
 export { default as NoticeBoard } from './NoticeBoard';
 
 // ── Admin components (from AdminComponents/) ───────────────────────────────

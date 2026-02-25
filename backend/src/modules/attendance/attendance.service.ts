@@ -1,0 +1,179 @@
+
+import { Attendance } from "./attendance.model";
+import { Types } from "mongoose";
+import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
+import { normalizeDate } from "./attendance.utils"; 
+// 🔹 Reusable utility function (clean architecture)
+
+/**
+ * ---------------------------------------------------------
+ * AUTO MARK ATTENDANCE (CHECK-IN)
+ * ---------------------------------------------------------
+ * This function runs automatically during login.
+ * - It prevents duplicate attendance marking.
+ * - It creates a new attendance record if not already present.
+ */
+export const markAttendance = async (employeeId: string) => {
+  try {
+    // Normalize today to 00:00:00 (start of day)
+    const today = normalizeDate(new Date());
+
+    // Check if attendance already exists for today
+    const existing = await Attendance.findOne({
+      employee: new Types.ObjectId(employeeId),
+      date: today,
+    });
+
+    // If already marked → return existing record
+    if (existing) return formatAttendance(existing);
+
+    // Create new attendance record (check-in)
+    const newAttendance = await Attendance.create({
+      employee: employeeId,
+      date: today,
+      checkInTime: new Date(),
+      status: "present",
+    });
+
+    return formatAttendance(newAttendance);
+  } catch (error) {
+    console.error("Error marking attendance:", error);
+    throw ApiError.internalServer("Failed to mark attendance");
+  }
+};
+
+
+/**
+ * ---------------------------------------------------------
+ * CHECKOUT ATTENDANCE
+ * ---------------------------------------------------------
+ * - Updates checkOutTime
+ * - Calculates workHours
+ * - Prevents multiple checkouts
+ */
+export const checkoutAttendance = async (employeeId: string) => {
+  const today = normalizeDate(new Date());
+
+  // Find today's attendance
+  const attendance = await Attendance.findOne({
+    employee: employeeId,
+    date: today,
+  });
+
+  if (!attendance) {
+    throw ApiError.notFound("No attendance found for today");
+  }
+
+  // Prevent multiple checkouts
+  if (attendance.checkOutTime) {
+    return formatAttendance(attendance);
+  }
+
+  if (!attendance.checkInTime) {
+    throw ApiError.badRequest("Check-in time not found");
+  }
+
+  const now = new Date();
+
+  // Calculate time difference in hours
+  const diffMs = now.getTime() - attendance.checkInTime.getTime();
+  const hours = diffMs / (1000 * 60 * 60);
+
+  // Update checkout fields
+  attendance.checkOutTime = now;
+  attendance.workHours = Number(hours.toFixed(2));
+
+  await attendance.save();
+
+  return formatAttendance(attendance);
+};
+
+
+/**
+ * ---------------------------------------------------------
+ * GET MY ATTENDANCE
+ * ---------------------------------------------------------
+ * - Supports optional month & year filtering
+ * - Returns formatted records
+ */
+export const getMyAttendance = async (
+  employeeId: string,
+  month?: number,
+  year?: number
+) => {
+  const query: any = { employee: employeeId };
+
+  // Apply month/year filter if provided
+  if (month !== undefined && year !== undefined) {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 1);
+
+    query.date = {
+      $gte: start,
+      $lt: end,
+    };
+  }
+
+  const records = await Attendance.find(query).sort({ date: 1 });
+
+  // Format response before sending
+  return records.map(formatAttendance);
+};
+
+
+/**
+ * ---------------------------------------------------------
+ * GET ALL ATTENDANCE (Admin / Manager)
+ * ---------------------------------------------------------
+ * - Populates employee basic info
+ */
+export const getAllAttendance = async (query: unknown) => {
+  const records = await Attendance.find({})
+    .populate("employee", "fullName email department")
+    .sort({ date: -1 });
+
+  return records;
+};
+
+
+/**
+ * ---------------------------------------------------------
+ * ADMIN STATUS CORRECTION
+ * ---------------------------------------------------------
+ * - Allows admin to manually change attendance status
+ */
+export const updateAttendanceStatus = async (
+  id: string,
+  status: "present" | "on_leave" | "holiday"
+) => {
+  const updated = await Attendance.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true }
+  );
+
+  if (!updated) {
+    throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+  }
+
+  return formatAttendance(updated);
+};
+
+
+/**
+ * ---------------------------------------------------------
+ * FORMAT RESPONSE FOR FRONTEND
+ * ---------------------------------------------------------
+ * - Removes unnecessary DB fields
+ * - Sends clean structured response
+ */
+const formatAttendance = (record: any) => {
+  return {
+    employee: record.employee,
+    date: record.date,
+    checkInTime: record.checkInTime,
+    checkOutTime: record.checkOutTime || null,
+    workHours: record.workHours ?? null,
+    status: record.status,
+  };
+};

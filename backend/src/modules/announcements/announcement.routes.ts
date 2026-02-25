@@ -9,13 +9,14 @@ import { authorize } from "../../common/middlewares/role.middleware";
 
 const router = Router();
 
-// Create: admin (all) or manager (department)
+// Routes for announcements
+// POST / - create an announcement. Allowed roles: admin (can create org-wide) and manager (department only)
 router.post("/", protect, authorize("admin", "manager"), createAnnouncementController);
 
-// Get active announcements (for current user)
+// GET / - fetch active announcements relevant to the authenticated user
 router.get("/", protect, getAnnouncementsController);
 
-// Archived (expired) announcements
+// GET /archive - fetch expired/archived announcements relevant to the authenticated user
 router.get("/archive", protect, getArchivedAnnouncementsController);
 
 export default router;

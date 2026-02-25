@@ -32,7 +32,6 @@ const departmentSchema: Schema<IDepartment> = new Schema(
   }
 );
 
-departmentSchema.index({ name: 1 }, { unique: true });
 
 export const Department: Model<IDepartment> =
   mongoose.model<IDepartment>("Department", departmentSchema);

@@ -1,7 +1,7 @@
 // 
 import { Router } from "express";
-import authenticate from "../../common/middlewares/auth.middleware";
-import authorize from "../../common/middlewares/role.middleware";
+import {protect} from "../../common/middlewares/auth.middleware";
+import {authorize} from "../../common/middlewares/role.middleware";
 import { validate } from "../../common/middlewares/validate.middleware";
 
 import {
@@ -20,10 +20,10 @@ const router: Router = Router();
  * GET /api/v1/attendance/me
  * Logged-in user can view their own attendance
  */
-router.get("/me", authenticate, getMyAttendanceController);
+router.get("/me", protect, getMyAttendanceController);
 router.get(
   "/summary",
-  authenticate,
+  protect,
   getMonthlySummaryController
 );
 /**
@@ -32,7 +32,7 @@ router.get(
  */
 router.get(
   "/",
-  authenticate,
+  protect,
   authorize("admin", "manager"),
   getAttendanceController
 );
@@ -42,7 +42,7 @@ router.get(
  */
 router.patch(
   "/:id",
-  authenticate,
+  protect,
   authorize("admin"),
   validate(updateAttendanceSchema),
   updateAttendanceController
@@ -54,7 +54,7 @@ router.patch(
  */
 router.post(
   "/checkout",
-  authenticate,
+  protect,
   checkoutAttendanceController
 );
 

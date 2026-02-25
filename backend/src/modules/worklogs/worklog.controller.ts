@@ -20,6 +20,11 @@ const isSameDay = (d1: Date, d2: Date) => {
   );
 };
 
+const isValidDate = (value: any) => {
+  const d = new Date(value);
+  return !Number.isNaN(d.getTime());
+};
+
 /*
  Controller notes (Worklogs):
  - Role rules enforced here:
@@ -37,8 +42,30 @@ export async function createWorkLogController(req: Request, res: Response, next:
     // default employee to the requester; allow admin to create for employeeId present in URL
     const urlEmployeeId = (req as any).params?.employeeId;
     const payload: any = { ...body, employee: user.id };
-    if (urlEmployeeId && user.role === "admin") payload.employee = urlEmployeeId;
+    if (urlEmployeeId && user.role === "admin") {
+      payload.employee = urlEmployeeId;
+    }
+
+    // Non-admin users can create logs only for themselves.
+    if (user.role !== "admin") {
+      payload.employee = user.id;
+      if (body.employee && body.employee.toString() !== user.id.toString()) {
+        throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);
+      }
+    }
+
+    if (payload.date && !isValidDate(payload.date)) {
+      throw ApiError.badRequest("Invalid date");
+    }
     if (typeof payload.date === "string") payload.date = new Date(payload.date);
+
+    // Employees and managers can create logs for current day only.
+    if (user.role !== "admin") {
+      const targetDate = payload.date ? new Date(payload.date) : new Date();
+      if (!isSameDay(targetDate, new Date())) {
+        throw ApiError.forbidden("You can create worklogs only for today");
+      }
+    }
 
     const item = await createWorkLog(payload);
     return ApiResponse.created("Worklog created", item).send(res);
@@ -58,7 +85,7 @@ export async function getWorkLogsController(req: Request, res: Response, next: N
 
     // Employee: only their logs
     if (user.role === "employee") {
-      const items = await getWorkLogs({ employee: user.id, date: date as any });
+      const items = await getWorkLogs({ employee: user.id, date: date as any, project: project as any });
       return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", items);
     }
 
@@ -70,7 +97,15 @@ export async function getWorkLogsController(req: Request, res: Response, next: N
 
       const members = await Employee.find({ department: mgr.department }).select("_id");
       const memberIds = members.map((m: any) => m._id.toString());
-      const items = await getWorkLogs({ date: date as any, employee: employeeQuery });
+      const scopedEmployeeFilter = employeeQuery
+        ? employeeQuery
+        : { $in: memberIds };
+
+      const items = await getWorkLogs({
+        date: date as any,
+        employee: scopedEmployeeFilter,
+        project: project as any,
+      });
       const filtered = items.filter((i: any) => memberIds.includes(i.employee.toString()));
       return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", filtered);
     }
@@ -122,8 +157,8 @@ export async function updateWorkLogController(req: Request, res: Response, next:
     const item: any = await getWorkLogById(id);
     if (!item) throw ApiError.notFound(ErrorMessages.WORKLOG_NOT_FOUND);
 
-    // Only admin or owner allowed to update. Owner only if date is today.
-    if (user.role === "employee") {
+    // Only admin or owner allowed to update. Non-admin owner only if date is today.
+    if (user.role !== "admin") {
       if (item.employee.toString() !== user.id) throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);
       const today = new Date();
       if (!isSameDay(new Date(item.date), today)) throw ApiError.forbidden("Past logs are read-only");
@@ -144,8 +179,8 @@ export async function deleteWorkLogController(req: Request, res: Response, next:
     const item: any = await getWorkLogById(id);
     if (!item) throw ApiError.notFound(ErrorMessages.WORKLOG_NOT_FOUND);
 
-    // Only admin or owner allowed to delete. Owner only if date is today.
-    if (user.role === "employee") {
+    // Only admin or owner allowed to delete. Non-admin owner only if date is today.
+    if (user.role !== "admin") {
       if (item.employee.toString() !== user.id) throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);
       const today = new Date();
       if (!isSameDay(new Date(item.date), today)) throw ApiError.forbidden("Past logs are read-only");
@@ -165,8 +200,10 @@ export async function dailySummaryController(req: Request, res: Response, next: 
     const { date } = req.query;
 
     if (!date) throw ApiError.badRequest("date query param is required (YYYY-MM-DD)");
+    if (!isValidDate(date)) throw ApiError.badRequest("Invalid date format");
 
-    const employeeId = paramEmployeeId || (req.query.employeeId as any);
+    let employeeId = paramEmployeeId || (req.query.employeeId as any);
+    if (!employeeId) employeeId = user.id;
 
     // Employee can only request their own summary
     if (user.role === "employee" && user.id !== employeeId) throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);

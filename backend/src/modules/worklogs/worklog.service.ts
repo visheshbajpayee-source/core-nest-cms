@@ -38,13 +38,14 @@ export const deleteWorkLog = async (id: string) => {
   }
 };
 
-export const getWorkLogs = async (filters: Record<string, any> = []) => {
+export const getWorkLogs = async (filters: Record<string, any> = {}) => {
   try {
     const query: any = {};
     if (filters.employee) query.employee = filters.employee;
     if (filters.project) query.project = filters.project;
     if (filters.date) {
       const d = new Date(filters.date);
+      if (Number.isNaN(d.getTime())) throw ApiError.badRequest("Invalid date");
       const start = new Date(d.setHours(0, 0, 0, 0));
       const end = new Date(d.setHours(23, 59, 59, 999));
       query.date = { $gte: start, $lte: end };
@@ -54,6 +55,7 @@ export const getWorkLogs = async (filters: Record<string, any> = []) => {
     const items = await WorkLog.find(query);
     return items;
   } catch (error: any) {
+    if (error instanceof ApiError) throw error;
     throw ApiError.internalServer("Failed to fetch worklogs");
   }
 };
@@ -71,6 +73,7 @@ export const getWorkLogById = async (id: string) => {
 export const getDailySummary = async (employeeId: string, date: string) => {
   try {
     const d = new Date(date);
+    if (Number.isNaN(d.getTime())) throw ApiError.badRequest("Invalid date");
     const start = new Date(d.setHours(0, 0, 0, 0));
     const end = new Date(d.setHours(23, 59, 59, 999));
 
@@ -83,6 +86,7 @@ export const getDailySummary = async (employeeId: string, date: string) => {
 
     return { logs, totalHours };
   } catch (error: any) {
+    if (error instanceof ApiError) throw error;
     throw ApiError.internalServer("Failed to compute daily summary");
   }
 };

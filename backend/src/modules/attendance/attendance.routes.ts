@@ -3,7 +3,6 @@ import { Router } from "express";
 import {protect} from "../../common/middlewares/auth.middleware";
 import {authorize} from "../../common/middlewares/role.middleware";
 import { validate } from "../../common/middlewares/validate.middleware";
-
 import {
   getMyAttendanceController,
   getAttendanceController,

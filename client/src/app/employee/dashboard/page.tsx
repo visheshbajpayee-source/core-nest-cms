@@ -1,15 +1,15 @@
 
 import DashboardContent from "@/app/components/DashboardContent";
-import EmployeeLayout from "./employee/layout";
+import EmployeeLayout from "../layout";
 
-export default function Home() {
+export default function DashBoardRoute() {
   return (
     <div className="flex min-h-screen bg-slate-100">
-        <EmployeeLayout>
+        {/* <EmployeeLayout>
             <DashboardContent />
             
-          </EmployeeLayout>
-         
+          </EmployeeLayout> */}
+            <DashboardContent />
 
     </div>
   );

@@ -1,6 +1,10 @@
 {
-	"dependencies": {
-		"bcrypt": "^6.0.0",
-		"http-status-code": "^2.1.0"
-	}
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "http-status-code": "^2.1.0",
+    "react-calendar": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/react-calendar": "^3.9.0"
+  }
 }

@@ -1,5 +1,5 @@
 'use client';
-import Sidebar from '../../app/components/Sidebar';
+import Sidebar from './Sidebar';
 import React from 'react';
 
 export default function Attendance() {

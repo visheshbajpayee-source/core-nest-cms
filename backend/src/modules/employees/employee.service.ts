@@ -36,18 +36,40 @@ export const createEmployee = async (
  */
 export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto[]> => {
   try {
-    const employees = await Employee.find();
+    let employees = await Employee.find();
+    const queryObj: any = {};
+
+    if (filters.department) queryObj.department = filters.department;
+    if (filters.designation) queryObj.designation = filters.designation;
+    if (filters.status) queryObj.status = filters.status;
+    if (filters.role) queryObj.role = filters.role;
+
+    if (filters.search) {
+      const re = new RegExp(filters.search, "i");
+      queryObj.$or = [
+        { fullName: re },
+        { email: re },
+        { employeeId: re },
+      ];
+    }
+
+    employees = await Employee.find(queryObj)
+      .populate("department", "name")
+      .populate("designation", "title");
 
     return employees.map((employee) => ({
       id: employee._id.toString(),
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: employee.department.toString(),
-      designation: employee.designation.toString(),
+      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
+      departmentId: (employee.department as any)?._id?.toString() ?? "",
+      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
+      designationId: (employee.designation as any)?._id?.toString() ?? "",
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      phoneNumber: employee.phoneNumber,
     }));
   } catch (error: any) {
     throw ApiError.internalServer("Failed to fetch employees");
@@ -61,7 +83,9 @@ export const getEmployeeById = async (
   employeeId: string
 ): Promise<EmployeeResponseDto | null> => {
   try {
-    const employee = await Employee.findOne({ employeeId });
+    const employee = await Employee.findOne({ employeeId })
+      .populate("department", "name")
+      .populate("designation", "title");
 
     if (!employee) {
       throw ApiError.notFound("Employee not found");
@@ -72,11 +96,14 @@ export const getEmployeeById = async (
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: employee.department.toString(),
-      designation: employee.designation.toString(),
+      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
+      departmentId: (employee.department as any)?._id?.toString() ?? "",
+      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
+      designationId: (employee.designation as any)?._id?.toString() ?? "",
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     throw ApiError.internalServer("Failed to fetch employee");
@@ -95,7 +122,7 @@ export const updateEmployee = async (
       { employeeId },
       data,
       { new: true }
-    );
+    ).populate("department", "name").populate("designation", "title");
 
     if (!employee) {
       throw ApiError.notFound("Employee not found");
@@ -106,11 +133,14 @@ export const updateEmployee = async (
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: employee.department.toString(),
-      designation: employee.designation.toString(),
+      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
+      departmentId: (employee.department as any)?._id?.toString() ?? "",
+      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
+      designationId: (employee.designation as any)?._id?.toString() ?? "",
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     throw ApiError.internalServer("Failed to update employee");

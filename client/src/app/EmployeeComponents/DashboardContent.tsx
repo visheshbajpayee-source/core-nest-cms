@@ -11,11 +11,6 @@ import {
 } from '.';
 
 export default function DashboardContent() {
-  const workLogEntries = [
-    { time: '09:00', task: 'Daily Standup', team: 'Alpha Project', status: 'Completed' as const },
-    { time: '09:30', task: 'Q3 Marketing Plan', team: '3.0', status: 'In Progress' as const },
-  ];
-
   const myTasks = [
     { text: 'Review pending page wireframes', type: 'NEW', label: 'Due Today', priority: 'high' as const },
     { text: 'Schedule team sync', team: 'ID-Priv-Latest', priority: 'normal' as const },
@@ -30,18 +25,13 @@ export default function DashboardContent() {
     { date: 'November 25', event: 'Diwali Celebration' },
   ];
 
-  const handleAddLog = () => {
-    console.log('Add log clicked');
-    // Add your logic here
-  };
-
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* Header Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
         <GreetingCard 
           userName="Disha"
-          attendancePercentage={92}
+          attendancePercentage={90}
           focusToday="Finalize 1s Marketing Plan"
           quote='"The only way to do great work is to love what you do." - Steve Jobs'
         />
@@ -53,8 +43,8 @@ export default function DashboardContent() {
       </div>
 
       {/* Daily Work Log & Calendar Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-        <DailyWorkLog entries={workLogEntries} onAddLog={handleAddLog} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        <DailyWorkLog />
         <CalendarWidget month="November" year={2024} totalDays={30} currentDay={18} />
       </div>
 

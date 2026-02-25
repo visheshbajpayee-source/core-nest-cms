@@ -9,7 +9,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const protect = (
+const protect = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -35,3 +35,5 @@ export const protect = (
     throw ApiError.unauthorized("Invalid token");
   }
 };
+
+export {protect};

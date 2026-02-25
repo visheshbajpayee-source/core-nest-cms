@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../EmployeeComponents/Sidebar";
 
 export default function EmployeeLayout({
   children,
@@ -16,9 +16,9 @@ export default function EmployeeLayout({
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen overflow-x-hidden">
       <Sidebar />
-      <main className="flex-1 ml-64">
+      <main className="w-full pt-16 lg:ml-64 lg:pt-0 lg:w-[calc(100%-16rem)]">
         {children}
       </main>
     </div>

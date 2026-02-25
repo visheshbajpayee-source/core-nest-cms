@@ -1,11 +1,11 @@
 import { Router } from "express";
 import authRoutes from "./modules/auth/auth.routes";
 import employeeRoutes from "./modules/employees/employee.routes";
-import designationRoutes from "./modules/designation/designation.routes";
-import departmentRoutes from "./modules/department/department.routes";
-import worklogRoutes from "./modules/worklogs/worklog.routes";
-import projectRoutes from "./modules/projects/project.routes";
-import taskRoutes from "./modules/tasks/task.routes";
+// import designationRoutes from "./modules/designation/designation.routes";
+// import departmentRoutes from "./modules/department/department.routes";
+// import worklogRoutes from "./modules/worklogs/worklog.routes";
+// import projectRoutes from "./modules/projects/project.routes";
+// import taskRoutes from "./modules/tasks/task.routes";
 import attendanceRoutes from "./modules/attendance/attendance.routes"; 
 import departmentRoutes from "./modules/department/department.routes";
 import designationRoutes from "./modules/designation/designation.routes";

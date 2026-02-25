@@ -9,7 +9,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-const protect = (
+export const protect = (
   req: AuthRequest,
   res: Response,
   next: NextFunction

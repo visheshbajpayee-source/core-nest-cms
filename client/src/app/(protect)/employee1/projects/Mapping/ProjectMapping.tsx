@@ -1,6 +1,6 @@
 import React from 'react';
-import ProjectCard from '../Components/ProjectCard';
-import { Project } from '../ProjectData';
+import ProjectCard from '../components/ProjectCard';
+import { Project } from '../components/ProjectData';
 
 interface ProjectMappingProps {
   projects: Project[];

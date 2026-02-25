@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { WorkLogEntry } from './useWorkLog';
+import type { WorkLogEntry } from '../components/useWorkLog';
 
 interface FormData {
   date: string;

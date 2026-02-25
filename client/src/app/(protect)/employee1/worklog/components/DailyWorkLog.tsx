@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback } from 'react';
-import WorkLogForm from '@/app/(protect)/employee1/worklog/components/WorkLogForm';
-import WorkLogList from '@/app/(protect)/employee1/worklog/components/WorkLogList';
-import WorkLogStats from '@/app/(protect)/employee1/worklog/components/WorkLogStats';
-import WorkLogEmpty from '@/app/(protect)/employee1/worklog/components/WorkLogEmpty';
-import { useWorkLog, type WorkLogEntry } from '@/app/(protect)/employee1/worklog/components/useWorkLog';
-import { useWorkLogForm } from '@/app/(protect)/employee1/worklog/components/useWorkLogForm';
+import WorkLogForm from './WorkLogForm';
+import WorkLogList from './WorkLogList';
+import WorkLogStats from './WorkLogStats';
+import WorkLogEmpty from './WorkLogEmpty';
+import { useWorkLog, type WorkLogEntry } from './useWorkLog';
+import { useWorkLogForm } from './useWorkLogForm';
 
 interface DailyWorkLogProps {
   initialEntries?: WorkLogEntry[];

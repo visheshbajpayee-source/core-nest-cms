@@ -1,10 +1,8 @@
 import React from 'react';
 
-interface ProjectProgressProps {
-  progress: number;
-}
+interface Props { progress: number }
 
-const ProjectProgress: React.FC<ProjectProgressProps> = ({ progress }) => {
+const ProjectProgress: React.FC<Props> = ({ progress }) => {
   return (
     <div>
       <div className="flex justify-between text-xs text-gray-500 mb-1">

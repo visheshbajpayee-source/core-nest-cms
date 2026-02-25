@@ -15,7 +15,7 @@ import { updateAttendanceSchema } from "./attendance.validation";
 
 const router: Router = Router();
 
-/**
+/*
  * GET /api/v1/attendance/me
  * Logged-in user can view their own attendance
  */
@@ -25,7 +25,7 @@ router.get(
   protect,
   getMonthlySummaryController
 );
-/**
+/*
  * GET /api/v1/attendance
  * Admin & Manager can view attendance
  */
@@ -35,7 +35,7 @@ router.get(
   authorize("admin", "manager"),
   getAttendanceController
 );
-/**
+/*
  * PATCH /api/v1/attendance/:id
  * Admin can manually update attendance
  */
@@ -47,7 +47,7 @@ router.patch(
   updateAttendanceController
 );
 
-/**
+/*
  * POST /api/v1/attendance/checkout
  * Logged-in user checkout
  */

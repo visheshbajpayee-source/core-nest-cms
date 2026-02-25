@@ -127,24 +127,38 @@ export const getAllAttendance = async (query: unknown) => {
 /*
  * - Allows admin to manually change attendance status
  */
+/*
+ * - Allows admin to manually change attendance status
+ * - Applies business rules
+ *   → If on_leave or holiday → clear time tracking
+ */
 export const updateAttendanceStatus = async (
   id: string,
   status: "present" | "on_leave" | "holiday"
 ) => {
-  const updated = await Attendance.findByIdAndUpdate(
-    id,
-    { status },
-    { new: true }
-  );
+  // First fetch the attendance record
+  const attendance = await Attendance.findById(id);
 
-  if (!updated) {
-    throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+  if (!attendance) {
+    throw ApiError.notFound("Attendance record not found");
   }
 
-  return formatAttendance(updated);
+  // Business Rule:
+  // If marking leave or holiday → clear timing fields
+  if (status === "on_leave" || status === "holiday") {
+    attendance.status = status;
+    attendance.checkInTime = null;
+    attendance.checkOutTime = null;
+    attendance.workHours = null;
+  } else {
+    // If marking present → thenonly update status
+    attendance.status = status;
+  }
+
+  await attendance.save();
+
+  return formatAttendance(attendance);
 };
-
-
 /*
  * - Sends clean structured response
  */

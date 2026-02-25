@@ -8,6 +8,8 @@ import worklogRoutes from "./modules/worklogs/worklog.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import taskRoutes from "./modules/tasks/task.routes";
 import announcementRoutes from "./modules/announcements/announcement.routes";
+
+
 const router: Router = Router();
 
 router.use("/designations", designationRoutes);
@@ -23,6 +25,7 @@ router.use("/worklogs", worklogRoutes);
 router.use("/:employeeId/worklogs", worklogRoutes);
 router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
+router.use("/attendance", attendanceRoutes);
 
 
 // Announcements

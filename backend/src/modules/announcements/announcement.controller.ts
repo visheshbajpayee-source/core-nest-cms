@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import {
   CreateAnnouncementDto,
 } from "./announcement.dto";
+import { Employee } from "../employees/employee.model";
 import {
   createAnnouncement,
   getActiveAnnouncementsForUser,
@@ -31,18 +32,21 @@ export async function createAnnouncementController(
       throw ApiError.forbidden("Only managers or admins can publish department announcements");
     }
 
-    // If manager, ensure department set and matches manager's department (attached on token in some setups)
+    // If manager, ensure announcement is for manager's own department only
     if (user.role === "manager") {
-      // expect req.user to also include department when manager; if not provided, disallow
-      // we allow manager to include department in body but prefer token department when present
-      const mgrDept = (req.user as any).department;
-      if (!mgrDept && !body.department) {
-        throw ApiError.badRequest("Manager must specify a department for department announcements");
+      const manager = await Employee.findById(user.id) as any;
+      if (!manager) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+      const mgrDept = manager.department ? manager.department.toString() : undefined;
+      if (!mgrDept) {
+        throw ApiError.badRequest("Manager does not have a department assigned");
       }
-      if (mgrDept && body.department && mgrDept.toString() !== body.department.toString()) {
+      if (body.department && body.department !== mgrDept) {
         throw ApiError.forbidden("Manager cannot create announcement for another department");
       }
-      if (!body.department && mgrDept) body.department = mgrDept;
+      // enforce manager's department
+      body.department = mgrDept;
+      // ensure target is department
+      body.target = "department";
     }
 
     const created = await createAnnouncement(body, user.id);

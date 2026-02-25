@@ -1,4 +1,4 @@
-import EmplyoeeProject from "@/app/components/EmployeeProject";
+import EmplyoeeProject from "@/app/components/Project/EmployeeProject";
 import EmployeeLayout from "../layout";
 
 export default function ProjectsRoute() {

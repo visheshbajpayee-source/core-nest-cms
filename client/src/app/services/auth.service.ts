@@ -8,10 +8,10 @@ export interface LoginPayload {
 }
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
   user: {
     id: string;
-    name: string;
+    fullName: string;
     email: string;
     role: "employee" | "manager" | "admin";
   };
@@ -21,12 +21,11 @@ export const loginUser = async (
   payload: LoginPayload
 ): Promise<LoginResponse> => {
   try {
-    const response = await api.post<LoginResponse>(
+    const response = await api.post<{ success: boolean; data: LoginResponse }>(
       "/api/v1/login",
       payload
     );
-
-    return response.data;
+    return response.data.data;
   } catch (error: any) {
     throw error?.response?.data || {
       message: "Login failed",

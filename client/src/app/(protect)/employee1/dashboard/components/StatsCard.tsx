@@ -68,7 +68,7 @@ export default function StatsCard({
             <circle cx="12" cy="12" r="10" strokeWidth="2" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6l4 2" />
           </svg>
-          <div className="text-2xl font-mono font-bold text-gray-800">{formatTimer(timer)}</div>
+          <div className="text-2xl font-mono font-bold text-gray-800">{formatTimer(timer)}</div>cd
         </div>
       </div>
     </div>

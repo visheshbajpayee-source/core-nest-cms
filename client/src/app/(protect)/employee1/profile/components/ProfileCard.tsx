@@ -8,12 +8,11 @@ interface ProfileData {
   phoneNumber: string;
   department: string;
   designation: string;
-  joinDate: string;
+  dateOfJoining: string;
   employeeId: string;
   role: 'admin' | 'manager' | 'employee';
+  status: 'active' | 'inactive';
   profilePicture?: string;
-  address?: string;
-  dateOfBirth?: string;
 }
 
 interface ProfileCardProps {
@@ -46,10 +45,10 @@ export default function ProfileCard({
       .toUpperCase();
   };
 
-  const yearsOfExperience = Math.floor(
-    (new Date().getTime() - new Date(profileData.joinDate).getTime()) /
+  const yearsOfExperience = Math.max(0, Math.floor(
+    (new Date().getTime() - new Date(profileData.dateOfJoining).getTime()) /
       (1000 * 60 * 60 * 24 * 365)
-  );
+  ));
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -60,11 +59,19 @@ export default function ProfileCard({
       <div className="px-6 py-6">
         {/* Profile Picture */}
         <div className="flex justify-center mb-4 -mt-12">
-          <div className="w-24 h-24 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
-            <span className="text-white text-3xl font-bold">
-              {getInitials(profileData.fullName)}
-            </span>
-          </div>
+          {profileData.profilePicture ? (
+            <img
+              src={profileData.profilePicture}
+              alt={profileData.fullName}
+              className="w-24 h-24 rounded-full object-cover shadow-lg border-4 border-white"
+            />
+          ) : (
+            <div className="w-24 h-24 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+              <span className="text-white text-3xl font-bold">
+                {getInitials(profileData.fullName)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Profile Name */}
@@ -107,6 +114,7 @@ export default function ProfileCard({
             <p className="text-xs text-gray-500 mb-1">Joined On</p>
             <p className="text-sm font-medium text-gray-800">
               {new Date(profileData.joinDate).toLocaleDateString('en-IN', {
+              {new Date(profileData.dateOfJoining).toLocaleDateString('en-IN', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -139,8 +147,8 @@ export default function ProfileCard({
       {/* Status Indicator */}
       <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span className="text-xs text-gray-600">Profile Active</span>
+          <div className={`w-3 h-3 rounded-full ${profileData.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+          <span className="text-xs text-gray-600">Status: {profileData.status === 'active' ? 'Active' : 'Inactive'}</span>
         </div>
         <span className="text-xs text-gray-500">Updated today</span>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import AttendanceCircle from '../ReusableComponents/AttendanceCircle';
+import AttendanceCircle from '@/app/ReusableComponents/AttendanceCircle';
 
 interface GreetingCardProps {
   userName?: string;

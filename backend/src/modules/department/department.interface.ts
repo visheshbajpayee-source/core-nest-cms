@@ -3,7 +3,8 @@ import { Document, Types } from "mongoose";
 export interface IDepartment extends Document {
   name: string;
   description?: string;
-  head?: Types.ObjectId; // Manager reference
+  departmentHead?: Types.ObjectId; // Ref to Employee
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

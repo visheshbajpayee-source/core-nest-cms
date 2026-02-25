@@ -6,6 +6,7 @@ export class ApiError extends Error {
   statusCode: number;
   errors?: any[];
   data?: any;
+  static ErrorMessages: any;
 
   constructor(
     statusCode: number,

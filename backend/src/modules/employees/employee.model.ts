@@ -1,13 +1,10 @@
 import { Schema, model } from "mongoose";
 import { IEmployee } from "./employee.interface";
+import bcrypt from "bcrypt";
 
 const employeeSchema = new Schema<IEmployee>(
   {
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    fullName: { type: String, required: true, trim: true },
 
     email: {
       type: String,
@@ -21,12 +18,10 @@ const employeeSchema = new Schema<IEmployee>(
     password: {
       type: String,
       required: true,
-      select: false, // 🔐 never return password by default
+      select: false,
     },
 
-    phoneNumber: {
-      type: String,
-    },
+    phoneNumber: { type: String },
 
     role: {
       type: String,
@@ -46,14 +41,10 @@ const employeeSchema = new Schema<IEmployee>(
       required: true,
     },
 
-    dateOfJoining: {
-      type: Date,
-      required: true,
-    },
+    dateOfJoining: { type: Date, required: true },
 
     employeeId: {
       type: String,
-      required: true,
       unique: true,
     },
 
@@ -63,16 +54,31 @@ const employeeSchema = new Schema<IEmployee>(
       default: "active",
     },
 
-    profilePicture: {
-      type: String,
-    },
+    profilePicture: { type: String },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-export const Employee = model<IEmployee>(
-  "Employee",
-  employeeSchema
-);
+/**
+ * 🔐 Hash password before saving
+ */
+employeeSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+/**
+ * 🆔 Auto generate employeeId
+ */
+employeeSchema.pre("save", async function () {
+  if (!this.employeeId) {
+    const count = await Employee.countDocuments();
+    this.employeeId = `EMP${(count + 1)
+      .toString()
+      .padStart(3, "0")}`;
+  }
+});
+
+export const Employee = model<IEmployee>("Employee", employeeSchema);

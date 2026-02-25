@@ -26,6 +26,3 @@ export const authorize = (...allowedRoles: string[]) => {
     next();
   };
 };
-
-// default export for convenience/backwards compatibility
-export default authorize;

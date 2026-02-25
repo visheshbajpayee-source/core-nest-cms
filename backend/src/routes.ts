@@ -9,6 +9,7 @@ import projectRoutes from "./modules/projects/project.routes";
 import taskRoutes from "./modules/tasks/task.routes";
 import documentRoutes from "./modules/documents/documents.routes";
 
+
 const router: Router = Router();
 
 router.use("/designations", designationRoutes);
@@ -25,5 +26,7 @@ router.use("/:employeeId/worklogs", worklogRoutes);
 router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/documents", documentRoutes);
+router.use("/attendance", attendanceRoutes);
+
 
 export default router;

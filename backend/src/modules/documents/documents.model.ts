@@ -25,8 +25,8 @@ const documentSchema = new Schema<IDocument>(
       required: true,
       trim: true,
     },
-    filePath: {
-      type: String,
+    fileData: {
+      type: Buffer,
       required: true,
     },
     mimeType: {

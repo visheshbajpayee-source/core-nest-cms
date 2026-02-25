@@ -7,6 +7,7 @@ import {
   deleteDocumentController,
   getDocumentController,
   getDocumentsController,
+   downloadDocumentController,
   updateDocumentController,
 } from "./documents.controller";
 import {
@@ -26,6 +27,11 @@ router.post(
 );
 
 router.get("/", authorize("admin", "manager", "employee"), getDocumentsController);
+router.get(
+  "/:id/download",
+  authorize("admin", "manager", "employee"),
+  downloadDocumentController
+);
 router.get("/:id", authorize("admin", "manager", "employee"), getDocumentController);
 
 router.put(

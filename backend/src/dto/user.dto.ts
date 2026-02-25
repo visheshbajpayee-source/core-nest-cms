@@ -1,5 +1,3 @@
-
-
 export interface CreateEmployeeDto {
   fullName: string;
   email: string;
@@ -25,10 +23,13 @@ export interface EmployeeResponseDto {
   email: string;
   role: string;
   department: string;
+  departmentId?: string;
   designation: string;
+  designationId?: string;
   dateOfJoining: Date;
   employeeId: string;
   status: string;
+  phoneNumber?: string;
   profilePicture?: string;
 }
 

@@ -1,13 +1,14 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 import { IDepartment } from "./department.interface";
 
-const departmentSchema = new Schema<IDepartment>(
+const departmentSchema: Schema<IDepartment> = new Schema(
   {
     name: {
       type: String,
       required: true,
       unique: true,
       trim: true,
+      lowercase: true,
     },
 
     description: {
@@ -15,9 +16,15 @@ const departmentSchema = new Schema<IDepartment>(
       trim: true,
     },
 
-    head: {
+    departmentHead: {
       type: Schema.Types.ObjectId,
       ref: "Employee",
+      required: false,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -25,7 +32,7 @@ const departmentSchema = new Schema<IDepartment>(
   }
 );
 
-export const Department = model<IDepartment>(
-  "Department",
-  departmentSchema
-);
+departmentSchema.index({ name: 1 }, { unique: true });
+
+export const Department: Model<IDepartment> =
+  mongoose.model<IDepartment>("Department", departmentSchema);

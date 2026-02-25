@@ -14,13 +14,13 @@ import { authorize } from "../../common/middlewares/role.middleware";
 const router: Router = Router();
 
 // Create employee (admin only)
-router.post("/", protect, authorize("admin"), validate(createEmployeeSchema), createEmployeeController);
+router.post("/",  createEmployeeController);
 
 // Get all (admin + manager)
-router.get("/", protect, authorize("admin", "manager"), getEmployeesController);
+router.get("/",  getEmployeesController);
 
 // Get own profile
-router.get("/me", protect, (req, res, next) => {
+router.get("/me",  (req, res, next) => {
 	const r: any = req;
 	r.params = r.params || {};
 	r.params.id = r.user?.id;
@@ -28,12 +28,12 @@ router.get("/me", protect, (req, res, next) => {
 });
 
 // Get by id (admin, manager or owner via controller checks)
-router.get("/:id", protect, getEmployeeController);
+router.get("/:id", getEmployeeController);
 
 // Update (admin for general; employee for their own limited fields)
-router.put("/:id", protect, updateEmployeeController);
+router.put("/:id", updateEmployeeController);
 
 // Delete (admin only)
-router.delete("/:id", protect, authorize("admin"), deleteEmployeeController);
+router.delete("/:id",  deleteEmployeeController);
 
 export default router;

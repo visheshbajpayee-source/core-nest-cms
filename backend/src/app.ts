@@ -1,11 +1,16 @@
 import express, { Application } from "express";
 import cors from "cors";
 import routes from "./routes";
-import { errorHandler } from "./common/middlewares/error.middleware";
+import { errorHandler, notFoundHandler } from "./common/middlewares/error.middleware";
 
 const app: Application = express();
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 app.use("/api/v1", routes);
@@ -15,5 +20,5 @@ app.get("/", (_req, res) => {
 });
 
 app.use(errorHandler);
-
+app.use(notFoundHandler);
 export default app;

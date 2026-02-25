@@ -29,7 +29,8 @@ export const protect = (
     ) as { id: string; role: string };
 
     req.user = decoded;
-
+    console.log(req.user);
+	
     next();
   } catch {
     throw ApiError.unauthorized("Invalid token");

@@ -1,5 +1,6 @@
-import Login from "./employee/Login/login";
+import { redirect, RedirectType } from 'next/navigation';
 
 export default function Home() {
-  return <Login />;
+  redirect('/login');
+  
 }

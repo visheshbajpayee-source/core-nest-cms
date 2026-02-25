@@ -25,6 +25,7 @@ export const createEmployee = async (
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
     };
   } catch (error: any) {
     throw ApiError.internalServer(error.message || "Failed to create employee");
@@ -70,6 +71,7 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
       employeeId: employee.employeeId,
       status: employee.status,
       phoneNumber: employee.phoneNumber,
+      profilePicture: employee.profilePicture,
     }));
   } catch (error: any) {
     throw ApiError.internalServer("Failed to fetch employees");
@@ -104,6 +106,7 @@ export const getEmployeeById = async (
       employeeId: employee.employeeId,
       status: employee.status,
       phoneNumber: employee.phoneNumber,
+      profilePicture: employee.profilePicture,
     };
   } catch (error: any) {
     throw ApiError.internalServer("Failed to fetch employee");
@@ -141,6 +144,7 @@ export const updateEmployee = async (
       employeeId: employee.employeeId,
       status: employee.status,
       phoneNumber: employee.phoneNumber,
+      profilePicture: employee.profilePicture,
     };
   } catch (error: any) {
     throw ApiError.internalServer("Failed to update employee");

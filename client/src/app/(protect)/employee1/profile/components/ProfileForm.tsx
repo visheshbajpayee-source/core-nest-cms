@@ -8,12 +8,11 @@ interface ProfileData {
   phoneNumber: string;
   department: string;
   designation: string;
-  joinDate: string;
+  dateOfJoining: string;
   employeeId: string;
   role: 'admin' | 'manager' | 'employee';
+  status: 'active' | 'inactive';
   profilePicture?: string;
-  address?: string;
-  dateOfBirth?: string;
 }
 
 interface ProfileFormProps {
@@ -62,14 +61,6 @@ export default function ProfileForm({
       newErrors.phoneNumber = 'Please enter a valid phone number';
     }
 
-    if (!formData.address?.trim()) {
-      newErrors.address = 'Address is required';
-    }
-
-    if (formData.dateOfBirth && new Date(formData.dateOfBirth) > new Date()) {
-      newErrors.dateOfBirth = 'Date of birth cannot be in the future';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -78,10 +69,8 @@ export default function ProfileForm({
     e.preventDefault();
     if (validateForm()) {
       onSave({
-        fullName: formData.fullName,
         phoneNumber: formData.phoneNumber,
-        address: formData.address,
-        dateOfBirth: formData.dateOfBirth,
+        profilePicture: formData.profilePicture,
       });
     }
   };
@@ -132,14 +121,14 @@ export default function ProfileForm({
               placeholder="+91 XXXXXXXXXX"
             />
 
-            {/* Date of Birth */}
+            {/* Profile Picture */}
             <FormField
-              label="Date of Birth"
-              name="dateOfBirth"
-              type="date"
-              value={formData.dateOfBirth || ''}
+              label="Profile Picture (optional URL)"
+              name="profilePicture"
+              type="url"
+              value={formData.profilePicture || ''}
               onChange={handleChange}
-              error={errors.dateOfBirth}
+              placeholder="https://example.com/profile.jpg"
             />
           </div>
         </section>
@@ -187,32 +176,32 @@ export default function ProfileForm({
             {/* Join Date */}
             <FormField
               label="Date of Joining"
-              name="joinDate"
+              name="dateOfJoining"
               type="date"
-              value={formData.joinDate || ''}
+              value={formData.dateOfJoining || ''}
               onChange={handleChange}
               disabled={true}
               note="Cannot be changed"
             />
+
+            <FormField
+              label="Role"
+              name="role"
+              type="text"
+              value={formData.role || ''}
+              onChange={handleChange}
+              disabled={true}
+            />
+
+            <FormField
+              label="Status"
+              name="status"
+              type="text"
+              value={formData.status || ''}
+              onChange={handleChange}
+              disabled={true}
+            />
           </div>
-        </section>
-
-        {/* Address Section */}
-        <section>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200">
-            Address
-          </h3>
-
-          <FormField
-            label="Address"
-            name="address"
-            type="text"
-            isTextarea={true}
-            value={formData.address || ''}
-            onChange={handleChange}
-            error={errors.address}
-            placeholder="Enter your complete address"
-          />
         </section>
 
         {/* Form Actions */}

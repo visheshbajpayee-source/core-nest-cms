@@ -3,95 +3,29 @@
 import React, { useEffect, useState } from 'react';
 import ProfileCard from './components/ProfileCard';
 import ProfileForm from './components/ProfileForm';
-
-interface ProfileData {
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  department: string;
-  designation: string;
-  dateOfJoining: string;
-  employeeId: string;
-  role: 'admin' | 'manager' | 'employee';
-  status: 'active' | 'inactive';
-  profilePicture?: string;
-}
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
-
-interface EmployeeApi {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber?: string;
-  department: string;
-  designation: string;
-  dateOfJoining: string;
-  employeeId: string;
-  role: 'admin' | 'manager' | 'employee';
-  status: 'active' | 'inactive';
-  profilePicture?: string;
-}
+import {
+  fetchMyProfile,
+  getStoredProfile,
+  updateMyProfile,
+  type ProfileData,
+} from './service/profile.service';
 
 export default function ProfilePage() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [employeeMongoId, setEmployeeMongoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    const userRaw = localStorage.getItem('user');
-
-    if (!token || !userRaw) {
-      setError('Please login first.');
-      setLoading(false);
-      return;
+    const stored = getStoredProfile();
+    if (stored) {
+      setProfileData(stored);
     }
 
-    let parsedUser: { id?: string; email?: string } = {};
-    try {
-      parsedUser = JSON.parse(userRaw);
-    } catch {
-      parsedUser = {};
-    }
-
-    fetch(`${API}/employees`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (response) => {
-        const json = await response.json();
-        if (!response.ok || !json.success) {
-          throw new Error(json.message || 'Failed to load profile');
-        }
-
-        const list = (json.data ?? []) as EmployeeApi[];
-        const current =
-          list.find((item) => item.id === parsedUser.id) ??
-          list.find((item) => item.email === parsedUser.email);
-
-        if (!current) {
-          throw new Error('Profile not found for logged in user');
-        }
-
-        setEmployeeMongoId(current.id);
-        setProfileData({
-          fullName: current.fullName,
-          email: current.email,
-          phoneNumber: current.phoneNumber ?? '',
-          department: current.department,
-          designation: current.designation,
-          dateOfJoining: current.dateOfJoining,
-          employeeId: current.employeeId,
-          role: current.role,
-          status: current.status,
-          profilePicture: current.profilePicture,
-        });
+    fetchMyProfile()
+      .then((profile) => {
+        setProfileData(profile);
       })
       .catch((fetchError: Error) => {
         setError(fetchError.message || 'Unable to load profile');
@@ -114,34 +48,8 @@ export default function ProfilePage() {
     setIsSaving(true);
     setError(null);
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) throw new Error('Please login again');
-
-      const response = await fetch(`${API}/employees/${profileData.employeeId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          phoneNumber: updatedData.phoneNumber,
-          profilePicture: updatedData.profilePicture,
-        }),
-      });
-
-      const json = await response.json();
-      if (!response.ok || !json.success) {
-        throw new Error(json.message || 'Failed to update profile');
-      }
-
-      const saved: EmployeeApi = json.data;
-      setEmployeeMongoId(saved.id ?? employeeMongoId);
-      setProfileData((prev) => (prev ? {
-        ...prev,
-        phoneNumber: saved.phoneNumber ?? updatedData.phoneNumber ?? prev.phoneNumber,
-        profilePicture: saved.profilePicture ?? updatedData.profilePicture ?? prev.profilePicture,
-        ...updatedData,
-      } : prev));
+      const updated = await updateMyProfile(profileData, updatedData);
+      setProfileData(updated);
       setIsEditing(false);
     } catch (saveError: any) {
       setError(saveError?.message || 'Failed to save profile');

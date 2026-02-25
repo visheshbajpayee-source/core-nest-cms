@@ -22,7 +22,6 @@ export default function Login() {
         console.log('Attempting login with:');
       const data = await loginUser({ email, password });
       localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
       router.replace('/employee1/dashboard');
     } catch (err) {
       setError('Invalid credentials. Please try again.');

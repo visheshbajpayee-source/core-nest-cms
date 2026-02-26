@@ -32,6 +32,7 @@ export interface EmployeeResponseDto {
   status: string;
   phoneNumber?: string;
   profilePicture?: string;
+  phoneNumber?: string;
 }
 
 // Login DTO

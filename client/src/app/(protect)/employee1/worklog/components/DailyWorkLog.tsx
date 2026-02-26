@@ -1,19 +1,19 @@
 'use client';
 
-import { useCallback } from 'react';
-import WorkLogForm from '@/app/(protect)/employee1/worklog/components/WorkLogForm';
-import WorkLogList from '@/app/(protect)/employee1/worklog/components/WorkLogList';
-import WorkLogStats from '@/app/(protect)/employee1/worklog/components/WorkLogStats';
-import WorkLogEmpty from '@/app/(protect)/employee1/worklog/components/WorkLogEmpty';
-import { useWorkLog, type WorkLogEntry } from '@/app/(protect)/employee1/worklog/components/useWorkLog';
-import { useWorkLogForm } from '@/app/(protect)/employee1/worklog/components/useWorkLogForm';
+import React, { useCallback, useEffect } from 'react';
+import WorkLogForm from './WorkLogForm';
+import WorkLogList from './WorkLogList';
+import WorkLogStats from './WorkLogStats';
+import WorkLogEmpty from './WorkLogEmpty';
+import { useWorkLog, type WorkLogEntry } from './useWorkLog';
+import { useWorkLogForm } from './useWorkLogForm';
 
 interface DailyWorkLogProps {
   initialEntries?: WorkLogEntry[];
 }
 
 export default function DailyWorkLog({ initialEntries = [] }: DailyWorkLogProps) {
-  const { entries, addEntry, updateEntry, deleteEntry } = useWorkLog(initialEntries);
+  const { entries, fetchEntries, addEntry, updateEntry, deleteEntry } = useWorkLog(initialEntries);
   const {
     showForm,
     setShowForm,
@@ -26,10 +26,19 @@ export default function DailyWorkLog({ initialEntries = [] }: DailyWorkLogProps)
     toggleForm,
   } = useWorkLogForm(addEntry, updateEntry);
 
+  // load entries on mount
+  React.useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
+
   const handleDelete = useCallback(
-    (id: string) => {
+    async (id: string) => {
       if (confirm('Are you sure you want to delete this work log entry?')) {
-        deleteEntry(id);
+        try {
+          await deleteEntry(id);
+        } catch {
+          alert('Failed to delete entry');
+        }
       }
     },
     [deleteEntry]

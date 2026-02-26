@@ -1,7 +1,7 @@
 import React from 'react';
 import ProjectStatusBadge from '../ProjectStatusBadge';
 import ProjectProgress from '../ProjectProgress';
-import { Project } from '../../ProjectData';
+import { Project } from '../ProjectData';
 
 interface ProjectCardProps {
   project: Project;

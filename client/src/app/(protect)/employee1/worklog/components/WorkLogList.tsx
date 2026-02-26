@@ -1,4 +1,4 @@
-import WorkLogEntryCard from './WorkLogEntry';
+import WorkLogEntryCard from '../components/WorkLogEntry';
 
 interface WorkLogEntry {
   id: string;

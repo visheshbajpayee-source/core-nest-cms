@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { WorkLogEntry } from './useWorkLog';
+import type { WorkLogEntry } from '../components/useWorkLog';
 
 interface FormData {
   date: string;
@@ -7,7 +7,8 @@ interface FormData {
   description: string;
   project: string;
   hoursSpent: string;
-  status: 'In Progress' | 'Completed' | 'Blocked';
+  // internal status value matches database format (underscore)
+  status: 'in_progress' | 'completed' | 'blocked';
 }
 
 const getDefaultFormData = (): FormData => ({
@@ -16,12 +17,12 @@ const getDefaultFormData = (): FormData => ({
   description: '',
   project: '',
   hoursSpent: '',
-  status: 'In Progress',
+  status: 'in_progress',
 });
 
 export function useWorkLogForm(
-  onAddEntry: (data: Omit<WorkLogEntry, 'id'>) => void,
-  onUpdateEntry: (id: string, data: Omit<WorkLogEntry, 'id'>) => void
+  onAddEntry: (data: Omit<WorkLogEntry, 'id'>) => Promise<any> | void,
+  onUpdateEntry: (id: string, data: Omit<WorkLogEntry, 'id'>) => Promise<any> | void
 ) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,25 +36,39 @@ export function useWorkLogForm(
     }));
   }, []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!formData.title.trim() || !formData.project || !formData.hoursSpent) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const data = {
+    // convert underscore status to human-readable label
+    const humanStatus =
+      formData.status === 'in_progress'
+        ? 'In Progress'
+        : formData.status === 'completed'
+        ? 'Completed'
+        : 'Blocked';
+
+    const data: Omit<WorkLogEntry, 'id'> = {
       date: formData.date,
       title: formData.title,
       description: formData.description,
       project: formData.project,
       hoursSpent: Number(formData.hoursSpent),
-      status: formData.status,
+      status: humanStatus,
     };
 
-    if (editingId) {
-      onUpdateEntry(editingId, data);
-    } else {
-      onAddEntry(data);
+    try {
+      if (editingId) {
+        await onUpdateEntry(editingId, data);
+      } else {
+        await onAddEntry(data);
+      }
+    } catch (err) {
+      alert('Failed to save work log entry');
+      console.error(err);
+      return;
     }
 
     setFormData(getDefaultFormData());
@@ -74,7 +89,9 @@ export function useWorkLogForm(
       description: entry.description,
       project: entry.project,
       hoursSpent: entry.hoursSpent.toString(),
-      status: entry.status,
+      // convert human label back to underscore form for select value
+      status:
+        entry.status.toLowerCase().replace(/\s+/g, '_') as FormData['status'],
     });
     setEditingId(entry.id);
     setShowForm(true);

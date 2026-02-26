@@ -42,3 +42,7 @@ const authService = async (data: LoginUserDto): Promise<LoginResponseDto> => {
 };
 
 export default authService;
+
+function markAttendance(arg0: string) {
+  throw new Error("Function not implemented.");
+}

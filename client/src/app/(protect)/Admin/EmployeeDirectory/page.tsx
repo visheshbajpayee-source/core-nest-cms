@@ -18,6 +18,8 @@ const emptyForm: EmployeeFormState = {
 	status: "active",
 };
 
+const isObjectIdLike = (value?: string) => /^[a-fA-F0-9]{24}$/.test((value ?? "").trim());
+
 // â”€â”€â”€ Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EmployeeModal({
 	open, onClose, editingId, form, error, onChange, onSubmit, saving,
@@ -146,6 +148,8 @@ function EmployeeModal({
 // â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function EmployeeDirectoryPage() {
 	const [employees, setEmployees] = useState<Employee[]>([]);
+	const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+	const [designations, setDesignations] = useState<{ id: string; title: string }[]>([]);
 	const [form, setForm] = useState<EmployeeFormState>(emptyForm);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [modalOpen, setModalOpen] = useState(false);
@@ -158,35 +162,89 @@ export default function EmployeeDirectoryPage() {
 	const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 	const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
+	const mapEmployee = (e: any): Employee => {
+		const departmentId = e.departmentId ?? (isObjectIdLike(e.department) ? e.department : undefined);
+		const designationId = e.designationId ?? (isObjectIdLike(e.designation) ? e.designation : undefined);
+
+		const departmentName =
+			!isObjectIdLike(e.department)
+				? e.department
+				: departments.find((d) => d.id === departmentId)?.name ?? e.department;
+		const designationName =
+			!isObjectIdLike(e.designation)
+				? e.designation
+				: designations.find((d) => d.id === designationId)?.title ?? e.designation;
+
+		return {
+			id: e.id ?? e._id,
+			employeeId: e.employeeId,
+			fullName: e.fullName,
+			email: e.email,
+			role: e.role,
+			department: departmentName,
+			departmentId,
+			designation: designationName,
+			designationId,
+			dateOfJoining: typeof e.dateOfJoining === "string"
+				? e.dateOfJoining
+				: new Date(e.dateOfJoining).toISOString(),
+			status: e.status,
+			phoneNumber: e.phoneNumber,
+			profilePicture: e.profilePicture,
+		};
+	};
+
 	useEffect(() => {
 		const t = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 		if (!t) { setError("Not authenticated. Please log in."); setLoading(false); return; }
 		setLoading(true);
-		fetch(`${API}/employees`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } })
-			.then(async (r) => {
-				const j = await r.json();
-				if (!r.ok || !j.success) {
-					setError(j.message || `Server error ${r.status}`);
+		Promise.all([
+			fetch(`${API}/departments`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then((r) => r.json()),
+			fetch(`${API}/designations`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then((r) => r.json()),
+			fetch(`${API}/employees`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then(async (r) => ({ ok: r.ok, status: r.status, body: await r.json() })),
+		])
+			.then(([deptJson, desigJson, employeesRes]) => {
+				const deptList = Array.isArray(deptJson?.data)
+					? deptJson.data.map((d: any) => ({ id: d.id ?? d._id, name: d.name }))
+					: [];
+				const desigList = Array.isArray(desigJson?.data)
+					? desigJson.data.map((d: any) => ({ id: d.id ?? d._id, title: d.title }))
+					: [];
+
+				setDepartments(deptList);
+				setDesignations(desigList);
+
+				if (!employeesRes.ok || !employeesRes.body?.success) {
+					setError(employeesRes.body?.message || `Server error ${employeesRes.status}`);
 					return;
 				}
-				const list: any[] = Array.isArray(j.data) ? j.data : [];
-				setEmployees(list.map((e) => ({
-					id: e.id ?? e._id,
-					employeeId: e.employeeId,
-					fullName: e.fullName,
-					email: e.email,
-					role: e.role,
-					department: e.department,
-					departmentId: e.departmentId,
-					designation: e.designation,
-					designationId: e.designationId,
-					dateOfJoining: typeof e.dateOfJoining === "string"
-						? e.dateOfJoining
-						: new Date(e.dateOfJoining).toISOString(),
-					status: e.status,
-					phoneNumber: e.phoneNumber,
-					profilePicture: e.profilePicture,
-				})));
+
+				const list: any[] = Array.isArray(employeesRes.body.data) ? employeesRes.body.data : [];
+				setEmployees(list.map((employee) => {
+					const departmentId = employee.departmentId ?? (isObjectIdLike(employee.department) ? employee.department : undefined);
+					const designationId = employee.designationId ?? (isObjectIdLike(employee.designation) ? employee.designation : undefined);
+					return {
+						id: employee.id ?? employee._id,
+						employeeId: employee.employeeId,
+						fullName: employee.fullName,
+						email: employee.email,
+						role: employee.role,
+						department: !isObjectIdLike(employee.department)
+							? employee.department
+							: deptList.find((d) => d.id === departmentId)?.name ?? employee.department,
+						departmentId,
+						designation: !isObjectIdLike(employee.designation)
+							? employee.designation
+							: desigList.find((d) => d.id === designationId)?.title ?? employee.designation,
+						designationId,
+						dateOfJoining: typeof employee.dateOfJoining === "string"
+							? employee.dateOfJoining
+							: new Date(employee.dateOfJoining).toISOString(),
+						status: employee.status,
+						phoneNumber: employee.phoneNumber,
+						profilePicture: employee.profilePicture,
+					};
+				}));
 			})
 			.catch(() => setError("Could not reach the server. Is the backend running?"))
 			.finally(() => setLoading(false));
@@ -196,7 +254,8 @@ export default function EmployeeDirectoryPage() {
 	const openEdit = (emp: Employee) => {
 		setEditingId(emp.employeeId); setError(null);
 		setForm({ fullName: emp.fullName, email: emp.email, password: "", phoneNumber: emp.phoneNumber || "",
-			department: emp.departmentId || "", designation: emp.designationId || "",
+			department: emp.departmentId || departments.find((d) => d.name === emp.department)?.id || "",
+			designation: emp.designationId || designations.find((d) => d.title === emp.designation)?.id || "",
 			dateOfJoining: emp.dateOfJoining ? emp.dateOfJoining.substring(0, 10) : "",
 			role: emp.role, status: emp.status });
 		setModalOpen(true);
@@ -221,8 +280,7 @@ export default function EmployeeDirectoryPage() {
 				});
 				const json = await res.json();
 				if (!res.ok) throw new Error(json.message || "Failed");
-				const e = json.data;
-				const updated: Employee = { id: e.id ?? e._id, employeeId: e.employeeId, fullName: e.fullName, email: e.email, role: e.role, department: e.department, designation: e.designation, dateOfJoining: e.dateOfJoining, status: e.status, phoneNumber: e.phoneNumber };
+				const updated = mapEmployee(json.data);
 				setEmployees((prev) => prev.map((emp) => emp.employeeId === editingId ? updated : emp));
 			} else {
 				const res = await fetch(`${API}/employees`, {
@@ -231,8 +289,7 @@ export default function EmployeeDirectoryPage() {
 				});
 				const json = await res.json();
 				if (!res.ok) throw new Error(json.message || "Failed");
-				const e = json.data;
-				const created: Employee = { id: e.id ?? e._id, employeeId: e.employeeId, fullName: e.fullName, email: e.email, role: e.role, department: e.department, designation: e.designation, dateOfJoining: e.dateOfJoining, status: e.status, phoneNumber: e.phoneNumber };
+				const created = mapEmployee(json.data);
 				setEmployees((prev) => [created, ...prev]);
 			}
 			closeModal();

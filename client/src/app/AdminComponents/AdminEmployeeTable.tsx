@@ -50,6 +50,12 @@ export default function AdminEmployeeTable({
 									<th className="hidden px-4 py-2 text-left font-medium text-slate-600 md:table-cell md:px-6">
 										Department
 									</th>
+									<th className="hidden px-4 py-2 text-left font-medium text-slate-600 lg:table-cell lg:px-6">
+										Designation
+									</th>
+									<th className="hidden px-4 py-2 text-left font-medium text-slate-600 xl:table-cell xl:px-6">
+										Phone
+									</th>
 									<th className="hidden px-4 py-2 text-left font-medium text-slate-600 md:table-cell md:px-6">
 										Role
 									</th>
@@ -78,6 +84,12 @@ export default function AdminEmployeeTable({
 										</td>
 										<td className="hidden whitespace-nowrap px-4 py-2 text-xs text-slate-600 md:table-cell md:px-6">
 											{emp.department || "-"}
+										</td>
+										<td className="hidden whitespace-nowrap px-4 py-2 text-xs text-slate-600 lg:table-cell lg:px-6">
+											{emp.designation || "-"}
+										</td>
+										<td className="hidden whitespace-nowrap px-4 py-2 text-xs text-slate-600 xl:table-cell xl:px-6">
+											{emp.phoneNumber || "-"}
 										</td>
 										<td className="hidden whitespace-nowrap px-4 py-2 text-xs text-slate-600 md:table-cell md:px-6">
 											{emp.role.charAt(0).toUpperCase() + emp.role.slice(1)}

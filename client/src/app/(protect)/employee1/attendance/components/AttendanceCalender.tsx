@@ -19,7 +19,7 @@ const AttendanceCalender = () => {
             if (day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
                 sampleData[dateKey] = 'today';
             }
-            // Sample pattern: present on weekdays, absent on some random days
+        
             else if (Math.random() > 0.1) {
                 sampleData[dateKey] = 'present';
             } else if (Math.random() > 0.8) {

@@ -40,6 +40,7 @@ const Leave = () => {
     const [showModal, setShowModal] = useState(false);
     const [localHistory, setLocalHistory] = useState<LeaveHistoryItem[]>([]);
     const [loading, setLoading] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Fetch leave data from service on component mount
     useEffect(() => {
@@ -61,6 +62,7 @@ const Leave = () => {
     const handleFormSubmit = (newLeave: LeaveHistoryItem) => {
         setLocalHistory([newLeave, ...localHistory]);
         setShowModal(false);
+        setRefreshTrigger(prev => prev + 1);
     };
 
     return (
@@ -116,7 +118,7 @@ const Leave = () => {
                         <span className="ml-2 text-gray-600">Loading leave history...</span>
                     </div>
                 ) : (
-                    <LeaveHistory />
+                    <LeaveHistory refreshTrigger={refreshTrigger} />
                 )}
             </div>
         </div>

@@ -4,17 +4,25 @@ import employeeRoutes from "./modules/employees/employee.routes";
 import attendanceRoutes from "./modules/attendance/attendance.routes"; 
 import departmentRoutes from "./modules/department/department.routes";
 import designationRoutes from "./modules/designation/designation.routes";
-import leaveRoutes from "./modules/leave/leave.routes";
+import leaveRoutes from "./modules/leaves/leave.routes";
 import worklogRoutes from "./modules/worklogs/worklog.routes";
 import announcementRoutes from "./modules/announcements/announcement.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import taskRoutes from "./modules/tasks/task.routes";
-import holidayRoutes from "./modules/holidays/holiday.routes";
-import documentRoutes from "./modules/documents/document.routes";
+import holidayRoutes from "./modules/holiday/holiday.routes";
+
+
+import documentRoutes from "./modules/documents/documents.routes";
+import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
+
 const router: Router = Router();
 
 router.use("/login", authRoutes);
 router.use("/employees", employeeRoutes);
+router.use("/attendance", attendanceRoutes);
+router.use("/holidays", holidayRoutes);
+router.use("/leave-types", leaveTypeRoutes);
+router.use("/leaves", leaveRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/designations", designationRoutes);
 router.use("/attendance", attendanceRoutes);

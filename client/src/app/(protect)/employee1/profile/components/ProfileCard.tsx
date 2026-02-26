@@ -113,7 +113,6 @@ export default function ProfileCard({
           <div>
             <p className="text-xs text-gray-500 mb-1">Joined On</p>
             <p className="text-sm font-medium text-gray-800">
-              {new Date(profileData.joinDate).toLocaleDateString('en-IN', {
               {new Date(profileData.dateOfJoining).toLocaleDateString('en-IN', {
                 year: 'numeric',
                 month: 'long',

@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-// 
-=======
->>>>>>> c9a4e86f0323ac426797183559a9bfdab33e0857
 import { Router } from "express";
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
@@ -17,36 +13,9 @@ import { updateAttendanceSchema } from "./attendance.validation";
 
 const router: Router = Router();
 
-<<<<<<< HEAD
-/*
- * GET /api/v1/attendance/me
- * Logged-in user can view their own attendance
- */
-router.get("/me", protect, getMyAttendanceController);
-router.get(
-  "/summary",
-  protect,
-  getMonthlySummaryController
-);
-/*
- * GET /api/v1/attendance
- * Admin & Manager can view attendance
- */
-router.get(
-  "/",
-  protect,
-  authorize("admin", "manager"),
-  getAttendanceController
-);
-/*
- * PATCH /api/v1/attendance/:id
- * Admin can manually update attendance
- */
-=======
 router.get("/me", protect, getMyAttendanceController);
 router.get("/summary", protect, getMonthlySummaryController);
 router.get("/", protect, authorize("admin", "manager"), getAttendanceController);
->>>>>>> c9a4e86f0323ac426797183559a9bfdab33e0857
 router.patch(
   "/:id",
   protect,
@@ -54,19 +23,6 @@ router.patch(
   validate(updateAttendanceSchema),
   updateAttendanceController
 );
-<<<<<<< HEAD
-
-/*
- * POST /api/v1/attendance/checkout
- * Logged-in user checkout
- */
-router.post(
-  "/checkout",
-  protect,
-  checkoutAttendanceController
-);
-=======
 router.post("/checkout", protect, checkoutAttendanceController);
->>>>>>> c9a4e86f0323ac426797183559a9bfdab33e0857
 
 export default router;

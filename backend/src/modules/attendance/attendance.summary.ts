@@ -24,34 +24,28 @@ export const getMonthlySummary = async (
 
   const workingDays = countWorkingDays(start, end);
 
-  // Exclude unfinished today
-  const today = new Date().toDateString();
+  // Count by status
+  const presentDays = records.filter(
+    (r) => r.status === "present"
+  ).length;
 
-  const completedRecords = records.filter(
-    (r) =>
-      r.checkOutTime || r.date.toDateString() !== today
-  );
+  const leaveDays = records.filter(
+    (r) => r.status === "on_leave"
+  ).length;
 
-  const completedWorkingDays =
-    completedRecords.length > workingDays
-      ? workingDays
-      : workingDays;
-
-  const presentDays = completedRecords.length;
-
-  const totalWorkHours = completedRecords.reduce(
+  const totalWorkHours = records.reduce(
     (sum, r) => sum + (r.workHours ?? 0),
     0
   );
 
   const absentDays =
-    completedWorkingDays - presentDays > 0
-      ? completedWorkingDays - presentDays
+    workingDays - presentDays - leaveDays > 0
+      ? workingDays - presentDays - leaveDays
       : 0;
 
   const attendancePercentage =
-    completedWorkingDays > 0
-      ? (presentDays / completedWorkingDays) * 100
+    workingDays > 0
+      ? ((presentDays + leaveDays) / workingDays) * 100
       : 0;
 
   return {
@@ -59,6 +53,7 @@ export const getMonthlySummary = async (
     year: selectedYear,
     workingDays,
     presentDays,
+    leaveDays,
     absentDays,
     totalWorkHours: Number(totalWorkHours.toFixed(2)),
     attendancePercentage: Number(attendancePercentage.toFixed(2)),

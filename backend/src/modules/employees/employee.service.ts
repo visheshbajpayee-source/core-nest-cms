@@ -139,6 +139,7 @@ export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto |
       employeeId: employee.employeeId,
       status: employee.status,
       profilePicture: employee.profilePicture,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     if (error instanceof ApiError) throw error;
@@ -180,6 +181,7 @@ export const updateEmployee = async (
       employeeId: employee.employeeId,
       status: employee.status,
       profilePicture: employee.profilePicture,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     if (error instanceof ApiError) throw error;

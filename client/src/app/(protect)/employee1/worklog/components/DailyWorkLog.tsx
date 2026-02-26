@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import WorkLogForm from './WorkLogForm';
 import WorkLogList from './WorkLogList';
 import WorkLogStats from './WorkLogStats';
@@ -13,7 +13,7 @@ interface DailyWorkLogProps {
 }
 
 export default function DailyWorkLog({ initialEntries = [] }: DailyWorkLogProps) {
-  const { entries, addEntry, updateEntry, deleteEntry } = useWorkLog(initialEntries);
+  const { entries, fetchEntries, addEntry, updateEntry, deleteEntry } = useWorkLog(initialEntries);
   const {
     showForm,
     setShowForm,
@@ -26,10 +26,19 @@ export default function DailyWorkLog({ initialEntries = [] }: DailyWorkLogProps)
     toggleForm,
   } = useWorkLogForm(addEntry, updateEntry);
 
+  // load entries on mount
+  React.useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
+
   const handleDelete = useCallback(
-    (id: string) => {
+    async (id: string) => {
       if (confirm('Are you sure you want to delete this work log entry?')) {
-        deleteEntry(id);
+        try {
+          await deleteEntry(id);
+        } catch {
+          alert('Failed to delete entry');
+        }
       }
     },
     [deleteEntry]

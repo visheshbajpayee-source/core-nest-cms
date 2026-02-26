@@ -11,10 +11,13 @@ import projectRoutes from "./modules/projects/project.routes";
 import taskRoutes from "./modules/tasks/task.routes";
 import holidayRoutes from "./modules/holiday/holiday.routes";
 import documentRoutes from "./modules/documents/documents.routes";
+import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
+import leaveRoutes from "./modules/leaves/leave.routes";
 const router: Router = Router();
 
 router.use("/login", authRoutes);
 router.use("/employees", employeeRoutes);
+router.use("/leave-types", leaveTypeRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/designations", designationRoutes);
 router.use("/attendance", attendanceRoutes);

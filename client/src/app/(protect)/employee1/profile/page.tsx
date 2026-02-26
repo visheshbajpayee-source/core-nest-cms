@@ -131,6 +131,7 @@ function ProfileDetails({ profileData }: ProfileDetailsProps) {
           Employee Profile
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DetailField label="System ID" value={profileData.id} />
           <DetailField label="Full Name" value={profileData.fullName} />
           <DetailField label="Email" value={profileData.email} />
           <DetailField label="Phone Number" value={profileData.phoneNumber} />
@@ -141,6 +142,7 @@ function ProfileDetails({ profileData }: ProfileDetailsProps) {
           <DetailField label="Employee ID" value={profileData.employeeId} />
           <DetailField label="Status" value={profileData.status.charAt(0).toUpperCase() + profileData.status.slice(1)} />
           <DetailField label="Profile Picture" value={profileData.profilePicture ? 'Added' : 'Not added'} />
+          <DetailField label="Profile Picture URL" value={profileData.profilePicture || '-'} />
         </div>
       </section>
     </div>

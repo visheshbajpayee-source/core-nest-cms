@@ -3,6 +3,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
 type AuthUser = { id?: string; email?: string };
 
 export interface ProfileData {
+  id: string;
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -21,7 +22,9 @@ interface EmployeeApi {
   email: string;
   phoneNumber?: string;
   department: string;
+  departmentId?: string;
   designation: string;
+  designationId?: string;
   dateOfJoining: string;
   employeeId: string;
   role: 'admin' | 'manager' | 'employee';
@@ -29,8 +32,21 @@ interface EmployeeApi {
   profilePicture?: string;
 }
 
+interface DepartmentApi {
+  _id: string;
+  name: string;
+}
+
+interface DesignationApi {
+  _id: string;
+  title: string;
+}
+
+const isObjectIdLike = (value?: string) => /^[a-fA-F0-9]{24}$/.test((value ?? '').trim());
+
 function normalizeProfile(employee: EmployeeApi): ProfileData {
   return {
+    id: employee.id,
     fullName: employee.fullName,
     email: employee.email,
     phoneNumber: employee.phoneNumber ?? '',
@@ -42,6 +58,66 @@ function normalizeProfile(employee: EmployeeApi): ProfileData {
     status: employee.status,
     profilePicture: employee.profilePicture,
   };
+}
+
+async function getDepartmentNameById(id: string, token: string): Promise<string | null> {
+  const response = await fetch(`${API}/departments/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) return null;
+  const json = await response.json();
+  const data = (json?.data ?? null) as DepartmentApi | null;
+  return data?.name ?? null;
+}
+
+async function getDesignationTitleById(id: string, token: string): Promise<string | null> {
+  const response = await fetch(`${API}/designations/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) return null;
+  const json = await response.json();
+  const data = (json?.data ?? null) as DesignationApi | null;
+  return data?.title ?? null;
+}
+
+async function hydrateReferenceNames(profile: ProfileData, token: string): Promise<ProfileData> {
+  return hydrateReferenceNamesWithIds(profile, token, {});
+}
+
+async function hydrateReferenceNamesWithIds(
+  profile: ProfileData,
+  token: string,
+  ids: { departmentId?: string; designationId?: string }
+): Promise<ProfileData> {
+  const next = { ...profile };
+
+  const departmentLookupId = isObjectIdLike(next.department)
+    ? next.department
+    : (isObjectIdLike(ids.departmentId) ? ids.departmentId : undefined);
+
+  if (departmentLookupId) {
+    const departmentName = await getDepartmentNameById(departmentLookupId, token);
+    if (departmentName) next.department = departmentName;
+  }
+
+  const designationLookupId = isObjectIdLike(next.designation)
+    ? next.designation
+    : (isObjectIdLike(ids.designationId) ? ids.designationId : undefined);
+
+  if (designationLookupId) {
+    const designationTitle = await getDesignationTitleById(designationLookupId, token);
+    if (designationTitle) next.designation = designationTitle;
+  }
+
+  return next;
 }
 
 export function getStoredProfile(): ProfileData | null {
@@ -98,9 +174,7 @@ export async function fetchMyProfile(): Promise<ProfileData> {
     throw new Error('Please login first.');
   }
 
-  const user = getAuthUser(token);
-
-  const response = await fetch(`${API}/employees`, {
+  const response = await fetch(`${API}/employees/me`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -112,16 +186,12 @@ export async function fetchMyProfile(): Promise<ProfileData> {
     throw new Error(json.message || 'Failed to load profile');
   }
 
-  const list = (json.data ?? []) as EmployeeApi[];
-  const current =
-    (user.id ? list.find((item) => item.id === user.id) : undefined) ??
-    (user.email ? list.find((item) => item.email === user.email) : undefined);
-
-  if (!current) {
-    throw new Error('Profile not found for logged in user');
-  }
-
-  const profile = normalizeProfile(current);
+  const employee = (json.data ?? {}) as EmployeeApi;
+  const rawProfile = normalizeProfile(employee);
+  const profile = await hydrateReferenceNamesWithIds(rawProfile, token, {
+    departmentId: employee.departmentId,
+    designationId: employee.designationId,
+  });
   localStorage.setItem('profileData', JSON.stringify(profile));
 
   return profile;
@@ -156,6 +226,7 @@ export async function updateMyProfile(
   const saved = json.data as EmployeeApi;
 
   const next: ProfileData = {
+    id: saved.id ?? currentProfile.id,
     fullName: saved.fullName ?? currentProfile.fullName,
     email: saved.email ?? currentProfile.email,
     phoneNumber: saved.phoneNumber ?? updates.phoneNumber ?? currentProfile.phoneNumber,
@@ -168,6 +239,10 @@ export async function updateMyProfile(
     profilePicture: saved.profilePicture ?? updates.profilePicture ?? currentProfile.profilePicture,
   };
 
-  localStorage.setItem('profileData', JSON.stringify(next));
-  return next;
+  const hydrated = await hydrateReferenceNamesWithIds(next, token, {
+    departmentId: saved.departmentId,
+    designationId: saved.designationId,
+  });
+  localStorage.setItem('profileData', JSON.stringify(hydrated));
+  return hydrated;
 }

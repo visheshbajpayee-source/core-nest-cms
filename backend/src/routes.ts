@@ -4,7 +4,6 @@ import employeeRoutes from "./modules/employees/employee.routes";
 import attendanceRoutes from "./modules/attendance/attendance.routes"; 
 import departmentRoutes from "./modules/department/department.routes";
 import designationRoutes from "./modules/designation/designation.routes";
-import leaveRoutes from "./modules/leave/leave.routes";
 import worklogRoutes from "./modules/worklogs/worklog.routes";
 import announcementRoutes from "./modules/announcements/announcement.routes";
 import projectRoutes from "./modules/projects/project.routes";

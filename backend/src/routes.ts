@@ -9,10 +9,15 @@ import worklogRoutes from "./modules/worklogs/worklog.routes";
 import announcementRoutes from "./modules/announcements/announcement.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import taskRoutes from "./modules/tasks/task.routes";
+<<<<<<< HEAD
 import holidayRoutes from "./modules/holiday/holiday.routes";
 import documentRoutes from "./modules/documents/documents.routes";
 import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
 
+=======
+import holidayRoutes from "./modules/holidays/holiday.routes";
+import documentRoutes from "./modules/documents/document.routes";
+>>>>>>> 985519d223e42058ab2aeefbe0e75d704627d523
 const router: Router = Router();
 
 router.use("/login", authRoutes);

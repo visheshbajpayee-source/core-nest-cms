@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/**
+/*
  * Allowed attendance statuses
  */
 export const attendanceStatusEnum = z.enum([
@@ -9,7 +9,7 @@ export const attendanceStatusEnum = z.enum([
   "holiday",
 ]);
 
-/**
+/*
  * Update attendance validation (Admin only)
  */
 export const updateAttendanceSchema = z.object({

@@ -10,7 +10,7 @@ import {
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { getMonthlySummary } from "./attendance.summary";
 
-/**
+/*
  * GET /attendance/me
  * Logged-in user can view their own attendance
  * Supports month & year filtering

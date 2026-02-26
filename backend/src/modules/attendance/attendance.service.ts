@@ -3,12 +3,8 @@ import { Attendance } from "./attendance.model";
 import { Types } from "mongoose";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
 import { normalizeDate } from "./attendance.utils"; 
-// 🔹 Reusable utility function (clean architecture)
 
-/**
- * ---------------------------------------------------------
- * AUTO MARK ATTENDANCE (CHECK-IN)
- * ---------------------------------------------------------
+/*
  * This function runs automatically during login.
  * - It prevents duplicate attendance marking.
  * - It creates a new attendance record if not already present.
@@ -43,10 +39,8 @@ export const markAttendance = async (employeeId: string) => {
 };
 
 
-/**
- * ---------------------------------------------------------
- * CHECKOUT ATTENDANCE
- * ---------------------------------------------------------
+/*
+  * This function allows employees to checkout.         
  * - Updates checkOutTime
  * - Calculates workHours
  * - Prevents multiple checkouts
@@ -89,10 +83,7 @@ export const checkoutAttendance = async (employeeId: string) => {
 };
 
 
-/**
- * ---------------------------------------------------------
- * GET MY ATTENDANCE
- * ---------------------------------------------------------
+/*
  * - Supports optional month & year filtering
  * - Returns formatted records
  */
@@ -121,10 +112,7 @@ export const getMyAttendance = async (
 };
 
 
-/**
- * ---------------------------------------------------------
- * GET ALL ATTENDANCE (Admin / Manager)
- * ---------------------------------------------------------
+/*
  * - Populates employee basic info
  */
 export const getAllAttendance = async (query: unknown) => {
@@ -136,35 +124,42 @@ export const getAllAttendance = async (query: unknown) => {
 };
 
 
-/**
- * ---------------------------------------------------------
- * ADMIN STATUS CORRECTION
- * ---------------------------------------------------------
+/*
  * - Allows admin to manually change attendance status
+ */
+/*
+ * - Allows admin to manually change attendance status
+ * - Applies business rules
+ *   → If on_leave or holiday → clear time tracking
  */
 export const updateAttendanceStatus = async (
   id: string,
   status: "present" | "on_leave" | "holiday"
 ) => {
-  const updated = await Attendance.findByIdAndUpdate(
-    id,
-    { status },
-    { new: true }
-  );
+  // First fetch the attendance record
+  const attendance = await Attendance.findById(id);
 
-  if (!updated) {
-    throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+  if (!attendance) {
+    throw ApiError.notFound("Attendance record not found");
   }
 
-  return formatAttendance(updated);
+  // Business Rule:
+  // If marking leave or holiday → clear timing fields
+  if (status === "on_leave" || status === "holiday") {
+    attendance.status = status;
+    attendance.checkInTime = null;
+    attendance.checkOutTime = null;
+    attendance.workHours = null;
+  } else {
+    // If marking present → thenonly update status
+    attendance.status = status;
+  }
+
+  await attendance.save();
+
+  return formatAttendance(attendance);
 };
-
-
-/**
- * ---------------------------------------------------------
- * FORMAT RESPONSE FOR FRONTEND
- * ---------------------------------------------------------
- * - Removes unnecessary DB fields
+/*
  * - Sends clean structured response
  */
 const formatAttendance = (record: any) => {

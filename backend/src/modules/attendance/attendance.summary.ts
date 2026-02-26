@@ -1,7 +1,7 @@
 import { Attendance } from "./attendance.model";
 import { countWorkingDays } from "./attendance.utils";
 
-/**
+/*
  * Monthly Summary Logic
  */
 export const getMonthlySummary = async (

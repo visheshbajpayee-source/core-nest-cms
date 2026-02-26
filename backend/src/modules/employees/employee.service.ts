@@ -5,6 +5,23 @@ import {
   EmployeeResponseDto,
 } from "../../dto/user.dto";
 import { ApiError } from "../../common/utils/ApiError";
+import { Types } from "mongoose";
+
+const normalizeEmployeeLookupId = (id: string) => {
+  const raw = (id || "").trim();
+  if (/^emp\d+$/i.test(raw)) return raw.toUpperCase();
+  return raw;
+};
+
+/*
+ Service notes:
+ - Wraps Mongoose `Employee` operations and returns DTO-shaped results.
+ - Uses `employeeId` (business id) for lookups in get/update/delete where appropriate.
+ - `getAllEmployees` supports filtering at the controller layer; this service currently
+   returns all employee documents and the controller applies filters for managers.
+ - Errors are normalized into `ApiError` instances so controllers and middleware
+   can handle them consistently.
+*/
 
 /**
  * CREATE
@@ -25,6 +42,7 @@ export const createEmployee = async (
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
     };
   } catch (error: any) {
     throw ApiError.internalServer(error.message || "Failed to create employee");
@@ -36,26 +54,19 @@ export const createEmployee = async (
  */
 export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto[]> => {
   try {
-    let employees = await Employee.find();
     const queryObj: any = {};
 
-    if (filters.department) queryObj.department = filters.department;
-    if (filters.designation) queryObj.designation = filters.designation;
-    if (filters.status) queryObj.status = filters.status;
-    if (filters.role) queryObj.role = filters.role;
+    if (filters?.department) queryObj.department = filters.department;
+    if (filters?.designation) queryObj.designation = filters.designation;
+    if (filters?.status) queryObj.status = filters.status;
+    if (filters?.role) queryObj.role = filters.role;
 
-    if (filters.search) {
+    if (filters?.search) {
       const re = new RegExp(filters.search, "i");
-      queryObj.$or = [
-        { fullName: re },
-        { email: re },
-        { employeeId: re },
-      ];
+      queryObj.$or = [{ fullName: re }, { email: re }, { employeeId: re }];
     }
 
-    employees = await Employee.find(queryObj)
-      .populate("department", "name")
-      .populate("designation", "title");
+    const employees = await Employee.find(queryObj);
 
     return employees.map((employee) => ({
       id: employee._id.toString(),
@@ -69,9 +80,10 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
-      phoneNumber: employee.phoneNumber,
+      profilePicture: employee.profilePicture,
     }));
   } catch (error: any) {
+    if (error instanceof ApiError) throw error;
     throw ApiError.internalServer("Failed to fetch employees");
   }
 };
@@ -79,17 +91,44 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
 /**
  * GET BY EMPLOYEE ID (NOT Mongo _id)
  */
-export const getEmployeeById = async (
-  employeeId: string
-): Promise<EmployeeResponseDto | null> => {
-  try {
-    const employee = await Employee.findOne({ employeeId })
-      .populate("department", "name")
-      .populate("designation", "title");
+// export const getEmployeeById = async (
+//   employeeId: string
+// ): Promise<EmployeeResponseDto | null> => {
+//   try {
+//     const employee = await Employee.findOne({ employeeId });
 
-    if (!employee) {
-      throw ApiError.notFound("Employee not found");
-    }
+//     if (!employee) {
+//       throw ApiError.notFound("Employee not found");
+//     }
+
+//     return {
+//       id: employee._id.toString(),
+//       fullName: employee.fullName,
+//       email: employee.email,
+//       role: employee.role,
+//       department: employee.department.toString(),
+//       designation: employee.designation.toString(),
+//       dateOfJoining: employee.dateOfJoining,
+//       employeeId: employee.employeeId,
+//       status: employee.status,
+//     };
+//   } catch (error: any) {
+//     throw ApiError.internalServer("Failed to fetch employee");
+//   }
+// };
+// employee.service.ts
+
+
+
+export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto | null> => {
+  try {
+    const normalizedId = normalizeEmployeeLookupId(id);
+    const query = Types.ObjectId.isValid(normalizedId)
+      ? { $or: [{ _id: normalizedId }, { employeeId: normalizedId }] }
+      : { employeeId: normalizedId };
+
+    const employee = await Employee.findOne(query);
+    if (!employee) throw ApiError.notFound("Employee not found");
 
     return {
       id: employee._id.toString(),
@@ -103,9 +142,11 @@ export const getEmployeeById = async (
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
       phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
+    if (error instanceof ApiError) throw error;
     throw ApiError.internalServer("Failed to fetch employee");
   }
 };
@@ -114,12 +155,17 @@ export const getEmployeeById = async (
  * UPDATE by employeeId
  */
 export const updateEmployee = async (
-  employeeId: string,
+  id: string,
   data: UpdateEmployeeDto
 ): Promise<EmployeeResponseDto | null> => {
   try {
+    const normalizedId = normalizeEmployeeLookupId(id);
+    const query = Types.ObjectId.isValid(normalizedId)
+      ? { $or: [{ _id: normalizedId }, { employeeId: normalizedId }] }
+      : { employeeId: normalizedId };
+
     const employee = await Employee.findOneAndUpdate(
-      { employeeId },
+      query,
       data,
       { new: true }
     ).populate("department", "name").populate("designation", "title");
@@ -140,9 +186,11 @@ export const updateEmployee = async (
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
       phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
+    if (error instanceof ApiError) throw error;
     throw ApiError.internalServer("Failed to update employee");
   }
 };
@@ -151,10 +199,14 @@ export const updateEmployee = async (
  * DELETE by employeeId
  */
 export const deleteEmployee = async (
-  employeeId: string
+  id: string
 ): Promise<boolean> => {
   try {
-    const result = await Employee.findOneAndDelete({ employeeId });
+    const normalizedId = normalizeEmployeeLookupId(id);
+    const query = Types.ObjectId.isValid(normalizedId)
+      ? { $or: [{ _id: normalizedId }, { employeeId: normalizedId }] }
+      : { employeeId: normalizedId };
+    const result = await Employee.findOneAndDelete(query);
 
     if (!result) {
       throw ApiError.notFound("Employee not found");

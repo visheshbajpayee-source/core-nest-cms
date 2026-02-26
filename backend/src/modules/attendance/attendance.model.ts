@@ -14,13 +14,19 @@ const attendanceSchema = new Schema<IAttendance>(
     },
     checkInTime: {
       type: Date,
+        default: null,
+
     },
     checkOutTime: {
   type: Date,
+    default: null,
+
 },
 
 workHours: {
   type: Number,
+    default: null,
+
 },
     status: {
       type: String,

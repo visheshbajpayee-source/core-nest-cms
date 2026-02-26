@@ -12,6 +12,7 @@ export interface CreateEmployeeDto {
 export interface UpdateEmployeeDto {
   fullName?: string;
   phoneNumber?: string;
+  profilePicture?: string;
   designation?: string;
   status?: "active" | "inactive";
 }

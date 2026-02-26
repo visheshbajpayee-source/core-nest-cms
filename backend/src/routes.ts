@@ -9,9 +9,8 @@ import worklogRoutes from "./modules/worklogs/worklog.routes";
 import announcementRoutes from "./modules/announcements/announcement.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import taskRoutes from "./modules/tasks/task.routes";
-import holidayRoutes from "./modules/holidays/holiday.routes";
+import holidayRoutes from "./modules/holiday/holiday.routes";
 import documentRoutes from "./modules/documents/documents.routes";
-
 const router: Router = Router();
 
 router.use("/login", authRoutes);
@@ -27,5 +26,4 @@ router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/holidays", holidayRoutes);
 router.use("/documents", documentRoutes);
-
 export default router;

@@ -27,6 +27,14 @@ router.get("/me",  (req, res, next) => {
 	return getEmployeeController(req as any, res, next);
 });
 
+// Update own profile (limited fields by role checks in controller)
+router.put("/me", protect, (req, res, next) => {
+	const r: any = req;
+	r.params = r.params || {};
+	r.params.id = r.user?.id;
+	return updateEmployeeController(req as any, res, next);
+});
+
 // Get by id (admin, manager or owner via controller checks)
 router.get("/:id", getEmployeeController);
 

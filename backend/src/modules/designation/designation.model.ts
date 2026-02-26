@@ -23,8 +23,5 @@ const designationSchema: Schema<IDesignation> = new Schema(
   }
 );
 
-// Optional: index explicitly (clean practice)
-designationSchema.index({ title: 1 }, { unique: true });
-
 export const Designation: Model<IDesignation> =
   mongoose.model<IDesignation>("Designation", designationSchema);

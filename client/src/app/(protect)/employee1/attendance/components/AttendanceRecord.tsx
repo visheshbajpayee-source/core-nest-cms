@@ -1,4 +1,5 @@
 import React from 'react'
+import { getAttendanceRecord } from '../services/attendence';
 
 const AttendanceRecord = () => {
 
@@ -6,6 +7,15 @@ const percentage = 40; // Present days / total days * 100
 const radius = 68;  
 const circumference = 2 * Math.PI * radius;
 const offset = circumference - (percentage / 100) * circumference;
+
+getAttendanceRecord()
+  .then(res => {
+    console.log("Attendance record:", res);
+  })
+  .catch(err => {
+    console.error("Error fetching attendance record:", err);
+  });
+
   return (
 
           <div className="flex flex-col gap-6 mb-8">

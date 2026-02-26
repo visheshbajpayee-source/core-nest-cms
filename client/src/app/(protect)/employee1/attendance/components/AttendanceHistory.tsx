@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { AttendanceRecord, getAttendanceHistory } from "../services/attendence";
+import {  getAttendanceHistory } from "../services/attendence";
 export default function Attendance() {
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1–12
@@ -24,6 +24,7 @@ const [dateFilter, setDateFilter] = useState({
   year: currentYear,
 });
   const [attendanceHistory, setAttendanceHistory] = useState<AttendanceRecord[]>([]);
+  // const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
 
   // 🔹 Fetch attendance for selected month/year
   const fetchAttendance = async (m: number, y: number) => {

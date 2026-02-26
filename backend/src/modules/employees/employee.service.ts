@@ -54,7 +54,9 @@ export const createEmployee = async (
  */
 export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto[]> => {
   try {
-    const employees = await Employee.find();
+    const employees = await Employee.find()
+      .populate("department", "name")
+      .populate("designation", "title");
 
     return employees.map((employee) => ({
       id: employee._id.toString(),
@@ -75,38 +77,6 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
   }
 };
 
-/**
- * GET BY EMPLOYEE ID (NOT Mongo _id)
- */
-export const getEmployeeById = async (
-  employeeId: string
-): Promise<EmployeeResponseDto | null> => {
-  try {
-    const employee = await Employee.findOne({ employeeId });
-
-//     if (!employee) {
-//       throw ApiError.notFound("Employee not found");
-//     }
-
-//     return {
-//       id: employee._id.toString(),
-//       fullName: employee.fullName,
-//       email: employee.email,
-//       role: employee.role,
-//       department: employee.department.toString(),
-//       designation: employee.designation.toString(),
-//       dateOfJoining: employee.dateOfJoining,
-//       employeeId: employee.employeeId,
-//       status: employee.status,
-//     };
-//   } catch (error: any) {
-//     throw ApiError.internalServer("Failed to fetch employee");
-//   }
-// };
-// employee.service.ts
-
-
-
 export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto | null> => {
   try {
     const normalizedId = normalizeEmployeeLookupId(id);
@@ -114,7 +84,9 @@ export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto |
       ? { $or: [{ _id: normalizedId }, { employeeId: normalizedId }] }
       : { employeeId: normalizedId };
 
-    const employee = await Employee.findOne(query);
+    const employee = await Employee.findOne(query)
+      .populate("department", "name")
+      .populate("designation", "title");
     if (!employee) throw ApiError.notFound("Employee not found");
 
     return {

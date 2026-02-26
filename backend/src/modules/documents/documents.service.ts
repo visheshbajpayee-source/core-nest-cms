@@ -1,6 +1,3 @@
-import { randomBytes } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
 import { ApiError } from "../../common/utils/ApiError";
 import {
   CreateDocumentDto,
@@ -104,28 +101,13 @@ const toResponse = (doc: IDocument): DocumentResponseDto => ({
   fileName: doc.fileName,
   mimeType: doc.mimeType,
   fileSize: doc.fileSize,
-  fileUrl: `/${doc.filePath.split(path.sep).join("/")}`,
+  // Expose an API route for downloading the file from MongoDB
+  fileUrl: `/documents/${doc._id.toString()}/download`,
   uploadedBy: doc.uploadedBy.toString(),
   uploadDate: doc.uploadDate,
   createdAt: doc.createdAt,
   updatedAt: doc.updatedAt,
 });
-
-const saveDocumentFile = async (
-  employeeId: string,
-  fileName: string,
-  content: Buffer
-): Promise<string> => {
-  const safeName = sanitizeFileName(fileName);
-  const uniquePrefix = `${Date.now()}-${randomBytes(6).toString("hex")}`;
-  const directory = path.join(process.cwd(), "uploads", "documents", employeeId);
-  const absolutePath = path.join(directory, `${uniquePrefix}-${safeName}`);
-
-  await fs.mkdir(directory, { recursive: true });
-  await fs.writeFile(absolutePath, content);
-
-  return path.relative(process.cwd(), absolutePath);
-};
 
 export const createDocument = async (
   payload: CreateDocumentDto,
@@ -154,14 +136,12 @@ export const createDocument = async (
     throw ApiError.badRequest("File size exceeds 5MB limit");
   }
 
-  const filePath = await saveDocumentFile(payload.employeeId, payload.fileName, buffer);
-
   const created = await DocumentModel.create({
     employee: owner._id,
     documentName: payload.documentName,
     documentType: payload.documentType,
     fileName: sanitizeFileName(payload.fileName),
-    filePath,
+    fileData: buffer,
     mimeType: payload.mimeType,
     fileSize: buffer.length,
     uploadedBy: user.id,
@@ -272,12 +252,23 @@ export const deleteDocument = async (
     throw ApiError.forbidden("Managers cannot delete documents");
   }
 
-  const absolutePath = path.join(process.cwd(), doc.filePath);
   await DocumentModel.findByIdAndDelete(id);
+};
 
-  try {
-    await fs.unlink(absolutePath);
-  } catch {
-    // Ignore missing files while metadata delete succeeds.
+export const getDocumentFileById = async (
+  id: string,
+  user: AuthUser
+): Promise<{ buffer: Buffer; mimeType: string; fileName: string }> => {
+  const doc = await DocumentModel.findById(id);
+  if (!doc) {
+    throw ApiError.notFound("Document not found");
   }
+
+  await assertAccess(doc, user);
+
+  return {
+    buffer: doc.fileData,
+    mimeType: doc.mimeType,
+    fileName: doc.fileName,
+  };
 };

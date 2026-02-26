@@ -8,6 +8,7 @@ import {
   deleteDocument,
   getDocumentById,
   getDocuments,
+  getDocumentFileById,
   updateDocument,
 } from "./documents.service";
 
@@ -88,6 +89,30 @@ export const deleteDocumentController = async (
     const user = getUserFromRequest(req as AuthRequest);
     await deleteDocument(req.params.id, user);
     return ApiResponse.sendSuccess(res, 200, "Document deleted", null);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const downloadDocumentController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = getUserFromRequest(req as AuthRequest);
+    const { buffer, mimeType, fileName } = await getDocumentFileById(
+      req.params.id,
+      user
+    );
+
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${fileName.replace(/"/g, '\"')}"`
+    );
+
+    return res.send(buffer);
   } catch (error) {
     next(error);
   }

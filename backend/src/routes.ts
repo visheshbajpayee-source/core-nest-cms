@@ -33,8 +33,9 @@ router.use("/worklogs", worklogRoutes);
 router.use("/:employeeId/worklogs", worklogRoutes);
 router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
-router.use("/attendance", attendanceRoutes);
 router.use("/documents", documentRoutes);
+router.use("/attendance", attendanceRoutes);
+
 
 router.use("/departments", departmentRoutes);
 router.use("/designations", designationRoutes);

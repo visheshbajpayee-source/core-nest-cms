@@ -46,10 +46,11 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
   const data = loginJson.data as LoginApiResponse;
 
   localStorage.setItem('accessToken', data.accessToken);
-  localStorage.setItem('user', JSON.stringify(data.user));
+  // localStorage.setItem('user', JSON.stringify(data.user));
 
+  // Fetch full profile data using /me endpoint (works for all users)
   try {
-    const profileRes = await fetch(`${API}/employees`, {
+    const profileRes = await fetch(`${API}/employees/me`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${data.accessToken}`,
@@ -58,15 +59,12 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
 
     if (profileRes.ok) {
       const profileJson = await profileRes.json();
-      const list = (profileJson?.data ?? []) as EmployeeApi[];
-      const current =
-        list.find((item) => item.id === data.user.id) ??
-        list.find((item) => item.email === data.user.email);
-
-      if (current) {
+      if (profileJson?.success && profileJson?.data) {
+        const current = profileJson.data as EmployeeApi;
         localStorage.setItem(
           'profileData',
           JSON.stringify({
+            id: current.id,
             fullName: current.fullName,
             email: current.email,
             phoneNumber: current.phoneNumber ?? '',
@@ -79,9 +77,15 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
             profilePicture: current.profilePicture,
           })
         );
+        console.log('✅ Profile data saved successfully');
+      } else {
+        console.warn('⚠️ Invalid profile response format');
       }
+    } else {
+      console.warn('⚠️ Failed to fetch profile data:', profileRes.status);
     }
-  } catch {
+  } catch (error) {
+    console.error('⚠️ Error fetching profile data:', error);
   }
 
   return data;

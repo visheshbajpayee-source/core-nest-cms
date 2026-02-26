@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {  getAttendanceHistory } from "../services/attendence";
+import { getAttendanceHistory, AttendanceRecord } from "../services/attendence";
 export default function Attendance() {
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1–12
@@ -24,22 +24,29 @@ const [dateFilter, setDateFilter] = useState({
   year: currentYear,
 });
   const [attendanceHistory, setAttendanceHistory] = useState<AttendanceRecord[]>([]);
-  // const [attendanceHistory, setAttendanceHistory] = useState<any[]>([]);
 
   // 🔹 Fetch attendance for selected month/year
-  const fetchAttendance = async (m: number, y: number) => {
-    try {
-      const response = await getAttendanceHistory("12", {
-        month: String(m),
-        year: String(y),
-      });
-      if (response.success) {
-        setAttendanceHistory(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching attendance:", error);
+const fetchAttendance = async (m: number, y: number) => {
+  try {
+    const response = await getAttendanceHistory({
+      month: String(m).padStart(2, "0"),
+      year: String(y),
+    });
+
+    console.log("Fetched attendance history:", response);
+    
+    if (response.success && Array.isArray(response.data)) {
+      setAttendanceHistory(response.data);
+      console.log("Set attendance history with", response.data.length, "records");
+    } else {
+      console.warn("Invalid response format:", response);
+      setAttendanceHistory([]);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching attendance:", error);
+    setAttendanceHistory([]);
+  }
+};
 
   // 🔹 First time load → fetch current month/year
   useEffect(() => {
@@ -94,8 +101,22 @@ const [dateFilter, setDateFilter] = useState({
         </div>
       </div>
 
+      {/* Empty State */}
+      {attendanceHistory.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-2">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <p className="text-gray-500 font-medium">No attendance records found</p>
+          <p className="text-gray-400 text-sm mt-1">Try selecting a different month or year</p>
+        </div>
+      )}
+
       {/* Mobile Cards View */}
-      <div className="block sm:hidden space-y-3">
+      {attendanceHistory.length > 0 && (
+        <div className="block sm:hidden space-y-3">
         {attendanceHistory.map((record, index) => (
           <div
             key={index}
@@ -133,10 +154,12 @@ const [dateFilter, setDateFilter] = useState({
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Desktop Table View */}
-      <div className="hidden sm:block overflow-x-auto">
+      {attendanceHistory.length > 0 && (
+        <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full text-sm lg:text-base">
           <thead>
             <tr className="bg-slate-50 text-slate-700">
@@ -176,7 +199,8 @@ const [dateFilter, setDateFilter] = useState({
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,8 @@ import holidayRoutes from "./modules/holiday/holiday.routes";
 import announcementRoutes from "./modules/announcements/announcement.routes";
 
 import documentRoutes from "./modules/documents/documents.routes";
+import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
+import leaveRoutes from "./modules/leaves/leave.routes";
 
 const router: Router = Router();
 
@@ -20,7 +22,8 @@ router.use("/login", authRoutes);
 router.use("/employees", employeeRoutes);
 router.use("/attendance", attendanceRoutes);
 router.use("/holidays", holidayRoutes);
-
+router.use("/leave-types", leaveTypeRoutes);
+router.use("/leaves", leaveRoutes);
 router.use("/departments", departmentRoutes);
 // Keep existing top-level worklogs route
 router.use("/worklogs", worklogRoutes);

@@ -7,9 +7,15 @@ import axios, { AxiosError, AxiosInstance } from "axios";
 export type LeaveType = "sick" | "casual" | "earned" | "other";
 export type LeaveStatus = "pending" | "approved" | "rejected";
 
+export interface PopulatedLeaveType {
+  _id: string;
+  name: string;
+  code: string;
+}
+
 export interface LeaveRecord {
   id: string;
-  leaveType: LeaveType;
+  leaveType: PopulatedLeaveType | string; // Can be populated object or string
   startDate: string;
   endDate: string;
   numberOfDays: number;
@@ -32,7 +38,7 @@ export interface LeaveFilters {
 }
 
 export interface CreateLeaveRequest {
-  leaveType: LeaveType;
+  leaveType: string; // Leave type ID (ObjectId as string)
   startDate: string;
   endDate: string;
   reason: string;

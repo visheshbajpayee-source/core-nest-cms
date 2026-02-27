@@ -67,9 +67,8 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
   };
 
   useEffect(() => {
-    
-      fetchLeaves(currentMonth, currentYear);
-    
+    // Fetch leave data on mount and when refreshTrigger changes
+    fetchLeaves(dateFilter.month, dateFilter.year);
   }, [externalHistory, refreshTrigger]);
 
   useEffect(() => {
@@ -258,7 +257,9 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
           >
             <div className="flex justify-between items-start mb-3">
               <div className="font-semibold text-slate-800 text-sm capitalize">
-                {record.leaveType}
+                {typeof record.leaveType === 'object' && record.leaveType !== null 
+                  ? record.leaveType.name 
+                  : record.leaveType}
               </div>
 
               <span
@@ -330,7 +331,9 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
                 className="border-t border-gray-200 hover:bg-gray-50 transition-all duration-200"
               >
                 <td className="py-3 px-4 font-medium text-slate-800 capitalize">
-                  {record.leaveType}
+                  {typeof record.leaveType === 'object' && record.leaveType !== null 
+                    ? record.leaveType.name 
+                    : record.leaveType}
                 </td>
 
                 <td className="py-3 px-4 text-slate-700">

@@ -1,12 +1,25 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import { getAttendanceHistory, AttendanceRecord } from '../services/attendence';
+import { getLeaveHistory, LeaveRecord } from '../../leave/services/EmployeeLeaves/leaves';
+import { getHolidays, Holiday, formatHolidayDate } from '../services/holiday';
 
-const AttendanceCalender = () => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [attendanceData, setAttendanceData] = useState<{[key: string]: 'Present' | 'Absent' | 'Late' | 'Active'}>({});
-    const [loading, setLoading] = useState(false);
+type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Active' | 'Leave' | 'Holiday';
 
-    // Fetch real attendance data from API
+interface AttendanceDataMap {
+    [key: string]: AttendanceStatus;
+}
+
+interface HolidayNameMap {
+    [key: string]: string;
+}
+
+const AttendanceCalender: React.FC = () => {
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
+    const [attendanceData, setAttendanceData] = useState<AttendanceDataMap>({});
+    const [holidayNames, setHolidayNames] = useState<HolidayNameMap>({});
+    const [loading, setLoading] = useState<boolean>(false);
+
+    // Fetch real attendance data, leave data, and holiday data from API
     useEffect(() => {
         const fetchAttendanceData = async () => {
             setLoading(true);
@@ -14,23 +27,61 @@ const AttendanceCalender = () => {
                 const month = String(currentDate.getMonth() + 1).padStart(2, '0');
                 const year = String(currentDate.getFullYear());
                 
-                const response = await getAttendanceHistory({ month, year });
+                // Fetch attendance, leave, and holiday data in parallel
+                const [attendanceResponse, leaveResponse, holidayResponse] = await Promise.all([
+                    getAttendanceHistory({ month, year }),
+                    getLeaveHistory({ month, year }),
+                    getHolidays({ year })
+                ]);
                 
-                if (response.success && response.data) {
-                    const dataMap: {[key: string]: 'Present' | 'Absent' | 'Late' | 'Active'} = {};
-                    
-                    response.data.forEach((record: AttendanceRecord) => {
+                const dataMap: AttendanceDataMap = {};
+                const holidayNameMap: HolidayNameMap = {};
+                
+                // First, populate attendance data
+                if (attendanceResponse.success && attendanceResponse.data) {
+                    attendanceResponse.data.forEach((record: AttendanceRecord) => {
                         // Parse date from "DD/MM/YYYY" format
-                        const [day, month, year] = record.date.split('/');
-                        const dateKey = `${year}-${month}-${day}`;
+                        const [day, recordMonth, recordYear] = record.date.split('/');
+                        const dateKey = `${recordYear}-${recordMonth}-${day}`;
                         dataMap[dateKey] = record.status;
                     });
-                    
-                    setAttendanceData(dataMap);
-                    console.log('Calendar attendance data:', dataMap);
                 }
+                
+                // Then, overlay approved leave data (approved leaves override absence)
+                if (leaveResponse.success && leaveResponse.data) {
+                    leaveResponse.data.forEach((leave: LeaveRecord) => {
+                        // Only show approved leaves on calendar
+                        if (leave.status === 'approved') {
+                            const startDate = new Date(leave.startDate);
+                            const endDate = new Date(leave.endDate);
+                            
+                            // Mark all days in the leave range
+                            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                                const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                                dataMap[dateKey] = 'Leave';
+                            }
+                        }
+                    });
+                }
+                
+                // Finally, add holiday data (holidays override everything)
+                if (holidayResponse.success && holidayResponse.data) {
+                    holidayResponse.data.forEach((holiday: Holiday) => {
+                        const dateKey = formatHolidayDate(holiday.date);
+                        dataMap[dateKey] = 'Holiday';
+                        holidayNameMap[dateKey] = holiday.name;
+                    });
+                }
+                
+                setAttendanceData(dataMap);
+                setHolidayNames(holidayNameMap);
+                
+                console.log('📅 Calendar data loaded:', {
+                    attendanceRecords: Object.keys(dataMap).length,
+                    holidays: Object.keys(holidayNameMap).length
+                });
             } catch (error) {
-                console.error('Error fetching attendance data for calendar:', error);
+                console.error('❌ Error fetching calendar data:', error);
             } finally {
                 setLoading(false);
             }
@@ -39,14 +90,14 @@ const AttendanceCalender = () => {
         fetchAttendanceData();
     }, [currentDate]);
 
-    const monthNames = [
+    const monthNames: readonly string[] = [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
     ];
 
-    const daysOfWeek = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const daysOfWeek: readonly string[] = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-    const getCurrentMonthData = () => {
+    const getCurrentMonthData = (): { days: Date[]; month: number; year: number } => {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         const firstDayOfMonth = new Date(year, month, 1);
@@ -57,7 +108,7 @@ const AttendanceCalender = () => {
         const startDay = (firstDayOfMonth.getDay() + 6) % 7;
         startDate.setDate(1 - startDay);
 
-        const days = [];
+        const days: Date[] = [];
         for (let i = 0; i < 42; i++) { // 6 rows × 7 days
             const date = new Date(startDate);
             date.setDate(startDate.getDate() + i);
@@ -67,7 +118,7 @@ const AttendanceCalender = () => {
         return { days, month, year };
     };
 
-    const navigateMonth = (direction: 'prev' | 'next') => {
+    const navigateMonth = (direction: 'prev' | 'next'): void => {
         const newDate = new Date(currentDate);
         if (direction === 'prev') {
             newDate.setMonth(currentDate.getMonth() - 1);
@@ -77,7 +128,7 @@ const AttendanceCalender = () => {
         setCurrentDate(newDate);
     };
 
-    const getAttendanceStatus = (date: Date) => {
+    const getAttendanceStatus = (date: Date): string | null => {
         const month = currentDate.getMonth();
         const year = currentDate.getFullYear();
         
@@ -93,13 +144,13 @@ const AttendanceCalender = () => {
                         date.getFullYear() === today.getFullYear();
         
         if (isToday && status) {
-            return 'today-' + status; // e.g., 'today-Present', 'today-Absent'
+            return `today-${status}`; // e.g., 'today-Present', 'today-Absent'
         }
         
         return status || null;
     };
 
-    const getDayClasses = (date: Date, status: string | null) => {
+    const getDayClasses = (date: Date, status: string | null): string => {
         const isCurrentMonth = date.getMonth() === currentDate.getMonth();
         let classes = "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 flex items-center justify-center text-xs sm:text-sm md:text-base rounded-full transition-all duration-200 cursor-pointer touch-manipulation ";
 
@@ -124,6 +175,12 @@ const AttendanceCalender = () => {
                     case 'Active':
                         classes += "bg-gradient-to-br from-blue-500 to-cyan-500 text-white ";
                         break;
+                    case 'Leave':
+                        classes += "bg-gradient-to-br from-red-500 to-red-500 text-white ";
+                        break;
+                    case 'Holiday':
+                        classes += "bg-gradient-to-br from-purple-500 to-violet-500 text-white ";
+                        break;
                     default:
                         classes += "bg-indigo-700 text-white ";
                 }
@@ -141,6 +198,12 @@ const AttendanceCalender = () => {
                         break;
                     case 'Active':
                         classes += "bg-gradient-to-br from-blue-100 to-cyan-100 text-blue-700 hover:bg-blue-200 hover:scale-105 active:scale-95 ";
+                        break;
+                    case 'Leave':
+                        classes += "bg-gradient-to-br from-red-100 to-red-100 text-red-700 hover:bg-red-200 hover:scale-105 active:scale-95 ";
+                        break;
+                    case 'Holiday':
+                        classes += "bg-gradient-to-br from-purple-100 to-violet-100 text-purple-700 hover:bg-purple-200 hover:scale-105 active:scale-95 ";
                         break;
                     default:
                         classes += "text-slate-600 hover:bg-slate-100 hover:scale-105 active:scale-95 ";
@@ -197,13 +260,27 @@ const AttendanceCalender = () => {
             <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center">
                 {days.map((date, index) => {
                     const status = getAttendanceStatus(date);
+                    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    const holidayName = holidayNames[dateKey];
+                    const actualStatus = status?.startsWith('today-') ? status.replace('today-', '') : status;
+                    const isHoliday = actualStatus === 'Holiday';
+                    
                     return (
                         <div 
                             key={index}
-                            className={getDayClasses(date, status)}
-                            title={`${date.getDate()} ${monthNames[date.getMonth()]} - ${status || 'No data'}`}
+                            className="flex flex-col items-center justify-center"
                         >
-                            {date.getDate()}
+                            <div 
+                                className={getDayClasses(date, status)}
+                                title={`${date.getDate()} ${monthNames[date.getMonth()]} - ${isHoliday && holidayName ? holidayName : status || 'No data'}`}
+                            >
+                                {date.getDate()}
+                            </div>
+                            {isHoliday && holidayName && date.getMonth() === currentDate.getMonth() && (
+                                <div className="text-[8px] sm:text-[9px] md:text-[10px] text-purple-600 font-medium mt-0.5 truncate max-w-full px-0.5">
+                                    {holidayName}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
@@ -216,23 +293,20 @@ const AttendanceCalender = () => {
                     <span className="text-slate-600">Present</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <div className="w-3 h-3 bg-gradient-to-br from-red-100 to-rose-100 rounded-full border border-red-200"></div>
-                    <span className="text-slate-600">Absent</span>
+                    <div className="w-3 h-3 bg-gradient-to-br from-red-100 to-red-100 rounded-full border border-red-200"></div>
+                    <span className="text-slate-600">On Leave</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <div className="w-3 h-3 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full border border-orange-200"></div>
-                    <span className="text-slate-600">Late</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <div className="w-3 h-3 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full border border-blue-200"></div>
-                    <span className="text-slate-600">Active</span>
+                    <div className="w-3 h-3 bg-gradient-to-br from-purple-100 to-violet-100 rounded-full border border-purple-200"></div>
+                    <span className="text-slate-600">Holiday</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <div className="w-3 h-3 bg-indigo-700 rounded-full ring-2 ring-indigo-400"></div>
                     <span className="text-slate-600">Today</span>
                 </div>
             </div>
-        </div>
+            </div>
+        
     )
 }
 

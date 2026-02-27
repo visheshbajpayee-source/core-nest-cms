@@ -197,13 +197,18 @@ export const getMyLeaveHistory = async (
 
   return leaves.map((leave: any) => {
     const populatedLeaveType = leave.leaveType;
-    const code = populatedLeaveType?.code
-      ? String(populatedLeaveType.code).toLowerCase()
-      : undefined;
 
     return {
       id: String(leave._id),
-      leaveType: code ?? "other",
+      leaveType: populatedLeaveType ? {
+        _id: String(populatedLeaveType._id),
+        name: populatedLeaveType.name,
+        code: populatedLeaveType.code,
+      } : {
+        _id: '',
+        name: 'Other',
+        code: 'OTHER',
+      },
       startDate: new Date(leave.startDate).toISOString(),
       endDate: new Date(leave.endDate).toISOString(),
       numberOfDays: leave.totalDays,

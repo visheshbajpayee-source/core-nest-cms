@@ -1,64 +1,62 @@
 'use client';
 
-import { useCallback } from 'react';
-import WorkLogForm from '@/app/(protect)/employee1/worklog/components/WorkLogForm';
-import WorkLogList from '@/app/(protect)/employee1/worklog/components/WorkLogList';
-import WorkLogStats from '@/app/(protect)/employee1/worklog/components/WorkLogStats';
-import WorkLogEmpty from '@/app/(protect)/employee1/worklog/components/WorkLogEmpty';
-import { useWorkLog, type WorkLogEntry } from '@/app/(protect)/employee1/worklog/components/useWorkLog';
-import { useWorkLogForm } from '@/app/(protect)/employee1/worklog/components/useWorkLogForm';
+import Link from 'next/link';
+import type { WorkLogEntry } from '@/app/(protect)/employee1/worklog/components/useWorkLog';
 
 interface DailyWorkLogProps {
   initialEntries?: WorkLogEntry[];
 }
 
 export default function DailyWorkLog({ initialEntries = [] }: DailyWorkLogProps) {
-  const { entries, addEntry, updateEntry, deleteEntry } = useWorkLog(initialEntries);
-  const {
-    showForm,
-    setShowForm,
-    formData,
-    editingId,
-    handleInputChange,
-    handleSubmit,
-    handleCancel,
-    openEditForm,
-    toggleForm,
-  } = useWorkLogForm(addEntry, updateEntry);
+  const previewEntries = initialEntries
+    .slice()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 2);
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      if (confirm('Are you sure you want to delete this work log entry?')) {
-        deleteEntry(id);
-      }
-    },
-    [deleteEntry]
-  );
+  const statusStyles: Record<WorkLogEntry['status'], string> = {
+    Completed: 'bg-emerald-100 text-emerald-700',
+    'In Progress': 'bg-amber-100 text-amber-700',
+    Blocked: 'bg-rose-100 text-rose-700',
+  };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Daily Work Log</h1>
-          <p className="text-sm sm:text-base text-gray-600">Track your daily tasks and progress</p>
+          <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Daily Work Log</h2>
+          <p className="text-xs text-slate-500 sm:text-sm">Latest updates from your submitted logs</p>
         </div>
-        <button
-          onClick={toggleForm}
-          className="w-full sm:w-auto px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-lg transition text-sm sm:text-base"
+        <Link
+          href="/employee1/worklog"
+          className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 sm:text-sm"
         >
-          {showForm ? 'Cancel' : '+ Add Work Log'}
-        </button>
+          View all
+        </Link>
       </div>
 
-      {/* Form */}
-      {showForm && <WorkLogForm formData={formData} editingId={editingId} onInputChange={handleInputChange} onSubmit={handleSubmit} onCancel={handleCancel} />}
-
-      {/* Stats */}
-      {entries.length > 0 && <WorkLogStats entries={entries} />}
-
-      {/* List or Empty */}
-      {entries.length === 0 ? <WorkLogEmpty onCreateClick={() => setShowForm(true)} /> : <WorkLogList entries={entries} onEdit={openEditForm} onDelete={handleDelete} />}
+      {previewEntries.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+          No work logs yet. Add today&apos;s update from Work Log page.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {previewEntries.map((entry) => (
+            <div key={entry.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-2 flex items-start justify-between gap-3">
+                <h3 className="line-clamp-1 text-sm font-semibold text-slate-900 sm:text-base">{entry.title}</h3>
+                <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${statusStyles[entry.status]}`}>
+                  {entry.status}
+                </span>
+              </div>
+              <p className="line-clamp-2 text-xs text-slate-600 sm:text-sm">{entry.description || 'No description provided.'}</p>
+              <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 sm:text-xs">
+                <span>{new Date(entry.date).toLocaleDateString()}</span>
+                <span className="font-medium text-slate-700">{entry.hoursSpent}h</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

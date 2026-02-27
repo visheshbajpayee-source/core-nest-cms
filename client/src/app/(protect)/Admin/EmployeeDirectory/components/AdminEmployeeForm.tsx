@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import type { EmployeeFormState } from "./adminTypes";
+import type { EmployeeFormState } from "../../types/adminTypes";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
@@ -41,7 +41,7 @@ export default function AdminEmployeeForm({
 			fetch(`${API}/departments`, { headers: h }).then((r) => r.json()),
 			fetch(`${API}/designations`, { headers: h }).then((r) => r.json()),
 		]).then(([depts, desigs]) => {
-			if (depts.success && Array.isArray(depts.data)) setDepartments(depts.data);
+			void depts;
 			if (desigs.success && Array.isArray(desigs.data)) setDesignations(desigs.data);
 		}).catch(() => {});
 	}, []);
@@ -139,35 +139,6 @@ export default function AdminEmployeeForm({
 
 				<div className="grid gap-3 sm:grid-cols-2">
 					<div>
-						{/* <label className="mb-1 block text-sm font-medium text-slate-700">
-							Department
-						</label> */}
-						{/* <select
-							name="department"
-							value={form.department}
-							onChange={onChange}
-							required
-							className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-						>
-							<option value="">Select department
-											    {departments.map((dept) => (
-          <option key={dept} value={dept}>
-            {dept}
-          </option>
-        ))}
-							</option>
-			
-						</select> */}
-
-						  {/* <select className="border p-2 rounded w-64">
-        <option value="">Select Department</option>
-
-        {departments.map((dept) => (
-          <option key={dept} value={dept}>
-            {dept}
-          </option>
-        ))}
-      </select> */}
 					</div>
 
 					<div>

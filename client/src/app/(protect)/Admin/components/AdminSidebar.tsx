@@ -45,7 +45,6 @@ export default function AdminSidebar() {
 						<div className="text-sm font-semibold">Admin Panel</div>
 					</Link>
 				</div>
-				{/* Close button — mobile only */}
 				<button onClick={() => setMobileOpen(false)}
 					className="ml-auto rounded p-1 text-slate-400 hover:text-white lg:hidden">
 					<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,7 +53,7 @@ export default function AdminSidebar() {
 				</button>
 			</div>
 
-			<nav className="flex-1 space-y-1 overflow-y-auto py-4">
+			<nav className="flex-1 space-y-1 overflow-y-auto py-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 				{adminNavItems.map((item) => (
 					<AdminNavItem
 						key={item.path}
@@ -81,7 +80,6 @@ export default function AdminSidebar() {
 
 	return (
 		<>
-			{/* Hamburger button — mobile only */}
 			<button
 				onClick={() => setMobileOpen(true)}
 				className="fixed left-4 top-4 z-50 flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white shadow-md lg:hidden"
@@ -92,7 +90,6 @@ export default function AdminSidebar() {
 				</svg>
 			</button>
 
-			{/* Backdrop — mobile only */}
 			{mobileOpen && (
 				<div
 					className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
@@ -133,4 +130,3 @@ function AdminNavItem({
 		</Link>
 	);
 }
-

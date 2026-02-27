@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import React, { useEffect, useState } from "react";
-import { AdminEmployeeTable, AdminSidebar } from "@/app/EmployeeComponents";
-import type { Employee, EmployeeFormState } from "@/app/AdminComponents/adminTypes";
+import { AdminEmployeeTable, AdminSidebar } from "../components";
+import type { Employee, EmployeeFormState } from "@/app/(protect)/Admin/types/adminTypes";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
@@ -204,10 +204,10 @@ export default function EmployeeDirectoryPage() {
 			fetch(`${API}/employees`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then(async (r) => ({ ok: r.ok, status: r.status, body: await r.json() })),
 		])
 			.then(([deptJson, desigJson, employeesRes]) => {
-				const deptList = Array.isArray(deptJson?.data)
+				const deptList: { id: string; name: string }[] = Array.isArray(deptJson?.data)
 					? deptJson.data.map((d: any) => ({ id: d.id ?? d._id, name: d.name }))
 					: [];
-				const desigList = Array.isArray(desigJson?.data)
+				const desigList: { id: string; title: string }[] = Array.isArray(desigJson?.data)
 					? desigJson.data.map((d: any) => ({ id: d.id ?? d._id, title: d.title }))
 					: [];
 

@@ -148,8 +148,6 @@ export default function DashboardContent() {
     const now = new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
-    const today = now.toISOString().slice(0, 10);
-
     const requests = [
       fetch(`${API_BASE}/employees/me`, { headers }),
       fetch(`${API_BASE}/attendance/summary?month=${month}&year=${year}`, { headers }),
@@ -159,7 +157,7 @@ export default function DashboardContent() {
       fetch(`${API_BASE}/holidays?year=${year}`, { headers }),
       fetch(`${API_BASE}/leave-types`, { headers }),
       fetch(`${API_BASE}/leaves`, { headers }),
-      fetch(`${API_BASE}/worklogs?date=${today}`, { headers }),
+      fetch(`${API_BASE}/worklogs`, { headers }),
     ];
 
     Promise.allSettled(requests).then(async (results) => {

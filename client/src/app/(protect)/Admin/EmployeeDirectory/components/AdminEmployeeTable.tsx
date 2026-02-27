@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { Employee } from "./adminTypes";
+import type { Employee } from "../../types/adminTypes";
 
 interface AdminEmployeeTableProps {
 	employees: Employee[];
@@ -75,7 +75,6 @@ export default function AdminEmployeeTable({
 										</td>
 										<td className="whitespace-nowrap px-4 py-2 sm:px-6">
 											<div className="text-sm font-medium text-slate-900">{emp.fullName}</div>
-											{/* Show email + dept below name on mobile */}
 											<div className="mt-0.5 text-xs text-slate-500 sm:hidden">{emp.email}</div>
 											<div className="mt-0.5 text-xs text-slate-400 md:hidden">{emp.department || ""}</div>
 										</td>

@@ -43,7 +43,7 @@ export default function LeaveHistory({ history: externalHistory }: LeaveHistoryP
     try {
        
 
-      const response = await getLeaveHistory("12", {
+      const response = await getLeaveHistory({
         month: String(m),
         year: String(y),
       });

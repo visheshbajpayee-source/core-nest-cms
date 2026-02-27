@@ -85,6 +85,23 @@ const fetchAttendance = async (m: number, y: number) => {
   };
 
   return (
+    <>
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      `}</style>
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl p-3 sm:p-4 md:p-6 border border-gray-100 mb-6 sm:mb-8 transition-all duration-300">
       {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -235,7 +252,7 @@ const fetchAttendance = async (m: number, y: number) => {
 
       {/* Mobile Cards View */}
       {attendanceHistory.length > 0 && (
-        <div className="block sm:hidden space-y-3">
+        <div className="block sm:hidden space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {attendanceHistory.map((record, index) => (
           <div
             key={index}
@@ -278,9 +295,9 @@ const fetchAttendance = async (m: number, y: number) => {
 
       {/* Desktop Table View */}
       {attendanceHistory.length > 0 && (
-        <div className="hidden sm:block overflow-x-auto">
+        <div className="hidden sm:block overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
         <table className="min-w-full text-sm lg:text-base">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-slate-50 text-slate-700">
               <th className="py-3 sm:py-4 px-3 sm:px-4 md:px-6 text-left font-semibold">Date</th>
               <th className="py-3 sm:py-4 px-3 sm:px-4 md:px-6 text-left font-semibold">Check In</th>
@@ -321,5 +338,6 @@ const fetchAttendance = async (m: number, y: number) => {
         </div>
       )}
     </div>
+    </>
   );
 }

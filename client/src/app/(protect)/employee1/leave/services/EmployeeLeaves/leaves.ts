@@ -66,10 +66,7 @@ leaveAPI.interceptors.request.use(
       const token = localStorage.getItem("accessToken");
 
       if (token) {
-        config.headers = {
-          ...config.headers,
-          Authorization: `Bearer ${token}`,
-        };
+        config.headers.Authorization = `Bearer ${token}`;
       }
     }
 
@@ -104,7 +101,6 @@ const dummyLeaveData: LeaveRecord[] = [
  * Fetch leave history
  */
 export const getLeaveHistory = async (
-  employeeId: string,
   filters?: LeaveFilters
 ): Promise<LeaveHistoryResponse> => {
   try {
@@ -113,39 +109,27 @@ export const getLeaveHistory = async (
     const month = filters?.month ?? String(now.getMonth() + 1);
     const year = filters?.year ?? String(now.getFullYear());
 
-    // 🔥 When API ready, use this:
-    /*
+    const params: LeaveFilters = {
+      month,
+      year,
+      ...(filters?.status ? { status: filters.status } : {}),
+      ...(filters?.leaveType ? { leaveType: filters.leaveType } : {}),
+    };
+
+    console.log("📞 Fetching leave history with:", { month, year });
+
     const response = await leaveAPI.get<LeaveHistoryResponse>(
-      `/leaves/${employeeId}/history`,
+      `/v1/leaves/me`,
       {
-        params: {
-          month,
-          year,
-          status: filters?.status,
-          leaveType: filters?.leaveType,
-        },
+        params,
       }
     );
 
-    return response.data;
-    */
-
-    // Dummy filtering
-    const filteredData = dummyLeaveData.filter((leave) => {
-      const leaveMonth = new Date(leave.startDate).getMonth() + 1;
-      const leaveYear = new Date(leave.startDate).getFullYear();
-
-      return (
-        leaveMonth === Number(month) &&
-        leaveYear === Number(year) &&
-        (!filters?.status || leave.status === filters.status) &&
-        (!filters?.leaveType || leave.leaveType === filters.leaveType)
-      );
-    });
+    console.log("✅ Leave history API response:", response.data);
 
     return {
       success: true,
-      data: filteredData,
+      data: response.data.data,
     };
   } catch (error) {
     console.error("Error fetching leave history:", error);

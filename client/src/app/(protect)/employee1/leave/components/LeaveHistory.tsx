@@ -41,15 +41,16 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
   const [leaveHistory, setLeaveHistory] = useState<LeaveRecord[]>([]);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
+  const [loading, setLoading] = useState(false);
   const monthPickerRef = useRef<HTMLDivElement>(null);
   const yearPickerRef = useRef<HTMLDivElement>(null);
   const monthsShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
   const fetchLeaves = async (m: number, y: number) => {
     try {
-       
+      setLoading(true);
 
-      const response = await getLeaveHistory("12", {
+      const response = await getLeaveHistory({
         month: String(m),
         year: String(y),
       });
@@ -60,6 +61,8 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
       }
     } catch (error) {
       console.error("Error fetching leaves:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -224,7 +227,29 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-3"></div>
+          <p className="text-gray-500 font-medium">Loading leave history...</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && leaveHistory.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-2">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <p className="text-gray-500 font-medium">No leave records found</p>
+          <p className="text-gray-400 text-sm mt-1">Try selecting a different month or year</p>
+        </div>
+      )}
+
       {/* 🔹 Mobile Cards View */}
+      {!loading && leaveHistory.length > 0 && (
       <div className="block sm:hidden space-y-3">
         {leaveHistory.map((record, index) => (
           <div
@@ -281,8 +306,10 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
           </div>
         ))}
       </div>
+      )}
 
       {/* 🔹 Desktop Table View */}
+      {!loading && leaveHistory.length > 0 && (
       <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full text-sm lg:text-base">
           <thead>
@@ -340,6 +367,7 @@ export default function LeaveHistory({ history: externalHistory, refreshTrigger 
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

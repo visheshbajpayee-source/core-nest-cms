@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import LeaveHistory from './LeaveHistory';
-import Form from '../Form';
+import Form from '../Form/Form';
 import { getLeaveHistory } from '../services/EmployeeLeaves/leaves';
 
 type LeaveType = 'Casual' | 'Sick' | 'Paid';
@@ -47,7 +47,10 @@ const Leave = () => {
         const fetchLeaveData = async () => {
             setLoading(true);
             try {
-                const response = await getLeaveHistory("12"); // Using dummy employee ID
+                const response = await getLeaveHistory({
+                    month: String(new Date().getMonth() + 1),
+                    year: String(new Date().getFullYear())
+                }); // Using dummy employee ID with current month/year
                 console.log("Leave data fetched:", response);
             } catch (error) {
                 console.error("Error fetching leave history:", error);
@@ -81,7 +84,7 @@ const Leave = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
                 {leaveBalances.map((bal) => (
                     <div key={bal.type} className="bg-white rounded-xl shadow-sm hover:shadow-md p-4 sm:p-6 flex items-center gap-3 sm:gap-4 border border-gray-100 transition-all duration-200 hover:scale-105">
-                        <div className="bg-slate-100 rounded-full p-2 sm:p-3 flex-shrink-0">
+                        <div className="bg-slate-100 rounded-full p-2 sm:p-3 shrink-0">
                             {bal.icon}
                         </div>
                         <div className="min-w-0 flex-1">

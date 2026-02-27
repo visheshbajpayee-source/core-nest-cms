@@ -3,6 +3,22 @@ import { Attendance } from "./attendance.model";
 import { Types } from "mongoose";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
 import { normalizeDate } from "./attendance.utils"; 
+import { Employee } from "../employees/employee.model";
+
+const resolveEmployeeObjectId = async (employeeInput: string): Promise<string> => {
+  const raw = (employeeInput || "").trim();
+
+  if (Types.ObjectId.isValid(raw)) {
+    const exists = await Employee.findById(raw).select("_id");
+    if (!exists) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+    return raw;
+  }
+
+  const employeeId = /^emp\d+$/i.test(raw) ? raw.toUpperCase() : raw;
+  const employee = await Employee.findOne({ employeeId }).select("_id");
+  if (!employee) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+  return employee._id.toString();
+};
 
 /*
  * This function runs automatically during login.
@@ -117,10 +133,51 @@ export const getMyAttendance = async (
  */
 export const getAllAttendance = async (query: unknown) => {
   const records = await Attendance.find({})
-    .populate("employee", "fullName email department")
+    .populate("employee", "fullName email employeeId department")
     .sort({ date: -1 });
 
   return records;
+};
+
+export const createOrCorrectAttendance = async (payload: {
+  employee: string;
+  date: Date;
+  status: "present" | "absent" | "on_leave" | "holiday";
+  checkInTime?: Date;
+}) => {
+  const normalizedDate = normalizeDate(payload.date);
+  const employeeObjectId = await resolveEmployeeObjectId(payload.employee);
+
+  const existing = await Attendance.findOne({
+    employee: employeeObjectId,
+    date: normalizedDate,
+  });
+
+  if (existing) {
+    existing.status = payload.status;
+
+    if (payload.status === "present") {
+      existing.checkInTime = payload.checkInTime ?? existing.checkInTime ?? null;
+    } else {
+      existing.checkInTime = null;
+      existing.checkOutTime = null;
+      existing.workHours = null;
+    }
+
+    await existing.save();
+    return formatAttendance(existing);
+  }
+
+  const created = await Attendance.create({
+    employee: employeeObjectId,
+    date: normalizedDate,
+    status: payload.status,
+    checkInTime: payload.status === "present" ? payload.checkInTime ?? null : null,
+    checkOutTime: null,
+    workHours: null,
+  });
+
+  return formatAttendance(created);
 };
 
 
@@ -134,7 +191,7 @@ export const getAllAttendance = async (query: unknown) => {
  */
 export const updateAttendanceStatus = async (
   id: string,
-  status: "present" | "on_leave" | "holiday"
+  status: "present" | "absent" | "on_leave" | "holiday"
 ) => {
   // First fetch the attendance record
   const attendance = await Attendance.findById(id);
@@ -144,8 +201,8 @@ export const updateAttendanceStatus = async (
   }
 
   // Business Rule:
-  // If marking leave or holiday → clear timing fields
-  if (status === "on_leave" || status === "holiday") {
+  // If marking absent/leave/holiday → clear timing fields
+  if (status === "absent" || status === "on_leave" || status === "holiday") {
     attendance.status = status;
     attendance.checkInTime = null;
     attendance.checkOutTime = null;

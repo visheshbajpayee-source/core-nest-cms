@@ -5,9 +5,6 @@ import LeaveHistory from './LeaveHistory';
 import Form from '../Form/Form';
 import { getLeaveHistory } from '../services/EmployeeLeaves/leaves';
 
-type LeaveType = 'Casual' | 'Sick' | 'Paid';
-
-
 interface LeaveBalance {
     type: string;
     count: number;
@@ -28,7 +25,7 @@ const leaveBalances: LeaveBalance[] = [
 
 type LeaveStatus = 'Approved' | 'Pending' | 'Rejected';
 interface LeaveHistoryItem {
-    type: LeaveType;
+    type: string;
     from: string;
     to: string;
     days: number;

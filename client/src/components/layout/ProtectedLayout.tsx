@@ -27,12 +27,12 @@ export default function ProtectedLayout({ children }: Props) {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    // if (!token) {
-    //   router.replace("/login");
-    // } else {
+    if (!token) {
+      setIsAuthenticated(false);
+      router.replace("/login");
+    } else {
       setIsAuthenticated(true);
-    // }
-      
+    }
   }, [router]);
 
   // Prevent flicker before redirect

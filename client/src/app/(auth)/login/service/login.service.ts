@@ -29,6 +29,8 @@ interface EmployeeApi {
   profilePicture?: string;
 }
 
+let role = "admin";
+
 export async function loginAndStoreProfile(payload: LoginPayload): Promise<LoginApiResponse> {
   const loginRes = await fetch(`${API}/login`, {
     method: 'POST',
@@ -39,6 +41,8 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
   });
 
   const loginJson = await loginRes.json();
+  console.log("login json response - ", loginJson.data.user.role);
+  role = loginJson.data.user.role;
   if (!loginRes.ok || !loginJson?.success) {
     throw new Error(loginJson?.message || 'Invalid credentials. Please try again.');
   }
@@ -90,3 +94,5 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
 
   return data;
 }
+
+export {role};

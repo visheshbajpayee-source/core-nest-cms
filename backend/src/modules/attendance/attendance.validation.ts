@@ -5,6 +5,7 @@ import { z } from "zod";
  */
 export const attendanceStatusEnum = z.enum([
   "present",
+  "absent",
   "on_leave",
   "holiday",
 ]);
@@ -15,8 +16,18 @@ export const attendanceStatusEnum = z.enum([
 export const updateAttendanceSchema = z.object({
   status: attendanceStatusEnum,
 });
-export const addAttendanceSchema = z.object({
-  employeeId: z.string().optional(),
-  date: z.date().optional(),
+
+export const manualAttendanceSchema = z.object({
+  employee: z
+    .string()
+    .trim()
+    .regex(/^(?:[a-fA-F0-9]{24}|EMP\d+)$/i, "Enter valid Employee ID (EMP###) or Mongo ObjectId"),
+  date: z.coerce.date(),
+  status: attendanceStatusEnum,
+  checkInTime: z.preprocess(
+    (value) => (value === "" || value === null ? undefined : value),
+    z.coerce.date().optional()
+  ),
 });
-export type AddAttendance = z.infer<typeof addAttendanceSchema>; 
+
+export type ManualAttendancePayload = z.infer<typeof manualAttendanceSchema>;

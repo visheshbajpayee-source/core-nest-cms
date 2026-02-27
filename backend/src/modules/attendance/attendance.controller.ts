@@ -4,6 +4,7 @@ import {
   getMyAttendance,
   getAllAttendance,
   updateAttendanceStatus,
+  createOrCorrectAttendance,
   markAttendance,
   checkoutAttendance, // ✅ NEW
 } from "./attendance.service";
@@ -124,6 +125,31 @@ export const getMonthlySummaryController = async (
       "Monthly summary fetched",
       summary
     );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /attendance
+ * Admin manual correction / create attendance by employee+date
+ */
+export const createAttendanceController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { employee, date, status, checkInTime } = req.body;
+
+    const result = await createOrCorrectAttendance({
+      employee,
+      date: new Date(date),
+      status,
+      checkInTime: checkInTime ? new Date(checkInTime) : undefined,
+    });
+
+    return ApiResponse.sendSuccess(res, 200, "Attendance corrected", result);
   } catch (error) {
     next(error);
   }

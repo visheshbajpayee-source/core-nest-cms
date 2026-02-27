@@ -30,7 +30,7 @@ workHours: {
 },
     status: {
       type: String,
-      enum: ["present", "on_leave", "holiday"],
+      enum: ["present", "absent", "on_leave", "holiday"],
       // required: true,
         default: "present",
     },

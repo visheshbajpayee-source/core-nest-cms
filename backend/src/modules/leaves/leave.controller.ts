@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { applyLeave } from "./leave.service";
+import { applyLeave, getMyLeaveHistory } from "./leave.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { updateLeaveStatus } from "./leave.service";
 import { getMyLeaves } from "./leave.service";

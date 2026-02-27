@@ -1,15 +1,9 @@
-import Leave from "@/app/components/Leave";
-import EmployeeLayout from "../layout";
+import Leave from "@/app/EmployeeComponents/leaveComponent/Leave";
 
-export default function LeaveRoute() {
+export default function DailyWorkLogRoute() {
   return (
-
-     <div >
-          
-            {/* <EmployeeLayout> */}
-       <Leave />
-             
-              {/* </EmployeeLayout>  */}
-        </div>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <Leave />
+    </div>
   );
 }

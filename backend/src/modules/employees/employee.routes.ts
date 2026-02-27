@@ -6,15 +6,13 @@ import {
   updateEmployeeController,
   deleteEmployeeController,
 } from "./employee.controller";
-import { validate } from "../../common/middlewares/validate.middleware";
-import { createEmployeeSchema } from "./employee.validation";
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
 
 const router: Router = Router();
 
 // Create employee (admin only)
-router.post("/", protect, authorize("admin"), validate(createEmployeeSchema), createEmployeeController);
+router.post("/", protect, authorize("admin"), createEmployeeController);
 
 // Get all (admin + manager)
 router.get("/", protect, authorize("admin", "manager"), getEmployeesController);
@@ -36,10 +34,10 @@ router.put("/me", protect, (req, res, next) => {
 });
 
 // Get by id (admin, manager or owner via controller checks)
-router.get("/:id", protect, getEmployeeController);
+router.get("/:id", protect, authorize("admin", "manager", "employee"), getEmployeeController);
 
 // Update (admin for general; employee for their own limited fields)
-router.put("/:id", protect, updateEmployeeController);
+router.put("/:id", protect, authorize("admin", "manager", "employee"), updateEmployeeController);
 
 // Delete (admin only)
 router.delete("/:id", protect, authorize("admin"), deleteEmployeeController);

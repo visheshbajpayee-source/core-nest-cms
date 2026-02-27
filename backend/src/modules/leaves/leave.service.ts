@@ -162,3 +162,67 @@ export const updateLeaveStatus = async (
 
   return leave;
 };
+
+/**
+ * Get my leave history (filtered by month/year)
+ */
+export const getMyLeaveHistory = async (
+  employeeId: string,
+  filters: {
+    month: number;
+    year: number;
+    status?: "pending" | "approved" | "rejected";
+    leaveType?: string;
+  }
+) => {
+  const { month, year, status, leaveType } = filters;
+
+  const rangeStart = new Date(year, month - 1, 1);
+  const rangeEnd = new Date(year, month, 1);
+
+  const query: Record<string, any> = {
+    employee: employeeId,
+    ...(status ? { status } : {}),
+    $or: [{ startDate: { $lt: rangeEnd }, endDate: { $gte: rangeStart } }],
+  };
+
+  if (leaveType) {
+    const lt = await LeaveType.findOne({
+      $or: [
+        { code: leaveType.toUpperCase() },
+        { name: new RegExp(`^${leaveType}$`, "i") },
+      ],
+    }).select("_id");
+
+    if (!lt) return [];
+    query.leaveType = lt._id;
+  }
+
+  const leaves = await Leave.find(query)
+    .populate("leaveType", "name code")
+    .sort({ createdAt: -1 });
+
+  return leaves.map((leave: any) => {
+    const populatedLeaveType = leave.leaveType;
+
+    return {
+      id: String(leave._id),
+      leaveType: populatedLeaveType ? {
+        _id: String(populatedLeaveType._id),
+        name: populatedLeaveType.name,
+        code: populatedLeaveType.code,
+      } : {
+        _id: '',
+        name: 'Other',
+        code: 'OTHER',
+      },
+      startDate: new Date(leave.startDate).toISOString(),
+      endDate: new Date(leave.endDate).toISOString(),
+      numberOfDays: leave.totalDays,
+      reason: leave.reason,
+      status: leave.status,
+      createdAt: new Date(leave.createdAt).toISOString(),
+      appliedDate: new Date(leave.createdAt).toISOString(),
+    };
+  });
+};

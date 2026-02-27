@@ -1,16 +1,9 @@
+import Attendance from "@/app/EmployeeComponents/attendenceComponent/Attendance";
 
-import Attendance from "@/app/components/Attendance";
-import EmployeeLayout from "../layout";
-export default function AttendanceRoute() {
-  return (  
-    <div className="flex min-h-screen bg-slate-100">
-        {/* <EmployeeLayout>
-       
-            <Attendance />
-          </EmployeeLayout> */}
-                
-            <Attendance />
-
+export default function DailyWorkLogRoute() {
+  return (
+    <div className="p-4 sm:p-6 lg:p-8">
+      <Attendance />
     </div>
   );
 }

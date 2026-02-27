@@ -216,9 +216,7 @@ const fetchAttendance = async (m: number, y: number) => {
             Apply
           </button>
 
-          <button className="text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 font-medium text-sm sm:text-base px-5 sm:px-6 py-2.5 sm:py-3 border border-gray-300 hover:border-gray-400 rounded-md">
-            Download
-          </button>
+       
         </div>
       </div>
 

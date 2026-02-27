@@ -121,11 +121,26 @@ export async function updateEmployeeController(req: Request, res: Response, next
             const isSelf = id === actor._id.toString() || id === actor.employeeId;
             if (!isSelf) throw ApiError.forbidden(ErrorMessages.ACCESS_DENIED);
 
+            const allowedSelfFields = ["phoneNumber", "profilePicture"];
+            const payloadKeys = Object.keys(payload || {});
+            const restrictedFields = payloadKeys.filter((key) => !allowedSelfFields.includes(key));
+
             const allowed: any = {};
-            if (payload.phoneNumber) allowed.phoneNumber = payload.phoneNumber;
-            if (payload.profilePicture) allowed.profilePicture = payload.profilePicture;
+            if (payload.phoneNumber !== undefined) allowed.phoneNumber = payload.phoneNumber;
+            if (payload.profilePicture !== undefined) allowed.profilePicture = payload.profilePicture;
+            if (Object.keys(allowed).length === 0) {
+                throw ApiError.badRequest("No editable fields provided. Allowed fields: phoneNumber, profilePicture");
+            }
             const updated = await updateEmployee(id, allowed);
             if (!updated) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
+            if (restrictedFields.length > 0) {
+                return ApiResponse.sendSuccess(
+                    res,
+                    200,
+                    `Profile updated. Ignored restricted fields: ${restrictedFields.join(", ")}`,
+                    updated
+                );
+            }
             return ApiResponse.sendSuccess(res, 200, "Profile updated", updated);
         }
 

@@ -6,20 +6,21 @@ import designationRoutes from "./modules/designation/designation.routes";
 import departmentRoutes from "./modules/department/department.routes";
 import worklogRoutes from "./modules/worklogs/worklog.routes";
 import projectRoutes from "./modules/projects/project.routes";
+import reportsRoutes from "./modules/reports/reports.routes";
 import taskRoutes from "./modules/tasks/task.routes";
 import holidayRoutes from "./modules/holiday/holiday.routes";
-
 import announcementRoutes from "./modules/announcements/announcement.routes";
-
 import documentRoutes from "./modules/documents/documents.routes";
-import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
+import settingsRoutes from "./modules/settings/settings.routes";
 import leaveRoutes from "./modules/leaves/leave.routes";
-
+import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
+import leaveBalanceRoutes from "./modules/leaveBalance/leaveBalance.routes";
 const router: Router = Router();
 
 router.use("/designations", designationRoutes);
 router.use("/login", authRoutes);
 router.use("/employees", employeeRoutes);
+router.use("/leave-balances", leaveBalanceRoutes);
 router.use("/attendance", attendanceRoutes);
 router.use("/holidays", holidayRoutes);
 router.use("/leave-types", leaveTypeRoutes);
@@ -31,9 +32,13 @@ router.use("/worklogs", worklogRoutes);
 // Mount worklogs under employee id: /:employeeId/worklogs
 router.use("/:employeeId/worklogs", worklogRoutes);
 router.use("/projects", projectRoutes);
+router.use("/reports", reportsRoutes);
 router.use("/tasks", taskRoutes);
-router.use("/attendance", attendanceRoutes);
 router.use("/documents", documentRoutes);
+router.use("/attendance", attendanceRoutes);
+
+router.use("/settings", settingsRoutes);
+
 
 
 // Announcements

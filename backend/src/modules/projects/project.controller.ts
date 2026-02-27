@@ -5,6 +5,7 @@ import {
   getProjectById,
   updateProject,
   deleteProject,
+  getProjectsForEmployee,
 } from "./project.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { CreateProjectDto, UpdateProjectDto } from "../../dto/project.dto";
@@ -95,6 +96,28 @@ export const getProjectController = async (
     }
 
     return ApiResponse.sendSuccess(res, 200, "Project fetched", project);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyProjectsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { user } = req as AuthRequest;
+
+    if (!user) {
+      throw ApiError.unauthorized("Unauthorized");
+    }
+
+    const projects = await getProjectsForEmployee(user.id);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Projects fetched successfully", projects));
   } catch (error) {
     next(error);
   }

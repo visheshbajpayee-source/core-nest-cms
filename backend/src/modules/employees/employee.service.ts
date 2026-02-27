@@ -7,6 +7,12 @@ import {
 import { ApiError } from "../../common/utils/ApiError";
 import { Types } from "mongoose";
 
+const normalizeEmployeeLookupId = (id: string) => {
+  const raw = (id || "").trim();
+  if (/^emp\d+$/i.test(raw)) return raw.toUpperCase();
+  return raw;
+};
+
 /*
  Service notes:
  - Wraps Mongoose `Employee` operations and returns DTO-shaped results.
@@ -36,6 +42,7 @@ export const createEmployee = async (
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
     };
   } catch (error: any) {
     throw ApiError.internalServer(error.message || "Failed to create employee");
@@ -71,6 +78,7 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
     }));
   } catch (error: any) {
     if (error instanceof ApiError) throw error;
@@ -112,9 +120,10 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
 
 export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto | null> => {
   try {
-    const query = Types.ObjectId.isValid(id)
-      ? { $or: [{ _id: id }, { employeeId: id }] }
-      : { employeeId: id };
+    const normalizedId = normalizeEmployeeLookupId(id);
+    const query = Types.ObjectId.isValid(normalizedId)
+      ? { $or: [{ _id: normalizedId }, { employeeId: normalizedId }] }
+      : { employeeId: normalizedId };
 
     const employee = await Employee.findOne(query);
     if (!employee) throw ApiError.notFound("Employee not found");
@@ -129,6 +138,8 @@ export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto |
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     if (error instanceof ApiError) throw error;
@@ -144,9 +155,10 @@ export const updateEmployee = async (
   data: UpdateEmployeeDto
 ): Promise<EmployeeResponseDto | null> => {
   try {
-    const query = Types.ObjectId.isValid(id)
-      ? { $or: [{ _id: id }, { employeeId: id }] }
-      : { employeeId: id };
+    const normalizedId = normalizeEmployeeLookupId(id);
+    const query = Types.ObjectId.isValid(normalizedId)
+      ? { $or: [{ _id: normalizedId }, { employeeId: normalizedId }] }
+      : { employeeId: normalizedId };
 
     const employee = await Employee.findOneAndUpdate(
       query,
@@ -168,6 +180,8 @@ export const updateEmployee = async (
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
+      profilePicture: employee.profilePicture,
+      phoneNumber: employee.phoneNumber,
     };
   } catch (error: any) {
     if (error instanceof ApiError) throw error;
@@ -179,10 +193,14 @@ export const updateEmployee = async (
  * DELETE by employeeId
  */
 export const deleteEmployee = async (
-  employeeId: string
+  id: string
 ): Promise<boolean> => {
   try {
-    const result = await Employee.findOneAndDelete({ employeeId });
+    const normalizedId = normalizeEmployeeLookupId(id);
+    const query = Types.ObjectId.isValid(normalizedId)
+      ? { $or: [{ _id: normalizedId }, { employeeId: normalizedId }] }
+      : { employeeId: normalizedId };
+    const result = await Employee.findOneAndDelete(query);
 
     if (!result) {
       throw ApiError.notFound("Employee not found");

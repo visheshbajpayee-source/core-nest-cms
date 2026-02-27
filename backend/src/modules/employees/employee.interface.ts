@@ -3,6 +3,12 @@ import { Document, Types } from "mongoose";
 export type UserRole = "admin" | "manager" | "employee";
 export type UserStatus = "active" | "inactive";
 
+export interface NotificationPreferences {
+  emailAnnouncements: boolean;
+  emailTaskUpdates: boolean;
+  emailLeaveUpdates: boolean;
+}
+
 export interface IEmployee extends Document {
   fullName: string;
   email: string;
@@ -15,6 +21,7 @@ export interface IEmployee extends Document {
   employeeId: string;
   status: UserStatus;
   profilePicture?: string;
+  notificationPreferences?: NotificationPreferences;
   createdAt: Date;
   updatedAt: Date;
 }

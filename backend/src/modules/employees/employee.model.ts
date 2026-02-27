@@ -55,6 +55,21 @@ const employeeSchema = new Schema<IEmployee>(
     },
 
     profilePicture: { type: String },
+
+    notificationPreferences: {
+      emailAnnouncements: {
+        type: Boolean,
+        default: true,
+      },
+      emailTaskUpdates: {
+        type: Boolean,
+        default: true,
+      },
+      emailLeaveUpdates: {
+        type: Boolean,
+        default: true,
+      },
+    },
   },
   { timestamps: true }
 );

@@ -8,7 +8,6 @@ import {
   dailySummaryController,
 } from "./worklog.controller";
 import { protect } from "../../common/middlewares/auth.middleware";
-import { authorize } from "../../common/middlewares/role.middleware";
 
 
 const router: Router = Router({ mergeParams: true });
@@ -19,11 +18,22 @@ router.post("/", protect, createWorkLogController);
 // GET /worklogs or GET /:employeeId/worklogs
 router.get("/", protect, getWorkLogsController);
 
-// shorthand for employee own logs when token user requests their own id
-router.get("/me", protect, getWorkLogsController);
+// shorthand for own logs
+router.get("/me", protect, (req, res, next) => {
+  const r: any = req;
+  r.query = r.query || {};
+  r.query.employee = r.user?.id;
+  return getWorkLogsController(req as any, res, next);
+});
 
 // Daily summary (mounted route provides employeeId param when used)
 router.get("/summary", protect, dailySummaryController);
+router.get("/me/summary", protect, (req, res, next) => {
+  const r: any = req;
+  r.query = r.query || {}; 
+  r.query.employeeId = r.user?.id;
+  return dailySummaryController(req as any, res, next);
+});
 
 router.get("/:id", protect, getWorkLogController);
 router.put("/:id", protect, updateWorkLogController);

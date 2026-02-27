@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { applyLeave } from "./leave.service";
+import { applyLeave, getMyLeaveHistory } from "./leave.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { updateLeaveStatus } from "./leave.service";
 
@@ -36,6 +36,33 @@ export const updateLeaveStatusController = async (
       "Leave status updated successfully",
       result
     );
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyLeaveHistoryController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = (req as any).user;
+    const now = new Date();
+
+    const month = Number(req.query.month ?? now.getMonth() + 1);
+    const year = Number(req.query.year ?? now.getFullYear());
+    const status = req.query.status as any;
+    const leaveType = req.query.leaveType as string | undefined;
+
+    const data = await getMyLeaveHistory(user.id, {
+      month,
+      year,
+      status,
+      leaveType,
+    });
+
+    return ApiResponse.sendSuccess(res, 200, "Leave history fetched successfully", data);
   } catch (error) {
     next(error);
   }

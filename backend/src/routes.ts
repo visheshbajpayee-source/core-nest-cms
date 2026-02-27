@@ -6,6 +6,7 @@ import designationRoutes from "./modules/designation/designation.routes";
 import departmentRoutes from "./modules/department/department.routes";
 import worklogRoutes from "./modules/worklogs/worklog.routes";
 import projectRoutes from "./modules/projects/project.routes";
+import reportsRoutes from "./modules/reports/reports.routes";
 import taskRoutes from "./modules/tasks/task.routes";
 import holidayRoutes from "./modules/holiday/holiday.routes";
 
@@ -28,6 +29,7 @@ router.use("/worklogs", worklogRoutes);
 // Mount worklogs under employee id: /:employeeId/worklogs
 router.use("/:employeeId/worklogs", worklogRoutes);
 router.use("/projects", projectRoutes);
+router.use("/reports", reportsRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/attendance", attendanceRoutes);
 router.use("/documents", documentRoutes);

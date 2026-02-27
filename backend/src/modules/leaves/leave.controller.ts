@@ -3,7 +3,7 @@ import { applyLeave } from "./leave.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { updateLeaveStatus } from "./leave.service";
 import { getMyLeaves } from "./leave.service";
-
+import { getAllLeaves } from "./leave.service";
 export const applyLeaveController = async (
   req: Request,
   res: Response,
@@ -60,6 +60,24 @@ export const updateLeaveStatusController = async (
       200,
       "Leave status updated successfully",
       result
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+export const getAllLeavesController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = await getAllLeaves();
+
+    return ApiResponse.sendSuccess(
+      res,
+      200,
+      "All leaves fetched",
+      data
     );
   } catch (error) {
     next(error);

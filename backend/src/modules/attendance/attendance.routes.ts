@@ -6,16 +6,24 @@ import {
   getMyAttendanceController,
   getAttendanceController,
   updateAttendanceController,
+  createAttendanceController,
   checkoutAttendanceController,
   getMonthlySummaryController,
 } from "./attendance.controller";
-import { updateAttendanceSchema } from "./attendance.validation";
+import { manualAttendanceSchema, updateAttendanceSchema } from "./attendance.validation";
 
 const router: Router = Router();
 
 router.get("/me", protect, getMyAttendanceController);
 router.get("/summary", protect, getMonthlySummaryController);
 router.get("/", protect, authorize("admin", "manager"), getAttendanceController);
+router.post(
+  "/",
+  protect,
+  authorize("admin"),
+  validate(manualAttendanceSchema),
+  createAttendanceController
+);
 router.patch(
   "/:id",
   protect,

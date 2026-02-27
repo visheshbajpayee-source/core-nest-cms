@@ -1,6 +1,6 @@
 import { Document, Types } from "mongoose";
 
-export type AttendanceStatus = "present" | "on_leave" | "holiday";
+export type AttendanceStatus = "present" | "absent" | "on_leave" | "holiday";
 
 export interface IAttendance extends Document {
   employee: Types.ObjectId;

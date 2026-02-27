@@ -34,13 +34,13 @@ Core Nest CMS is a full-stack office management system designed to help organiza
 
 ## Tech Stack
 
-| Layer      | Technology                        |
-| ---------- | --------------------------------- |
-| Frontend   | Next.js (React), TypeScript       |
-| Backend    | Express.js, Node.js, TypeScript   |
-| Database   | MongoDB (with Mongoose ODM)       |
-| Auth       | JWT (JSON Web Tokens)             |
-| Styling    | Any CSS framework or custom CSS   |
+| Layer    | Technology                      |
+| -------- | ------------------------------- |
+| Frontend | Next.js (React), TypeScript     |
+| Backend  | Express.js, Node.js, TypeScript |
+| Database | MongoDB (with Mongoose ODM)     |
+| Auth     | JWT (JSON Web Tokens)           |
+| Styling  | Any CSS framework or custom CSS |
 
 ---
 
@@ -66,6 +66,7 @@ Core Nest CMS is a full-stack office management system designed to help organiza
 The system supports three distinct roles with varying levels of access:
 
 ### Admin
+
 - Full access to the entire system.
 - Can manage all employees, departments, designations, and settings.
 - Can view all reports and analytics.
@@ -73,6 +74,7 @@ The system supports three distinct roles with varying levels of access:
 - Can approve/reject leave requests for all employees.
 
 ### Manager
+
 - Can view and manage employees within their own department.
 - Can approve/reject leave requests for employees in their department.
 - Can create and assign projects/tasks to their department members.
@@ -80,6 +82,7 @@ The system supports three distinct roles with varying levels of access:
 - Can post announcements visible to their department.
 
 ### Employee
+
 - Can view and update their own profile.
 - Can log daily work entries.
 - Can view their own attendance records.
@@ -93,36 +96,42 @@ The system supports three distinct roles with varying levels of access:
 ### 1. Authentication & Authorization
 
 **Registration:**
+
 - Admin can register new employees into the system.
 - Required fields: Full Name, Email, Password, Department, Designation, Role.
 - Email must be unique across the system.
 - Password must meet minimum security requirements (minimum 8 characters, at least one uppercase letter, one lowercase letter, one number, and one special character).
 
 **Login:**
+
 - Users log in using their email and password.
 - On successful login, a JWT token is issued.
 - The first login of each day automatically records the attendance (marks the user as "present" for that day).
 - Token should have a reasonable expiration time.
 
 **Authorization:**
+
 - All protected routes must verify the JWT token.
 - Role-based access control must be enforced on both frontend and backend.
 - Unauthorized access attempts must return appropriate error responses.
 
 **Password Management:**
+
 - Users can change their own password (requires current password).
 - Admin can reset any employee's password.
 - Forgot password flow via email (optional/stretch goal).
 
 **Session:**
+
 - On logout, the token should be invalidated on the client side.
 - Consider implementing refresh tokens for better session management.
 
 ---
 
 ### 2. Employee Management
-  
+
 **Employee Profile:**
+
 - Each employee has a profile with the following information:
   - Full Name
   - Email
@@ -136,11 +145,13 @@ The system supports three distinct roles with varying levels of access:
   - Status (Active / Inactive)
 
 **CRUD Operations:**
+
 - **Admin** can create, read, update, and delete employee records.
 - **Manager** can view employees within their department.
 - **Employee** can view and edit only their own profile (limited fields: phone number, profile picture).
 
 **Employee Directory:**
+
 - A searchable and filterable list of all employees.
 - Filter by department, designation, status, and role.
 - Search by name, email, or employee ID.
@@ -150,11 +161,13 @@ The system supports three distinct roles with varying levels of access:
 ### 3. Attendance Management
 
 **Automatic Attendance:**
+
 - The first login of each calendar day is recorded as the "check-in" time.
 - The system must track the date and timestamp of each check-in.
 - No manual attendance entry by employees (only admins can correct records).
 
 **Attendance Records:**
+
 - Each attendance record contains:
   - Employee ID
   - Date
@@ -162,14 +175,17 @@ The system supports three distinct roles with varying levels of access:
   - Status (Present / Absent / On Leave / Holiday)
 
 **Attendance Views:**
+
 - **Employee**: Can view their own attendance history (daily, weekly, monthly).
 - **Manager**: Can view attendance for all employees in their department.
 - **Admin**: Can view attendance for all employees across the organization.
 
 **Attendance Corrections:**
+
 - Admin can manually mark attendance or correct records (e.g., if an employee was working but forgot to log in).
 
 **Monthly Summary:**
+
 - Total days present, absent, on leave, and holidays for each employee per month.
 
 ---
@@ -177,6 +193,7 @@ The system supports three distinct roles with varying levels of access:
 ### 4. Daily Work Logs
 
 **Log Entry:**
+
 - Each employee can create one or more work log entries per day.
 - Each log entry contains:
   - Date
@@ -187,12 +204,14 @@ The system supports three distinct roles with varying levels of access:
   - Status (In Progress / Completed / Blocked)
 
 **Log Management:**
+
 - Employees can add, edit, and delete their own logs for the current day.
 - Past logs (previous days) are read-only for employees.
 - Managers can view all logs from their department members.
 - Admin can view all logs across the organization.
 
 **Daily Summary:**
+
 - A consolidated view of all work done by an employee on a given day.
 - Total hours worked per day.
 
@@ -201,12 +220,14 @@ The system supports three distinct roles with varying levels of access:
 ### 5. Leave Management
 
 **Leave Types:**
+
 - Sick Leave
 - Casual Leave
 - Earned/Privilege Leave
 - Other (configurable by Admin)
 
 **Leave Application:**
+
 - Employee submits a leave request with:
   - Leave Type
   - Start Date
@@ -216,11 +237,13 @@ The system supports three distinct roles with varying levels of access:
 - Employee can view the status of their leave requests (Pending / Approved / Rejected).
 
 **Leave Approval:**
+
 - Manager can approve or reject leave requests from their department.
 - Admin can approve or reject leave requests for any employee.
 - On approval/rejection, the employee should see the updated status.
 
 **Leave Balance:**
+
 - Each employee has a configurable leave balance per leave type per year.
 - The system deducts from the balance upon leave approval.
 - Admin can configure the default leave allocation for each type.
@@ -230,6 +253,7 @@ The system supports three distinct roles with varying levels of access:
 ### 6. Department & Designation Management
 
 **Departments:**
+
 - Admin can create, update, and delete departments.
 - Each department has:
   - Department Name
@@ -237,12 +261,14 @@ The system supports three distinct roles with varying levels of access:
   - Department Head (linked to a Manager)
 
 **Designations:**
+
 - Admin can create, update, and delete designations.
 - Each designation has:
   - Title (e.g., Software Engineer, HR Executive, Team Lead)
   - Description
 
 **Assignments:**
+
 - Admin can assign employees to departments and designations.
 - An employee belongs to exactly one department and has one designation.
 
@@ -251,6 +277,7 @@ The system supports three distinct roles with varying levels of access:
 ### 7. Project & Task Management
 
 **Projects:**
+
 - Admin or Manager can create projects.
 - Each project has:
   - Project Name
@@ -262,6 +289,7 @@ The system supports three distinct roles with varying levels of access:
   - Team Members (list of employees)
 
 **Tasks:**
+
 - Tasks exist within a project.
 - Each task has:
   - Task Title
@@ -278,6 +306,7 @@ The system supports three distinct roles with varying levels of access:
 ### 8. Announcements & Notices
 
 **Creating Announcements:**
+
 - Admin can create organization-wide announcements.
 - Manager can create department-specific announcements.
 - Each announcement has:
@@ -289,6 +318,7 @@ The system supports three distinct roles with varying levels of access:
   - Expiry Date (optional)
 
 **Viewing Announcements:**
+
 - All users see a notification or a section on their dashboard with relevant announcements.
 - Announcements are sorted by date (most recent first).
 - Expired announcements are automatically hidden from the active view but remain accessible in an archive.
@@ -298,25 +328,30 @@ The system supports three distinct roles with varying levels of access:
 ### 9. Reports & Analytics
 
 **Attendance Reports:**
+
 - Monthly attendance report per employee.
 - Department-wise attendance summary.
 - Late check-in report (if a "standard check-in time" is configured).
 
 **Work Log Reports:**
+
 - Daily/weekly/monthly work log summaries per employee.
 - Department-wise productivity summary (total hours logged).
 - Project-wise time tracking report.
 
 **Leave Reports:**
+
 - Leave balance summary per employee.
 - Department-wise leave utilization report.
 
 **Access:**
+
 - Admin can access all reports.
 - Manager can access reports for their department.
 - Employee can access only their own reports.
 
 **Export:**
+
 - Reports should be exportable in CSV format (stretch goal: PDF export).
 
 ---
@@ -324,11 +359,13 @@ The system supports three distinct roles with varying levels of access:
 ### 10. Document Management
 
 **Employee Documents:**
+
 - Each employee can have documents attached to their profile (e.g., ID proof, offer letter, certifications).
 - Admin can upload documents to any employee's profile.
 - Employees can upload documents to their own profile.
 
 **Document Fields:**
+
 - Document Name
 - Document Type (ID Proof / Offer Letter / Certificate / Other)
 - File (uploaded file)
@@ -336,6 +373,7 @@ The system supports three distinct roles with varying levels of access:
 - Uploaded By
 
 **Access Control:**
+
 - Employees can view only their own documents.
 - Managers can view documents of employees in their department.
 - Admin can view and manage all documents.
@@ -345,6 +383,7 @@ The system supports three distinct roles with varying levels of access:
 ### 11. Holiday Calendar
 
 **Holiday Management:**
+
 - Admin can create and manage a list of holidays for the year.
 - Each holiday has:
   - Holiday Name
@@ -353,6 +392,7 @@ The system supports three distinct roles with varying levels of access:
   - Type (National Holiday / Regional Holiday / Company Holiday)
 
 **Calendar View:**
+
 - All users can view the holiday calendar.
 - Holidays are automatically factored into attendance and leave calculations.
 
@@ -361,6 +401,7 @@ The system supports three distinct roles with varying levels of access:
 ### 12. Settings & Configuration
 
 **System Settings (Admin Only):**
+
 - Organization Name and Logo
 - Default Leave Allocations (per leave type per year)
 - Standard Working Hours per day
@@ -368,6 +409,7 @@ The system supports three distinct roles with varying levels of access:
 - Financial Year Start/End
 
 **User Settings:**
+
 - Change Password
 - Update Profile Picture
 - Notification Preferences (stretch goal)
@@ -377,6 +419,7 @@ The system supports three distinct roles with varying levels of access:
 ## Frontend Requirements
 
 ### General
+
 - Responsive design that works on desktop and tablet screens.
 - Clean and intuitive user interface.
 - Proper loading states for all API calls.
@@ -384,6 +427,7 @@ The system supports three distinct roles with varying levels of access:
 - Form validation on the client side before submitting to the API.
 
 ### Pages & Layouts
+
 - **Login Page**: Email and password form.
 - **Dashboard**: Role-specific overview with key metrics (attendance status, recent logs, pending leaves, announcements).
 - **Employee Directory**: Searchable list with filters.
@@ -397,10 +441,12 @@ The system supports three distinct roles with varying levels of access:
 - **Admin Panel**: Department management, designation management, holiday management, system settings.
 
 ### Navigation
+
 - Sidebar or top navigation that adapts based on user role.
 - Only show navigation items the user has access to.
 
 ### State Management
+
 - Manage authentication state (logged-in user, token).
 - Handle API response data efficiently.
 - Maintain form states and validation.
@@ -410,6 +456,7 @@ The system supports three distinct roles with varying levels of access:
 ## Backend Requirements
 
 ### General
+
 - RESTful API design.
 - Proper HTTP status codes for all responses.
 - Input validation and sanitization on all endpoints.
@@ -417,13 +464,16 @@ The system supports three distinct roles with varying levels of access:
 - Consistent response format across all endpoints.
 
 ### Authentication Middleware
+
 - JWT verification middleware for all protected routes.
 - Role-checking middleware to enforce access control.
 
 ### API Response Format
+
 All API responses should follow a consistent structure:
 
 **Success Response:**
+
 ```
 {
   "success": true,
@@ -433,6 +483,7 @@ All API responses should follow a consistent structure:
 ```
 
 **Error Response:**
+
 ```
 {
   "success": false,
@@ -442,15 +493,18 @@ All API responses should follow a consistent structure:
 ```
 
 ### File Uploads
+
 - Handle file uploads for profile pictures and documents.
 - Validate file types and sizes.
 - Store files in a designated location (local storage or cloud storage).
 
 ### Environment Variables
+
 - Database connection string, JWT secret, port number, and other sensitive configurations must be stored in environment variables.
 - Never commit `.env` files to the repository.
 
 ### Logging
+
 - Log important events (login attempts, errors, critical operations).
 
 ---
@@ -459,21 +513,21 @@ All API responses should follow a consistent structure:
 
 Below are the key collections (tables) the application will need. The exact field names and types are left to the implementation team.
 
-| Collection     | Purpose                                      |
-| -------------- | -------------------------------------------- |
-| Users          | Employee accounts, credentials, profiles     |
-| Departments    | Department information                       |
-| Designations   | Job titles and descriptions                  |
-| Attendance     | Daily attendance records                     |
-| WorkLogs       | Daily task/work log entries                   |
-| Leaves         | Leave requests and approvals                 |
-| LeaveBalances  | Per-employee leave balance per type per year  |
-| Projects       | Project details and team assignments         |
-| Tasks          | Tasks within projects                        |
-| Announcements  | Notices and announcements                    |
-| Documents      | Uploaded employee documents metadata         |
-| Holidays       | Holiday calendar entries                     |
-| Settings       | System-wide configuration key-value pairs    |
+| Collection    | Purpose                                      |
+| ------------- | -------------------------------------------- |
+| Users         | Employee accounts, credentials, profiles     |
+| Departments   | Department information                       |
+| Designations  | Job titles and descriptions                  |
+| Attendance    | Daily attendance records                     |
+| WorkLogs      | Daily task/work log entries                  |
+| Leaves        | Leave requests and approvals                 |
+| LeaveBalances | Per-employee leave balance per type per year |
+| Projects      | Project details and team assignments         |
+| Tasks         | Tasks within projects                        |
+| Announcements | Notices and announcements                    |
+| Documents     | Uploaded employee documents metadata         |
+| Holidays      | Holiday calendar entries                     |
+| Settings      | System-wide configuration key-value pairs    |
 
 ---
 
@@ -481,24 +535,25 @@ Below are the key collections (tables) the application will need. The exact fiel
 
 Organize API routes by module. Below is a suggested grouping:
 
-| Module          | Base Route            |
-| --------------- | --------------------- |
-| Auth            | `/api/auth`           |
-| Users/Employees | `/api/employees`      |
-| Attendance      | `/api/attendance`     |
-| Work Logs       | `/api/worklogs`       |
-| Leaves          | `/api/leaves`         |
-| Departments     | `/api/departments`    |
-| Designations    | `/api/designations`   |
-| Projects        | `/api/projects`       |
-| Tasks           | `/api/tasks`          |
-| Announcements   | `/api/announcements`  |
-| Documents       | `/api/documents`      |
-| Holidays        | `/api/holidays`       |
-| Reports         | `/api/reports`        |
-| Settings        | `/api/settings`       |
+| Module          | Base Route           |
+| --------------- | -------------------- |
+| Auth            | `/api/auth`          |
+| Users/Employees | `/api/employees`     |
+| Attendance      | `/api/attendance`    |
+| Work Logs       | `/api/worklogs`      |
+| Leaves          | `/api/leaves`        |
+| Departments     | `/api/departments`   |
+| Designations    | `/api/designations`  |
+| Projects        | `/api/projects`      |
+| Tasks           | `/api/tasks`         |
+| Announcements   | `/api/announcements` |
+| Documents       | `/api/documents`     |
+| Holidays        | `/api/holidays`      |
+| Reports         | `/api/reports`       |
+| Settings        | `/api/settings`      |
 
 Use standard HTTP methods:
+
 - `GET` for retrieving data
 - `POST` for creating new records
 - `PUT` or `PATCH` for updating records
@@ -719,11 +774,11 @@ const EmployeeList = () => {
 
 ### Branch Strategy
 
-| Branch    | Purpose                                        |
-| --------- | ---------------------------------------------- |
-| `main`    | Production-ready, stable code                  |
-| `testing` | QA and integration testing                     |
-| `dev`     | Active development and feature integration     |
+| Branch    | Purpose                                    |
+| --------- | ------------------------------------------ |
+| `main`    | Production-ready, stable code              |
+| `testing` | QA and integration testing                 |
+| `dev`     | Active development and feature integration |
 
 ### Collaboration Between Teams
 
@@ -745,17 +800,17 @@ const EmployeeList = () => {
 
 The following is the recommended order of implementation, starting with the foundation and building upward:
 
-| Priority | Module                             |
-| -------- | ---------------------------------- |
-| 1        | Authentication & Authorization     |
-| 2        | Employee Management                |
-| 3        | Department & Designation Management|
-| 4        | Attendance Management              |
-| 5        | Daily Work Logs                    |
-| 6        | Leave Management                   |
-| 7        | Announcements & Notices            |
-| 8        | Project & Task Management          |
-| 9        | Holiday Calendar                   |
-| 10       | Document Management                |
-| 11       | Reports & Analytics                |
-| 12       | Settings & Configuration           |
+| Priority | Module                              |
+| -------- | ----------------------------------- |
+| 1        | Authentication & Authorization      |
+| 2        | Employee Management                 |
+| 3        | Department & Designation Management |
+| 4        | Attendance Management               |
+| 5        | Daily Work Logs                     |
+| 6        | Leave Management                    |
+| 7        | Announcements & Notices             |
+| 8        | Project & Task Management           |
+| 9        | Holiday Calendar                    |
+| 10       | Document Management                 |
+| 11       | Reports & Analytics                 |
+| 12       | Settings & Configuration            |

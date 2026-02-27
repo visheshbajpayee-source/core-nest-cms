@@ -70,6 +70,13 @@ export const getMyLeaves = async (employeeId: string) => {
     .sort({ createdAt: -1 });
 };
 
+export const getAllLeaves = async () => {
+  return await Leave.find()
+    .populate("employee", "fullName email")
+    .populate("leaveType", "name code")
+    .sort({ createdAt: -1 });
+};
+
 /**
 
  * APPROVE OR REJECT LEAVE

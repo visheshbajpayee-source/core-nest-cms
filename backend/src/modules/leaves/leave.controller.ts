@@ -3,7 +3,7 @@ import { applyLeave, getMyLeaveHistory } from "./leave.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { updateLeaveStatus } from "./leave.service";
 import { getMyLeaves } from "./leave.service";
-
+import { getAllLeaves } from "./leave.service";
 export const applyLeaveController = async (
   req: Request,
   res: Response,
@@ -65,29 +65,20 @@ export const updateLeaveStatusController = async (
     next(error);
   }
 };
-
-export const getMyLeaveHistoryController = async (
-  req: Request,
+export const getAllLeavesController = async (
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const user = (req as any).user;
-    const now = new Date();
+    const data = await getAllLeaves();
 
-    const month = Number(req.query.month ?? now.getMonth() + 1);
-    const year = Number(req.query.year ?? now.getFullYear());
-    const status = req.query.status as any;
-    const leaveType = req.query.leaveType as string | undefined;
-
-    const data = await getMyLeaveHistory(user.id, {
-      month,
-      year,
-      status,
-      leaveType,
-    });
-
-    return ApiResponse.sendSuccess(res, 200, "Leave history fetched successfully", data);
+    return ApiResponse.sendSuccess(
+      res,
+      200,
+      "All leaves fetched",
+      data
+    );
   } catch (error) {
     next(error);
   }

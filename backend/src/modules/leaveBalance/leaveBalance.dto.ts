@@ -1,7 +1,7 @@
 export interface CreateLeaveBalanceDto {
   employee: string;
   year: number;
-  leaveType: "sick" | "casual" | "earned" | "other";
+  leaveType: string; // ObjectId of LeaveType
   allocated: number;
 }
 
@@ -10,14 +10,21 @@ export interface UpdateLeaveBalanceDto {
   used?: number;
 }
 
-export interface LeaveBalanceResponseDto {
-  id: string;
-  employee: string;
-  year: number;
-  leaveType: string;
+export interface LeaveBalanceSummaryDto {
+  leaveType: {
+    id: string;
+    name: string;
+    code: string;
+  };
   allocated: number;
   used: number;
-  remaining: number; // calculated in service layer
-  createdAt: Date;
-  updatedAt: Date;
+  remaining: number;
+}
+
+export interface LeaveBalanceResponseDto {
+  year: number;
+  totalAllocated: number;
+  totalUsed: number;
+  totalRemaining: number;
+  balances: LeaveBalanceSummaryDto[];
 }

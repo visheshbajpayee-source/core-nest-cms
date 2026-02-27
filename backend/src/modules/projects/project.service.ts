@@ -103,6 +103,7 @@ export const getProjects = async (
   }
 };
 
+
 export const getProjectById = async (
   id: string
 ): Promise<ProjectResponseDto | null> => {
@@ -119,6 +120,20 @@ export const getProjectById = async (
     }
 
     throw ApiError.internalServer("Failed to fetch project");
+  }
+};
+
+export const getProjectsForEmployee = async (
+  employeeId: string
+): Promise<ProjectResponseDto[]> => {
+  try {
+    const projects = await Project.find({
+      teamMembers: employeeId,
+    }).sort({ createdAt: -1 });
+
+    return projects.map(toResponse);
+  } catch {
+    throw ApiError.internalServer("Failed to fetch employee projects");
   }
 };
 

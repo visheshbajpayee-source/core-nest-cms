@@ -7,7 +7,10 @@ export interface IDocument extends Document {
   documentName: string;
   documentType: DocumentType;
   fileName: string;
-  filePath: string;
+  /**
+   * Raw file content stored in MongoDB as a Buffer
+   */
+  fileData: Buffer;
   mimeType: string;
   fileSize: number;
   uploadedBy: Types.ObjectId;

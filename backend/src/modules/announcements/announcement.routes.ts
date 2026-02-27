@@ -7,7 +7,7 @@ import {
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
 
-const router = Router();
+const router: Router = Router();
 
 // Routes for announcements
 // POST / - create an announcement. Allowed roles: admin (can create org-wide) and manager (department only)

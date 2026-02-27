@@ -5,6 +5,7 @@ import {
   getProjectController,
   updateProjectController,
   deleteProjectController,
+  getMyProjectsController,
 } from "./project.controller";
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
@@ -26,6 +27,13 @@ router.post(
 );
 
 router.get("/", authorize("admin", "manager"), getProjectsController);
+
+router.get(
+  "/my",
+  protect,
+  authorize("employee", "manager", "admin"),
+  getMyProjectsController
+);
 
 router.get("/:id", authorize("admin", "manager"), getProjectController);
 

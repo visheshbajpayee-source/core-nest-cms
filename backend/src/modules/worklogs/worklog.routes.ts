@@ -30,7 +30,7 @@ router.get("/me", protect, (req, res, next) => {
 router.get("/summary", protect, dailySummaryController);
 router.get("/me/summary", protect, (req, res, next) => {
   const r: any = req;
-  r.query = r.query || {};
+  r.query = r.query || {}; 
   r.query.employeeId = r.user?.id;
   return dailySummaryController(req as any, res, next);
 });

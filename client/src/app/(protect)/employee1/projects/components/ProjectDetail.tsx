@@ -57,9 +57,10 @@ export default function ProjectDetail({
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <button
         onClick={onBack}
-        className="mb-4 text-sm text-blue-600 hover:text-blue-800"
+        className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-green-600 bg-green-600 text-white font-medium hover:bg-green-700 transition"
       >
-        ← Back to Projects
+        <span>←</span>
+        <span>Back to Projects</span>
       </button>
 
       <ProjectInfo project={project} />

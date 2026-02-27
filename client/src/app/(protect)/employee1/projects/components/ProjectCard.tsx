@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Project } from '../services/projects.service';
 
 interface ProjectCardProps {
@@ -21,7 +21,6 @@ export default function ProjectCard({
   onSelect,
   onStatusChange,
 }: ProjectCardProps) {
-  const [isDropping, setIsDropping] = useState(false);
   const statusColor = statusColors[project.status] || statusColors.not_started;
   const startDate = new Date(project.startDate).toLocaleDateString('en-US', {
     month: 'short',
@@ -57,30 +56,8 @@ export default function ProjectCard({
         </div>
       </div>
 
-      <div onClick={(e) => e.stopPropagation()} className="relative">
-        <button
-          onClick={() => setIsDropping(!isDropping)}
-          className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50"
-        >
-          Status ▼
-        </button>
-        {isDropping && (
-          <div className="absolute top-8 left-0 bg-white border border-gray-200 rounded shadow-lg z-10">
-            {['not_started', 'in_progress', 'completed', 'on_hold'].map((s) => (
-              <div
-                key={s}
-                onClick={() => {
-                  onStatusChange(project.id, s);
-                  setIsDropping(false);
-                }}
-                className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer capitalize"
-              >
-                {s.replace(/_/g, ' ')}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Employees should not be able to change project status from the card */}
+      <div className="text-xs text-gray-500 mt-2">&nbsp;</div>
     </div>
   );
 }

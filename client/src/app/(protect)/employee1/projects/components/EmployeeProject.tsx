@@ -73,6 +73,7 @@ export default function EmployeeProject() {
           <ProjectsList
             projects={projects}
             onSelectProject={setSelectedProject}
+            onProjectsUpdate={setProjects}
             isLoading={isLoading}
           />
         </>

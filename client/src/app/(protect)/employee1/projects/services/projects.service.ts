@@ -24,8 +24,9 @@ export interface CreateProjectPayload {
 
 export const fetchProjects = async (): Promise<Project[]> => {
   try {
+    // employees should fetch their own projects using the /my route
     const response = await api.get<{ success: boolean; data: Project[] }>(
-      "/api/v1/projects"
+      "/api/v1/projects/my"
     );
     return response.data.data || [];
   } catch (error: any) {

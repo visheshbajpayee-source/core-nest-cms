@@ -8,16 +8,24 @@ import { Project, updateProjectStatus } from '../services/projects.service';
 interface ProjectsListProps {
   projects: Project[];
   onSelectProject: (project: Project) => void;
+  onProjectsUpdate?: (updatedProjects: Project[]) => void;
   isLoading?: boolean;
 }
 
 export default function ProjectsList({
-  projects,
+  projects: initialProjects,
   onSelectProject,
+  onProjectsUpdate,
   isLoading = false,
 }: ProjectsListProps) {
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Update local state when props change
+  React.useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
 
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
@@ -32,9 +40,14 @@ export default function ProjectsList({
   const handleStatusChange = async (projectId: string, status: string) => {
     try {
       await updateProjectStatus(projectId, status);
-      const project = projects.find((p) => p.id === projectId);
-      if (project) {
-        project.status = status as any;
+      // Update local state immediately for instant UI feedback
+      const updatedProjects = projects.map((p) =>
+        p.id === projectId ? { ...p, status: status as any } : p
+      );
+      setProjects(updatedProjects);
+      // Notify parent if callback provided
+      if (onProjectsUpdate) {
+        onProjectsUpdate(updatedProjects);
       }
     } catch (error) {
       console.error('Failed to update project status:', error);

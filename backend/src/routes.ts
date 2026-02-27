@@ -12,10 +12,9 @@ import announcementRoutes from "./modules/announcements/announcement.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import taskRoutes from "./modules/tasks/task.routes";
 import holidayRoutes from "./modules/holiday/holiday.routes";
-
-
-
+// import announcementRoutes from "./modules/announcements/announcement.routes";
 import documentRoutes from "./modules/documents/documents.routes";
+import settingsRoutes from "./modules/settings/settings.routes";
 
 const router: Router = Router();
 
@@ -35,6 +34,8 @@ router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/documents", documentRoutes);
 router.use("/attendance", attendanceRoutes);
+
+router.use("/settings", settingsRoutes);
 
 
 router.use("/departments", departmentRoutes);

@@ -21,9 +21,9 @@ export default function ProjectsHeader({
           <p className="text-sm text-gray-600 mb-1">Total Projects</p>
           <p className="text-3xl font-bold text-gray-900">{totalProjects}</p>
         </div>
-        <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
-          <p className="text-sm text-blue-700 mb-1">In Progress</p>
-          <p className="text-3xl font-bold text-blue-900">{projectsInProgress}</p>
+        <div className="bg-teal-50 rounded-lg border border-teal-200 p-4">
+          <p className="text-sm text-teal-700 mb-1">In Progress</p>
+          <p className="text-3xl font-bold text-teal-900">{projectsInProgress}</p>
         </div>
         <div className="bg-green-50 rounded-lg border border-green-200 p-4">
           <p className="text-sm text-green-700 mb-1">Completed</p>

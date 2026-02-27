@@ -4,11 +4,18 @@ import { applyLeaveController } from "./leave.controller";
 import { authorize } from "../../common/middlewares/role.middleware";
 import { updateLeaveStatusController } from "./leave.controller";
 import { getMyLeavesController } from "./leave.controller";
+import {getAllLeavesController} from "./leave.controller";
 const router: Router = Router();
 
 router.post("/", protect, applyLeaveController);
 router.get("/me", protect, getMyLeavesController)
 
+router.get(
+  "/",
+  protect,
+  authorize("admin"),
+getAllLeavesController
+);
 router.patch(
   "/:id",
   protect,

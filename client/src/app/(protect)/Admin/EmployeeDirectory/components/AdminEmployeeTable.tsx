@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import type { Employee } from "../../types/adminTypes";
 
 interface AdminEmployeeTableProps {
@@ -16,6 +17,12 @@ export default function AdminEmployeeTable({
 	onEdit,
 	onDelete,
 }: AdminEmployeeTableProps) {
+	const router = useRouter();
+
+	const openEmployeeDetail = (employeeId: string) => {
+		router.push(`/Admin/EmployeeDirectory/${encodeURIComponent(employeeId)}`);
+	};
+
 	return (
 		<div className="lg:col-span-2">
 			<div className="overflow-hidden rounded-lg bg-white shadow-sm">
@@ -69,7 +76,11 @@ export default function AdminEmployeeTable({
 							</thead>
 							<tbody className="divide-y divide-slate-100 bg-white">
 								{employees.map((emp) => (
-									<tr key={emp.id} className="hover:bg-slate-50">
+									<tr
+										key={emp.id}
+										onClick={() => openEmployeeDetail(emp.employeeId)}
+										className="cursor-pointer hover:bg-slate-50"
+									>
 										<td className="whitespace-nowrap px-4 py-2 text-xs text-slate-500 sm:px-6">
 											{emp.employeeId}
 										</td>
@@ -106,13 +117,19 @@ export default function AdminEmployeeTable({
 										</td>
 										<td className="whitespace-nowrap px-4 py-2 text-right text-xs sm:px-6">
 											<button
-													onClick={() => onEdit(emp)}
+													onClick={(event) => {
+														event.stopPropagation();
+														onEdit(emp);
+													}}
 													className="mr-2 rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
 											>
 												Edit
 											</button>
 											<button
-													onClick={() => onDelete(emp.employeeId)}
+													onClick={(event) => {
+														event.stopPropagation();
+														onDelete(emp.employeeId);
+													}}
 													className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
 											>
 												Delete

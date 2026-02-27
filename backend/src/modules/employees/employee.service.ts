@@ -30,7 +30,28 @@ export const createEmployee = async (
   data: CreateEmployeeDto
 ): Promise<EmployeeResponseDto> => {
   try {
-    const employee = await Employee.create(data);
+    let employee: InstanceType<typeof Employee> | null = null;
+
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        employee = await new Employee(data).save();
+        break;
+      } catch (error: any) {
+        const isDuplicateEmployeeId =
+          error?.code === 11000 &&
+          (error?.keyPattern?.employeeId || error?.keyValue?.employeeId);
+
+        if (isDuplicateEmployeeId && attempt < 3) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    if (!employee) {
+      throw ApiError.internalServer("Failed to create employee");
+    }
 
     return {
       id: employee._id.toString(),

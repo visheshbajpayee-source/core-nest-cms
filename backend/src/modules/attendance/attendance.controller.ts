@@ -1,11 +1,10 @@
-
 import { Request, Response, NextFunction } from "express";
 import {
   getMyAttendance,
   getAllAttendance,
   updateAttendanceStatus,
   markAttendance,
-  checkoutAttendance, // ✅ NEW
+  checkoutAttendance, 
 } from "./attendance.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { getMonthlySummary } from "./attendance.summary";

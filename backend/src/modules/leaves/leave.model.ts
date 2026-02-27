@@ -8,48 +8,42 @@ const leaveSchema = new Schema<ILeave>(
       ref: "Employee",
       required: true,
     },
-
     leaveType: {
-      type: String,
-      enum: ["sick", "casual", "earned", "other"],
+      type: Schema.Types.ObjectId,
+      ref: "LeaveType",
       required: true,
     },
-
     startDate: {
       type: Date,
       required: true,
     },
-
     endDate: {
       type: Date,
       required: true,
     },
-
-    numberOfDays: {
+    totalDays: {
       type: Number,
       required: true,
     },
-
     reason: {
       type: String,
       required: true,
       trim: true,
     },
-
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
-
     approvedBy: {
       type: Schema.Types.ObjectId,
       ref: "Employee",
     },
+    approvedAt: {
+      type: Date,
+    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 export const Leave = model<ILeave>("Leave", leaveSchema);

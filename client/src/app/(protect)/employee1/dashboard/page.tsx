@@ -19,6 +19,22 @@ type ApiResponse<T> = {
   data: T;
 };
 
+type EmployeeProfile = {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  role: string;
+  department: string;
+  departmentId?: string;
+  designation: string;
+  designationId?: string;
+  dateOfJoining: string;
+  employeeId: string;
+  status: string;
+  profilePicture?: string;
+};
+
 type Summary = {
   month: number;
   year: number;
@@ -56,7 +72,18 @@ type HolidayRecord = {
   date: string;
 };
 
+type LeaveTypeRecord = {
+  _id?: string;
+  id?: string;
+  name: string;
+  code: string;
+  maxDaysPerYear: number;
+  isActive: boolean;
+};
+
 type LeaveRecord = {
+  leaveType?: string | { _id?: string; id?: string; code?: string; name?: string };
+  totalDays?: number;
   status: 'pending' | 'approved' | 'rejected' | string;
 };
 
@@ -80,28 +107,35 @@ type WorkLogEntry = {
 };
 
 export default function DashboardContent() {
+  const [profile, setProfile] = useState<EmployeeProfile | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [announcements, setAnnouncements] = useState<AnnouncementRecord[]>([]);
   const [holidays, setHolidays] = useState<HolidayRecord[]>([]);
+  const [leaveTypes, setLeaveTypes] = useState<LeaveTypeRecord[]>([]);
   const [leaves, setLeaves] = useState<LeaveRecord[]>([]);
   const [worklogs, setWorklogs] = useState<WorkLogRecord[]>([]);
   const [userName, setUserName] = useState('Employee');
 
+  const isObjectIdLike = (value?: string) => /^[a-fA-F0-9]{24}$/.test((value ?? '').trim());
+
+  const resolveDepartmentName = async (id: string, headers: Record<string, string>) => {
+    const response = await fetch(`${API_BASE}/departments/${id}`, { headers });
+    if (!response.ok) return null;
+    const data = (await response.json()) as ApiResponse<{ name?: string }>;
+    return data?.data?.name ?? null;
+  };
+
+  const resolveDesignationTitle = async (id: string, headers: Record<string, string>) => {
+    const response = await fetch(`${API_BASE}/designations/${id}`, { headers });
+    if (!response.ok) return null;
+    const data = (await response.json()) as ApiResponse<{ title?: string }>;
+    return data?.data?.title ?? null;
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    const userRaw = localStorage.getItem('user');
-
-    if (userRaw) {
-      try {
-        const parsed = JSON.parse(userRaw) as { fullName?: string };
-        if (parsed?.fullName) setUserName(parsed.fullName);
-      } catch {
-        setUserName('Employee');
-      }
-    }
-
     if (!token) {
       return;
     }
@@ -117,11 +151,13 @@ export default function DashboardContent() {
     const today = now.toISOString().slice(0, 10);
 
     const requests = [
+      fetch(`${API_BASE}/employees/me`, { headers }),
       fetch(`${API_BASE}/attendance/summary?month=${month}&year=${year}`, { headers }),
       fetch(`${API_BASE}/attendance/me?month=${month}&year=${year}`, { headers }),
       fetch(`${API_BASE}/tasks`, { headers }),
       fetch(`${API_BASE}/announcements`, { headers }),
       fetch(`${API_BASE}/holidays?year=${year}`, { headers }),
+      fetch(`${API_BASE}/leave-types`, { headers }),
       fetch(`${API_BASE}/leaves`, { headers }),
       fetch(`${API_BASE}/worklogs?date=${today}`, { headers }),
     ];
@@ -135,19 +171,40 @@ export default function DashboardContent() {
         return (await res.json()) as ApiResponse<T>;
       };
 
-      const summaryRes = await parse<Summary>(0);
-      const attendanceRes = await parse<AttendanceRecord[]>(1);
-      const taskRes = await parse<TaskRecord[]>(2);
-      const announcementRes = await parse<AnnouncementRecord[]>(3);
-      const holidayRes = await parse<HolidayRecord[]>(4);
-      const leaveRes = await parse<LeaveRecord[]>(5);
-      const worklogRes = await parse<WorkLogRecord[]>(6);
+      const meRes = await parse<EmployeeProfile>(0);
+      const summaryRes = await parse<Summary>(1);
+      const attendanceRes = await parse<AttendanceRecord[]>(2);
+      const taskRes = await parse<TaskRecord[]>(3);
+      const announcementRes = await parse<AnnouncementRecord[]>(4);
+      const holidayRes = await parse<HolidayRecord[]>(5);
+      const leaveTypesRes = await parse<LeaveTypeRecord[]>(6);
+      const leaveRes = await parse<LeaveRecord[]>(7);
+      const worklogRes = await parse<WorkLogRecord[]>(8);
+
+      if (meRes?.data) {
+        const employee = { ...meRes.data };
+        const deptLookupId = isObjectIdLike(employee.department) ? employee.department : employee.departmentId;
+        const desigLookupId = isObjectIdLike(employee.designation) ? employee.designation : employee.designationId;
+
+        if (deptLookupId && isObjectIdLike(deptLookupId)) {
+          const name = await resolveDepartmentName(deptLookupId, headers);
+          if (name) employee.department = name;
+        }
+        if (desigLookupId && isObjectIdLike(desigLookupId)) {
+          const title = await resolveDesignationTitle(desigLookupId, headers);
+          if (title) employee.designation = title;
+        }
+
+        setProfile(employee);
+        if (employee.fullName) setUserName(employee.fullName);
+      }
 
       if (summaryRes?.data) setSummary(summaryRes.data);
       if (attendanceRes?.data) setAttendance(attendanceRes.data);
       if (taskRes?.data) setTasks(taskRes.data);
       if (announcementRes?.data) setAnnouncements(announcementRes.data);
       if (holidayRes?.data) setHolidays(holidayRes.data);
+      if (leaveTypesRes?.data) setLeaveTypes(leaveTypesRes.data);
       if (leaveRes?.data) setLeaves(leaveRes.data);
       if (worklogRes?.data) setWorklogs(worklogRes.data);
     });
@@ -188,12 +245,33 @@ export default function DashboardContent() {
   }, [holidays]);
 
   const leaveApproved = leaves.filter((leave) => leave.status === 'approved').length;
+  const leavePending = leaves.filter((leave) => leave.status === 'pending').length;
+  const leaveRejected = leaves.filter((leave) => leave.status === 'rejected').length;
   const leaveTotal = leaves.length;
+
+  const leaveTotalDaysAllowed = useMemo(
+    () => leaveTypes.reduce((sum, leaveType) => sum + (leaveType.maxDaysPerYear ?? 0), 0),
+    [leaveTypes]
+  );
+
+  const leaveUsedDays = useMemo(
+    () => leaves
+      .filter((leave) => leave.status === 'approved')
+      .reduce((sum, leave) => sum + (leave.totalDays ?? 0), 0),
+    [leaves]
+  );
+
+  const leaveLeftDays = Math.max(leaveTotalDaysAllowed - leaveUsedDays, 0);
+
+  const completedTasks = tasks.filter((task) => task.status?.toLowerCase() === 'completed').length;
+  const pendingTasks = tasks.filter((task) => task.status?.toLowerCase() !== 'completed').length;
 
   const todayAttendance = useMemo(() => {
     const today = new Date().toDateString();
     return attendance.find((item) => new Date(item.date).toDateString() === today) ?? null;
   }, [attendance]);
+
+  const todayWorkHours = todayAttendance?.workHours ?? 0;
 
   const todayStatus = todayAttendance?.checkInTime
     ? new Date(todayAttendance.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -220,8 +298,20 @@ export default function DashboardContent() {
           : 'In Progress',
   }));
 
+    const attendanceByDay = useMemo(() => {
+      const map: Record<number, string> = {};
+      attendance.forEach((item) => {
+        const dateObj = new Date(item.date);
+        if (!Number.isNaN(dateObj.getTime())) {
+          map[dateObj.getDate()] = item.status;
+        }
+      });
+      return map;
+    }, [attendance]);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
+
       {/* Header Section */}
       {/* <h1 className="text-2xl font-bold mb-4"> I M under Employee Dashboard </h1> */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
@@ -232,10 +322,18 @@ export default function DashboardContent() {
           quote='"The only way to do great work is to love what you do." - Steve Jobs'
         />
         <StatsCard 
-          leaveLeft={`${leaveApproved}/${leaveTotal}`}
-          remaining={`${summary?.absentDays ?? 0}`}
+          leaveLeft={`${leaveLeftDays}/${leaveTotalDaysAllowed}`}
+          remaining={`${leavePending}`}
           todayStatus={todayStatus}
         />
+      </div>
+
+      <div className="mb-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+        <span className="font-semibold text-slate-900">Leave Summary:</span>{' '}
+        Left <span className="font-semibold">{leaveLeftDays}</span> / Total <span className="font-semibold">{leaveTotalDaysAllowed}</span>{' '}
+        · Approved Requests: <span className="font-semibold">{leaveApproved}</span>
+        · Pending: <span className="font-semibold">{leavePending}</span>
+        · Rejected: <span className="font-semibold">{leaveRejected}</span>
       </div>
 
       {/* Daily Work Log & Calendar Row */}
@@ -246,6 +344,7 @@ export default function DashboardContent() {
           year={summary?.year ?? new Date().getFullYear()}
           totalDays={new Date(summary?.year ?? new Date().getFullYear(), summary?.month ?? new Date().getMonth() + 1, 0).getDate()}
           currentDay={new Date().getDate()}
+          attendanceByDay={attendanceByDay}
         />
       </div>
 
@@ -254,6 +353,20 @@ export default function DashboardContent() {
         <MyFocus tasks={taskItems} />
         <NoticeBoard notices={noticeItems} holidays={holidayItems} />
       </div>
+
+      <div className="mt-4 text-xs text-slate-500">
+        API-backed fields shown above: profile, attendance summary, today attendance, tasks, announcements, holidays, leaves, and today worklogs.
+        No dedicated backend API found for "unread announcements" or "team progress %" on this dashboard.
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-white p-3 shadow-sm sm:p-4">
+      <div className="text-xs text-slate-500">{title}</div>
+      <div className="mt-1 text-lg font-semibold text-slate-900">{value}</div>
     </div>
   );
 }

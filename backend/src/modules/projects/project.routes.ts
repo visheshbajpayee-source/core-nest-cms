@@ -29,7 +29,7 @@ router.post(
 router.get("/", authorize("admin", "manager"), getProjectsController);
 
 router.get(
-  "/my",
+  "/me",
   protect,
   authorize("employee", "manager", "admin"),
   getMyProjectsController

@@ -89,10 +89,27 @@ employeeSchema.pre("save", async function () {
  */
 employeeSchema.pre("save", async function () {
   if (!this.employeeId) {
-    const count = await Employee.countDocuments();
-    this.employeeId = `EMP${(count + 1)
-      .toString()
-      .padStart(3, "0")}`;
+    const latest = await Employee.aggregate<{ maxNumber: number }>([
+      { $match: { employeeId: /^EMP\d+$/ } },
+      {
+        $project: {
+          maxNumber: {
+            $toInt: {
+              $substrCP: [
+                "$employeeId",
+                3,
+                { $subtract: [{ $strLenCP: "$employeeId" }, 3] },
+              ],
+            },
+          },
+        },
+      },
+      { $sort: { maxNumber: -1 } },
+      { $limit: 1 },
+    ]);
+
+    const nextNumber = (latest[0]?.maxNumber ?? 0) + 1;
+    this.employeeId = `EMP${nextNumber.toString().padStart(3, "0")}`;
   }
 });
 

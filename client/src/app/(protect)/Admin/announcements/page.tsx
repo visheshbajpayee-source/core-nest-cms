@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AdminSidebar } from "@/app/EmployeeComponents";
+import { AdminSidebar } from "@/app/(protect)/Admin/components";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
@@ -89,7 +89,7 @@ export default function AdminAnnouncementsPage() {
   return (
     <div className="flex min-h-screen bg-slate-100">
       <AdminSidebar />
-      <main className="ml-64 w-full p-4 sm:p-6 lg:p-8">
+      <main className="ml-4 w-full p-4 sm:p-6 lg:p-8">
         <h1 className="mb-1 text-2xl font-semibold text-slate-900">Announcements</h1>
         <p className="mb-6 text-sm text-slate-500">Post and manage company-wide announcements.</p>
 

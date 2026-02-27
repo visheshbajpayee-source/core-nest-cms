@@ -15,10 +15,10 @@ const leaveBalanceSchema = new Schema<ILeaveBalance>(
     },
 
     leaveType: {
-      type: String,
-      enum: ["sick", "casual", "earned", "other"],
-      required: true,
-    },
+  type: Schema.Types.ObjectId,
+  ref: "LeaveType",
+  required: true,
+},
 
     allocated: {
       type: Number,
@@ -37,7 +37,7 @@ const leaveBalanceSchema = new Schema<ILeaveBalance>(
   }
 );
 
-// 🔐 Prevent duplicate leave balance for same employee + year + leaveType
+// Prevent duplicate leave balance for same employee + year + leaveType
 leaveBalanceSchema.index(
   { employee: 1, year: 1, leaveType: 1 },
   { unique: true }

@@ -33,6 +33,7 @@ export default function ProtectedLayout({ children }: Props) {
     } else {
       setIsAuthenticated(true);
     }
+      
   }, [router]);
 
   // Prevent flicker before redirect

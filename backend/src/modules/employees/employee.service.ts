@@ -30,7 +30,28 @@ export const createEmployee = async (
   data: CreateEmployeeDto
 ): Promise<EmployeeResponseDto> => {
   try {
-    const employee = await Employee.create(data);
+    let employee: InstanceType<typeof Employee> | null = null;
+
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        employee = await new Employee(data).save();
+        break;
+      } catch (error: any) {
+        const isDuplicateEmployeeId =
+          error?.code === 11000 &&
+          (error?.keyPattern?.employeeId || error?.keyValue?.employeeId);
+
+        if (isDuplicateEmployeeId && attempt < 3) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    if (!employee) {
+      throw ApiError.internalServer("Failed to create employee");
+    }
 
     return {
       id: employee._id.toString(),
@@ -73,10 +94,8 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
-      departmentId: (employee.department as any)?._id?.toString() ?? "",
-      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
-      designationId: (employee.designation as any)?._id?.toString() ?? "",
+      department: employee.department.toString(),
+      designation: employee.designation.toString(),
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
@@ -135,10 +154,8 @@ export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto |
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
-      departmentId: (employee.department as any)?._id?.toString() ?? "",
-      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
-      designationId: (employee.designation as any)?._id?.toString() ?? "",
+      department: employee.department.toString(),
+      designation: employee.designation.toString(),
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,
@@ -168,7 +185,7 @@ export const updateEmployee = async (
       query,
       data,
       { new: true }
-    ).populate("department", "name").populate("designation", "title");
+    );
 
     if (!employee) {
       throw ApiError.notFound("Employee not found");
@@ -179,10 +196,8 @@ export const updateEmployee = async (
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
-      department: (employee.department as any)?.name ?? (employee.department as any)?.toString() ?? "",
-      departmentId: (employee.department as any)?._id?.toString() ?? "",
-      designation: (employee.designation as any)?.title ?? (employee.designation as any)?.toString() ?? "",
-      designationId: (employee.designation as any)?._id?.toString() ?? "",
+      department: employee.department.toString(),
+      designation: employee.designation.toString(),
       dateOfJoining: employee.dateOfJoining,
       employeeId: employee.employeeId,
       status: employee.status,

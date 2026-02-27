@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { loginUser } from '@/app/services/auth.service';
+import { loginAndStoreProfile } from './service/login.service';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -20,14 +20,12 @@ export default function Login() {
     setError('');
 
     try {
-      console.log('Attempting login with:', { email, password });
-      const data = await loginUser({ email, password });
-      console.log('Login response data:', data);
-      localStorage.setItem('accessToken', data.accessToken);
+      console.log('Attempting login with:', email);
+      const data = await loginAndStoreProfile({ email, password });
+      // Token and profile data are already stored in the service
       router.replace('/employee1/dashboard');
     } catch (err: any) {
-      console.error('login error', err);
-      setError(err?.message || 'Invalid credentials. Please try again.');
+      setError(err.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }

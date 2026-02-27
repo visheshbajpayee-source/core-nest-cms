@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { AdminSidebar } from "@/app/EmployeeComponents";
+import { AdminSidebar } from "@/app/(protect)/Admin/components";
 import { dummyProjects, dummyEmployees, type Project, type TeamMember } from "./projectdata";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
@@ -386,7 +386,7 @@ export default function AdminProjectsPage() {
   return (
     <div className="flex min-h-screen bg-slate-100">
       <AdminSidebar />
-      <main className="ml-64 w-full p-4 sm:p-6 lg:p-8">
+      <main className="ml-4 w-full p-4 sm:p-6 lg:p-8">
 
         {/* Page header */}
         <div className="mb-6 flex items-center justify-between">

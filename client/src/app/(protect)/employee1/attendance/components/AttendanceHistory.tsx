@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { AttendanceRecord, getAttendanceHistory } from "../services/attendence";
+import React, { useState, useEffect, useRef } from "react";
+import { getAttendanceHistory, AttendanceRecord } from "../services/attendence";
+
 export default function Attendance() {
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1–12
@@ -14,6 +15,11 @@ export default function Attendance() {
     "July","August","September","October","November","December"
   ];
 
+  const monthsShort: string[] = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+  ];
+
   const years: number[] = Array.from(
     { length: currentYear - startYear + 1 + futureYears },
     (_, i) => startYear + i
@@ -24,21 +30,48 @@ const [dateFilter, setDateFilter] = useState({
   year: currentYear,
 });
   const [attendanceHistory, setAttendanceHistory] = useState<AttendanceRecord[]>([]);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const monthPickerRef = useRef<HTMLDivElement>(null);
+  const yearPickerRef = useRef<HTMLDivElement>(null);
+
+  // Close pickers when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (monthPickerRef.current && !monthPickerRef.current.contains(event.target as Node)) {
+        setShowMonthPicker(false);
+      }
+      if (yearPickerRef.current && !yearPickerRef.current.contains(event.target as Node)) {
+        setShowYearPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 🔹 Fetch attendance for selected month/year
-  const fetchAttendance = async (m: number, y: number) => {
-    try {
-      const response = await getAttendanceHistory("12", {
-        month: String(m),
-        year: String(y),
-      });
-      if (response.success) {
-        setAttendanceHistory(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching attendance:", error);
+const fetchAttendance = async (m: number, y: number) => {
+  try {
+    const response = await getAttendanceHistory({
+      month: String(m).padStart(2, "0"),
+      year: String(y),
+    });
+
+    console.log("Fetched attendance history:", response);
+    
+    if (response.success && Array.isArray(response.data)) {
+      setAttendanceHistory(response.data);
+      console.log("Set attendance history with", response.data.length, "records");
+    } else {
+      console.warn("Invalid response format:", response);
+      setAttendanceHistory([]);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching attendance:", error);
+    setAttendanceHistory([]);
+  }
+};
 
   // 🔹 First time load → fetch current month/year
   useEffect(() => {
@@ -52,49 +85,174 @@ const [dateFilter, setDateFilter] = useState({
   };
 
   return (
+    <>
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      `}</style>
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl p-3 sm:p-4 md:p-6 border border-gray-100 mb-6 sm:mb-8 transition-all duration-300">
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 flex-1">
-          {/* Month */}
-          <select
-            value={dateFilter.month}
-            onChange={(e) => setDateFilter({...dateFilter, month: Number(e.target.value)})}
-            className="border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 flex-1"
-          >
-            {months.map((m, i) => (
-              <option key={i} value={i + 1}>{m}</option>
-            ))}
-          </select>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
+          
+          {/* Month Picker */}
+          <div className="flex-1 relative" ref={monthPickerRef}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
+            <button
+              onClick={() => {
+                setShowMonthPicker(!showMonthPicker);
+                setShowYearPicker(false);
+              }}
+              className="w-full border border-gray-300 p-2.5 sm:p-3 rounded-md text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 bg-white cursor-pointer text-left flex items-center justify-between hover:bg-gray-50"
+            >
+              <span>{months[dateFilter.month - 1]}</span>
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
 
-          {/* Year */}
-          <select
-            value={dateFilter.year}
-            onChange={(e) => setDateFilter({...dateFilter, year: Number(e.target.value)})}
-            className="border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 flex-1"
-          >
-            {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+            {showMonthPicker && (
+              <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg p-3">
+                <div className="grid grid-cols-3 gap-2">
+                  {monthsShort.map((m, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setDateFilter({...dateFilter, month: i + 1});
+                        setShowMonthPicker(false);
+                      }}
+                      className={`p-2 text-sm rounded hover:bg-gray-100 ${
+                        dateFilter.month === i + 1 
+                          ? 'bg-gray-800 text-white hover:bg-gray-900' 
+                          : 'text-gray-700'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setDateFilter({...dateFilter, month: currentMonth});
+                      setShowMonthPicker(false);
+                    }}
+                    className="flex-1 text-xs py-1.5 px-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+                  >
+                    This month
+                  </button>
+                  <button
+                    onClick={() => setShowMonthPicker(false)}
+                    className="flex-1 text-xs py-1.5 px-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Year Picker */}
+          <div className="flex-1 relative" ref={yearPickerRef}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+            <button
+              onClick={() => {
+                setShowYearPicker(!showYearPicker);
+                setShowMonthPicker(false);
+              }}
+              className="w-full border border-gray-300 p-2.5 sm:p-3 rounded-md text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 bg-white cursor-pointer text-left flex items-center justify-between hover:bg-gray-50"
+            >
+              <span>{dateFilter.year}</span>
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showYearPicker && (
+              <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg p-3">
+                <div className="max-h-48 overflow-y-auto">
+                  <div className="grid grid-cols-3 gap-2">
+                    {years.map((y) => (
+                      <button
+                        key={y}
+                        onClick={() => {
+                          setDateFilter({...dateFilter, year: y});
+                          setShowYearPicker(false);
+                        }}
+                        className={`p-2 text-sm rounded hover:bg-gray-100 ${
+                          dateFilter.year === y 
+                            ? 'bg-gray-800 text-white hover:bg-gray-900' 
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        {y}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setDateFilter({...dateFilter, year: currentYear});
+                      setShowYearPicker(false);
+                    }}
+                    className="flex-1 text-xs py-1.5 px-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+                  >
+                    This year
+                  </button>
+                  <button
+                    onClick={() => setShowYearPicker(false)}
+                    className="flex-1 text-xs py-1.5 px-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
 
-        <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:mt-6">
           <button
             onClick={handleApply}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
+            className="bg-gray-800 hover:bg-gray-900 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-md font-medium text-sm sm:text-base"
           >
             Apply
           </button>
 
-          <button className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm sm:text-base cursor-pointer px-4 sm:px-6 py-2 sm:py-3 border border-indigo-200 hover:border-indigo-300 rounded-lg transition-all duration-200 hover:bg-indigo-50">
-            Download Report
-          </button>
+       
         </div>
       </div>
 
+      {/* Empty State */}
+      {attendanceHistory.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-2">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <p className="text-gray-500 font-medium">No attendance records found</p>
+          <p className="text-gray-400 text-sm mt-1">Try selecting a different month or year</p>
+        </div>
+      )}
+
       {/* Mobile Cards View */}
-      <div className="block sm:hidden space-y-3">
+      {attendanceHistory.length > 0 && (
+        <div className="block sm:hidden space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {attendanceHistory.map((record, index) => (
           <div
             key={index}
@@ -132,12 +290,14 @@ const [dateFilter, setDateFilter] = useState({
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Desktop Table View */}
-      <div className="hidden sm:block overflow-x-auto">
+      {attendanceHistory.length > 0 && (
+        <div className="hidden sm:block overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
         <table className="min-w-full text-sm lg:text-base">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-slate-50 text-slate-700">
               <th className="py-3 sm:py-4 px-3 sm:px-4 md:px-6 text-left font-semibold">Date</th>
               <th className="py-3 sm:py-4 px-3 sm:px-4 md:px-6 text-left font-semibold">Check In</th>
@@ -175,7 +335,9 @@ const [dateFilter, setDateFilter] = useState({
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
     </div>
+    </>
   );
 }

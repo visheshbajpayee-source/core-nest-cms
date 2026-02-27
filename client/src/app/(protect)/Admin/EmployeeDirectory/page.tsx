@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import React, { useEffect, useState } from "react";
-import { AdminEmployeeTable, AdminSidebar } from "@/app/EmployeeComponents";
-import type { Employee, EmployeeFormState } from "@/app/AdminComponents/adminTypes";
+import { AdminEmployeeTable, AdminSidebar } from "../components";
+import type { Employee, EmployeeFormState } from "@/app/(protect)/Admin/types/adminTypes";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
@@ -17,6 +17,8 @@ const emptyForm: EmployeeFormState = {
 	role: "employee",
 	status: "active",
 };
+
+const isObjectIdLike = (value?: string) => /^[a-fA-F0-9]{24}$/.test((value ?? "").trim());
 
 // â”€â”€â”€ Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EmployeeModal({
@@ -46,7 +48,7 @@ function EmployeeModal({
 	if (!open) return null;
 	const inp = "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-200";
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 "
 			onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
 			<div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
 				<div className="mb-5 flex items-center justify-between">
@@ -146,6 +148,8 @@ function EmployeeModal({
 // â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function EmployeeDirectoryPage() {
 	const [employees, setEmployees] = useState<Employee[]>([]);
+	const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+	const [designations, setDesignations] = useState<{ id: string; title: string }[]>([]);
 	const [form, setForm] = useState<EmployeeFormState>(emptyForm);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [modalOpen, setModalOpen] = useState(false);
@@ -158,35 +162,89 @@ export default function EmployeeDirectoryPage() {
 	const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 	const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
+	const mapEmployee = (e: any): Employee => {
+		const departmentId = e.departmentId ?? (isObjectIdLike(e.department) ? e.department : undefined);
+		const designationId = e.designationId ?? (isObjectIdLike(e.designation) ? e.designation : undefined);
+
+		const departmentName =
+			!isObjectIdLike(e.department)
+				? e.department
+				: departments.find((d) => d.id === departmentId)?.name ?? e.department;
+		const designationName =
+			!isObjectIdLike(e.designation)
+				? e.designation
+				: designations.find((d) => d.id === designationId)?.title ?? e.designation;
+
+		return {
+			id: e.id ?? e._id,
+			employeeId: e.employeeId,
+			fullName: e.fullName,
+			email: e.email,
+			role: e.role,
+			department: departmentName,
+			departmentId,
+			designation: designationName,
+			designationId,
+			dateOfJoining: typeof e.dateOfJoining === "string"
+				? e.dateOfJoining
+				: new Date(e.dateOfJoining).toISOString(),
+			status: e.status,
+			phoneNumber: e.phoneNumber,
+			profilePicture: e.profilePicture,
+		};
+	};
+
 	useEffect(() => {
 		const t = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 		if (!t) { setError("Not authenticated. Please log in."); setLoading(false); return; }
 		setLoading(true);
-		fetch(`${API}/employees`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } })
-			.then(async (r) => {
-				const j = await r.json();
-				if (!r.ok || !j.success) {
-					setError(j.message || `Server error ${r.status}`);
+		Promise.all([
+			fetch(`${API}/departments`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then((r) => r.json()),
+			fetch(`${API}/designations`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then((r) => r.json()),
+			fetch(`${API}/employees`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then(async (r) => ({ ok: r.ok, status: r.status, body: await r.json() })),
+		])
+			.then(([deptJson, desigJson, employeesRes]) => {
+				const deptList: { id: string; name: string }[] = Array.isArray(deptJson?.data)
+					? deptJson.data.map((d: any) => ({ id: d.id ?? d._id, name: d.name }))
+					: [];
+				const desigList: { id: string; title: string }[] = Array.isArray(desigJson?.data)
+					? desigJson.data.map((d: any) => ({ id: d.id ?? d._id, title: d.title }))
+					: [];
+
+				setDepartments(deptList);
+				setDesignations(desigList);
+
+				if (!employeesRes.ok || !employeesRes.body?.success) {
+					setError(employeesRes.body?.message || `Server error ${employeesRes.status}`);
 					return;
 				}
-				const list: any[] = Array.isArray(j.data) ? j.data : [];
-				setEmployees(list.map((e) => ({
-					id: e.id ?? e._id,
-					employeeId: e.employeeId,
-					fullName: e.fullName,
-					email: e.email,
-					role: e.role,
-					department: e.department,
-					departmentId: e.departmentId,
-					designation: e.designation,
-					designationId: e.designationId,
-					dateOfJoining: typeof e.dateOfJoining === "string"
-						? e.dateOfJoining
-						: new Date(e.dateOfJoining).toISOString(),
-					status: e.status,
-					phoneNumber: e.phoneNumber,
-					profilePicture: e.profilePicture,
-				})));
+
+				const list: any[] = Array.isArray(employeesRes.body.data) ? employeesRes.body.data : [];
+				setEmployees(list.map((employee) => {
+					const departmentId = employee.departmentId ?? (isObjectIdLike(employee.department) ? employee.department : undefined);
+					const designationId = employee.designationId ?? (isObjectIdLike(employee.designation) ? employee.designation : undefined);
+					return {
+						id: employee.id ?? employee._id,
+						employeeId: employee.employeeId,
+						fullName: employee.fullName,
+						email: employee.email,
+						role: employee.role,
+						department: !isObjectIdLike(employee.department)
+							? employee.department
+							: deptList.find((d) => d.id === departmentId)?.name ?? employee.department,
+						departmentId,
+						designation: !isObjectIdLike(employee.designation)
+							? employee.designation
+							: desigList.find((d) => d.id === designationId)?.title ?? employee.designation,
+						designationId,
+						dateOfJoining: typeof employee.dateOfJoining === "string"
+							? employee.dateOfJoining
+							: new Date(employee.dateOfJoining).toISOString(),
+						status: employee.status,
+						phoneNumber: employee.phoneNumber,
+						profilePicture: employee.profilePicture,
+					};
+				}));
 			})
 			.catch(() => setError("Could not reach the server. Is the backend running?"))
 			.finally(() => setLoading(false));
@@ -196,7 +254,8 @@ export default function EmployeeDirectoryPage() {
 	const openEdit = (emp: Employee) => {
 		setEditingId(emp.employeeId); setError(null);
 		setForm({ fullName: emp.fullName, email: emp.email, password: "", phoneNumber: emp.phoneNumber || "",
-			department: emp.departmentId || "", designation: emp.designationId || "",
+			department: emp.departmentId || departments.find((d) => d.name === emp.department)?.id || "",
+			designation: emp.designationId || designations.find((d) => d.title === emp.designation)?.id || "",
 			dateOfJoining: emp.dateOfJoining ? emp.dateOfJoining.substring(0, 10) : "",
 			role: emp.role, status: emp.status });
 		setModalOpen(true);
@@ -212,27 +271,52 @@ export default function EmployeeDirectoryPage() {
 		e.preventDefault();
 		if (!form.fullName || !form.email) { setError("Full name and email are required."); return; }
 		if (!editingId && !form.password) { setError("Password is required for new employees."); return; }
+		const selectedDepartmentId = isObjectIdLike(form.department)
+			? form.department
+			: departments.find((d) => d.name === form.department)?.id;
+		const selectedDesignationId = isObjectIdLike(form.designation)
+			? form.designation
+			: designations.find((d) => d.title === form.designation)?.id;
+
+		if (!editingId && (!selectedDepartmentId || !selectedDesignationId)) {
+			setError("Please select valid department and designation.");
+			return;
+		}
 		setSaving(true); setError(null);
 		try {
 			if (editingId) {
 				const res = await fetch(`${API}/employees/${editingId}`, {
 					method: "PUT", headers,
-					body: JSON.stringify({ fullName: form.fullName, phoneNumber: form.phoneNumber || undefined, designation: form.designation || undefined, status: form.status }),
+					body: JSON.stringify({
+						fullName: form.fullName,
+						phoneNumber: form.phoneNumber || undefined,
+						designation: selectedDesignationId || undefined,
+						status: form.status,
+					}),
 				});
 				const json = await res.json();
 				if (!res.ok) throw new Error(json.message || "Failed");
-				const e = json.data;
-				const updated: Employee = { id: e.id ?? e._id, employeeId: e.employeeId, fullName: e.fullName, email: e.email, role: e.role, department: e.department, designation: e.designation, dateOfJoining: e.dateOfJoining, status: e.status, phoneNumber: e.phoneNumber };
+				const updated = mapEmployee(json.data);
 				setEmployees((prev) => prev.map((emp) => emp.employeeId === editingId ? updated : emp));
 			} else {
 				const res = await fetch(`${API}/employees`, {
 					method: "POST", headers,
-					body: JSON.stringify({ fullName: form.fullName, email: form.email, password: form.password, phoneNumber: form.phoneNumber || undefined, role: form.role, department: form.department, designation: form.designation, dateOfJoining: form.dateOfJoining }),
+					body: JSON.stringify({
+						fullName: form.fullName,
+						email: form.email,
+						password: form.password,
+						phoneNumber: form.phoneNumber || undefined,
+						role: form.role,
+						department: selectedDepartmentId,
+						designation: selectedDesignationId,
+						departmentId: selectedDepartmentId,
+						designationId: selectedDesignationId,
+						dateOfJoining: form.dateOfJoining,
+					}),
 				});
 				const json = await res.json();
 				if (!res.ok) throw new Error(json.message || "Failed");
-				const e = json.data;
-				const created: Employee = { id: e.id ?? e._id, employeeId: e.employeeId, fullName: e.fullName, email: e.email, role: e.role, department: e.department, designation: e.designation, dateOfJoining: e.dateOfJoining, status: e.status, phoneNumber: e.phoneNumber };
+				const created = mapEmployee(json.data);
 				setEmployees((prev) => [created, ...prev]);
 			}
 			closeModal();
@@ -264,8 +348,8 @@ export default function EmployeeDirectoryPage() {
 	return (
 		<div className="flex min-h-screen bg-slate-100">
 			<AdminSidebar />
-			<div className="w-full pt-16 lg:ml-64 lg:pt-0">
-				<div className="p-4 sm:p-6 lg:p-8">
+			<div className="w-full pt-16 lg:ml-4 lg:pt-0">
+				<div className="p-4 sm:p-6 lg:py-8 lg:pr-8 lg:pl-0">
 				{/* Header */}
 				<div className="mb-6 flex flex-wrap items-center justify-between gap-3">
 					<div>

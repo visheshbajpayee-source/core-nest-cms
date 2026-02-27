@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import React, { useEffect, useState } from "react";
-import { AdminEmployeeTable, AdminSidebar } from "@/app/EmployeeComponents";
-import type { Employee, EmployeeFormState } from "@/app/AdminComponents/adminTypes";
+import { AdminEmployeeTable, AdminSidebar } from "../components";
+import type { Employee, EmployeeFormState } from "@/app/(protect)/Admin/types/adminTypes";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
@@ -48,7 +48,7 @@ function EmployeeModal({
 	if (!open) return null;
 	const inp = "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-200";
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 "
 			onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
 			<div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
 				<div className="mb-5 flex items-center justify-between">
@@ -204,10 +204,10 @@ export default function EmployeeDirectoryPage() {
 			fetch(`${API}/employees`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then(async (r) => ({ ok: r.ok, status: r.status, body: await r.json() })),
 		])
 			.then(([deptJson, desigJson, employeesRes]) => {
-				const deptList = Array.isArray(deptJson?.data)
+				const deptList: { id: string; name: string }[] = Array.isArray(deptJson?.data)
 					? deptJson.data.map((d: any) => ({ id: d.id ?? d._id, name: d.name }))
 					: [];
-				const desigList = Array.isArray(desigJson?.data)
+				const desigList: { id: string; title: string }[] = Array.isArray(desigJson?.data)
 					? desigJson.data.map((d: any) => ({ id: d.id ?? d._id, title: d.title }))
 					: [];
 
@@ -271,12 +271,28 @@ export default function EmployeeDirectoryPage() {
 		e.preventDefault();
 		if (!form.fullName || !form.email) { setError("Full name and email are required."); return; }
 		if (!editingId && !form.password) { setError("Password is required for new employees."); return; }
+		const selectedDepartmentId = isObjectIdLike(form.department)
+			? form.department
+			: departments.find((d) => d.name === form.department)?.id;
+		const selectedDesignationId = isObjectIdLike(form.designation)
+			? form.designation
+			: designations.find((d) => d.title === form.designation)?.id;
+
+		if (!editingId && (!selectedDepartmentId || !selectedDesignationId)) {
+			setError("Please select valid department and designation.");
+			return;
+		}
 		setSaving(true); setError(null);
 		try {
 			if (editingId) {
 				const res = await fetch(`${API}/employees/${editingId}`, {
 					method: "PUT", headers,
-					body: JSON.stringify({ fullName: form.fullName, phoneNumber: form.phoneNumber || undefined, designation: form.designation || undefined, status: form.status }),
+					body: JSON.stringify({
+						fullName: form.fullName,
+						phoneNumber: form.phoneNumber || undefined,
+						designation: selectedDesignationId || undefined,
+						status: form.status,
+					}),
 				});
 				const json = await res.json();
 				if (!res.ok) throw new Error(json.message || "Failed");
@@ -285,7 +301,18 @@ export default function EmployeeDirectoryPage() {
 			} else {
 				const res = await fetch(`${API}/employees`, {
 					method: "POST", headers,
-					body: JSON.stringify({ fullName: form.fullName, email: form.email, password: form.password, phoneNumber: form.phoneNumber || undefined, role: form.role, department: form.department, designation: form.designation, dateOfJoining: form.dateOfJoining }),
+					body: JSON.stringify({
+						fullName: form.fullName,
+						email: form.email,
+						password: form.password,
+						phoneNumber: form.phoneNumber || undefined,
+						role: form.role,
+						department: selectedDepartmentId,
+						designation: selectedDesignationId,
+						departmentId: selectedDepartmentId,
+						designationId: selectedDesignationId,
+						dateOfJoining: form.dateOfJoining,
+					}),
 				});
 				const json = await res.json();
 				if (!res.ok) throw new Error(json.message || "Failed");
@@ -321,8 +348,8 @@ export default function EmployeeDirectoryPage() {
 	return (
 		<div className="flex min-h-screen bg-slate-100">
 			<AdminSidebar />
-			<div className="w-full pt-16 lg:ml-64 lg:pt-0">
-				<div className="p-4 sm:p-6 lg:p-8">
+			<div className="w-full pt-16 lg:ml-4 lg:pt-0">
+				<div className="p-4 sm:p-6 lg:py-8 lg:pr-8 lg:pl-0">
 				{/* Header */}
 				<div className="mb-6 flex flex-wrap items-center justify-between gap-3">
 					<div>

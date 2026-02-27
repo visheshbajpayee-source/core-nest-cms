@@ -1,13 +1,15 @@
 import { Router } from "express";
 import { protect } from "../../common/middlewares/auth.middleware";
-import { applyLeaveController } from "./leave.controller";
+import {
+  applyLeaveController,
+  getMyLeaveHistoryController,
+  updateLeaveStatusController,
+} from "./leave.controller";
 import { authorize } from "../../common/middlewares/role.middleware";
-import { updateLeaveStatusController } from "./leave.controller";
-import { getMyLeavesController } from "./leave.controller";
 const router: Router = Router();
 
 router.post("/", protect, applyLeaveController);
-router.get("/me", protect, getMyLeavesController)
+router.get("/me", protect, getMyLeaveHistoryController);
 
 router.patch(
   "/:id",

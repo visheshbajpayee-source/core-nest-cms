@@ -12,7 +12,6 @@ import taskRoutes from "./modules/tasks/task.routes";
 import holidayRoutes from "./modules/holiday/holiday.routes";
 import documentRoutes from "./modules/documents/documents.routes";
 import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
-
 const router: Router = Router();
 
 router.use("/login", authRoutes);

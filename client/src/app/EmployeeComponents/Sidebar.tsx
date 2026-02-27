@@ -15,7 +15,7 @@ export default function Sidebar() {
     { label: "Daily Work Log", path: "/employee/dailyWorkLog", icon: "🗒️" },
     { label: "Projects", path: "/employee/projects", icon: "📂" },
     { label: "Announcements", path: "/employee/announcements", icon: "📢" },
-    { label: "Reports", path: "/employee/reports", icon: "📊" },
+    // { label: "Reports", path: "/employee/reports", icon: "📊" },
   ];
 
   const sidebarContent = (

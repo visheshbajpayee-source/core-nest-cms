@@ -1,8 +1,13 @@
-export default function ProjectsPage() {
+import EmplyoeeProject from "@/app/(protect)/employee1/projects/components/EmployeeProject";
+import EmployeeLayout from "../layout";
+
+export default function ProjectsRoute() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-800">Projects</h1>
-      <p className="text-gray-500 mt-1">Welcome to the projects page.</p>
+    <div>
+      {/* <EmployeeLayout> */}
+      {/* <h1>jatin</h1> */}
+      <EmplyoeeProject />
+      {/* </EmployeeLayout> */}
     </div>
   );
 }

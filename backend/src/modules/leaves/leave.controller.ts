@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { applyLeave } from "./leave.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { updateLeaveStatus } from "./leave.service";
+import { getMyLeaves } from "./leave.service";
 
 export const applyLeaveController = async (
   req: Request,
@@ -14,6 +15,30 @@ export const applyLeaveController = async (
     const data = await applyLeave(user.id, req.body);
 
     return ApiResponse.sendSuccess(res, 201, "Leave applied successfully", data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/*
+ * GET /leaves/me
+ */
+export const getMyLeavesController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const employeeId = req.user.id;
+
+    const data = await getMyLeaves(employeeId);
+
+    return ApiResponse.sendSuccess(
+      res,
+      200,
+      "Leaves fetched",
+      data
+    );
   } catch (error) {
     next(error);
   }

@@ -1,12 +1,14 @@
 import { Leave } from "./leave.model";
 import { LeaveType } from "../leaveTypes/leaveType.model";
+import { LeaveBalance } from "../leaveBalance/leaveBalance.model";
 import { ApiError } from "../../common/utils/ApiError";
 import { Types } from "mongoose";
 import { IApplyLeaveInput } from "./leave.interface";
 import { Attendance } from "../attendance/attendance.model";
 import { normalizeDate } from "../attendance/attendance.utils";
+
 /**
- * Apply Leave
+ * APPLY LEAVE
  */
 export const applyLeave = async (
   employeeId: string,
@@ -24,7 +26,8 @@ export const applyLeave = async (
   if (start > end) {
     throw ApiError.badRequest("Start date must be before end date");
   }
-
+ 
+  // Calculate working days (exclude weekends)
   let totalDays = 0;
   const current = new Date(start);
 
@@ -39,7 +42,8 @@ export const applyLeave = async (
   if (totalDays === 0) {
     throw ApiError.badRequest("No working days selected");
   }
-
+  
+  // Check overlapping leave
   const overlapping = await Leave.findOne({
     employee: employeeId,
     status: { $ne: "rejected" },
@@ -59,10 +63,16 @@ export const applyLeave = async (
     reason: data.reason,
   });
 };
+ //Get leaves api 
+export const getMyLeaves = async (employeeId: string) => {
+  return await Leave.find({ employee: employeeId })
+    .populate("leaveType", "name code")
+    .sort({ createdAt: -1 });
+};
 
+/**
 
-/*
- * Approve or Reject Leave
+ * APPROVE OR REJECT LEAVE
  */
 export const updateLeaveStatus = async (
   leaveId: string,
@@ -79,14 +89,35 @@ export const updateLeaveStatus = async (
     throw ApiError.badRequest("Leave already processed");
   }
 
-  leave.status = status;
-  leave.approvedBy = new Types.ObjectId(approverId);
-  leave.approvedAt = new Date();
-
-  await leave.save();
-
-  //  If approved then create attendance records
+  // If APPROVED
   if (status === "approved") {
+    const year = new Date(leave.startDate).getFullYear();
+
+    // Find LeaveBalance record
+    const balance = await LeaveBalance.findOne({
+      employee: leave.employee,
+      year: year,
+      leaveType: leave.leaveType,
+    });
+
+    if (!balance) {
+      throw ApiError.badRequest(
+        "Leave balance not found for this employee"
+      );
+    }
+
+    // Prevent overuse
+    if (balance.used + leave.totalDays > balance.allocated) {
+      throw ApiError.badRequest(
+        "Insufficient leave balance"
+      );
+    }
+
+    // Increase used leave
+    balance.used += leave.totalDays;
+    await balance.save();
+
+    // Create attendance records for each working day
     let current = new Date(leave.startDate);
 
     while (current <= leave.endDate) {
@@ -96,7 +127,6 @@ export const updateLeaveStatus = async (
       if (day !== 0 && day !== 6) {
         const normalized = normalizeDate(current);
 
-        // Check if attendance already exists
         const existing = await Attendance.findOne({
           employee: leave.employee,
           date: normalized,
@@ -114,6 +144,14 @@ export const updateLeaveStatus = async (
       current.setDate(current.getDate() + 1);
     }
   }
+
+  // Update leave status
+  
+  leave.status = status;
+  leave.approvedBy = new Types.ObjectId(approverId);
+  leave.approvedAt = new Date();
+
+  await leave.save();
 
   return leave;
 };

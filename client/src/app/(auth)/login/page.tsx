@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { loginAndStoreProfile } from './service/login.service';
+import {role} from "./service/login.service"
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -23,7 +24,9 @@ export default function Login() {
       console.log('Attempting login with:', email);
       const data = await loginAndStoreProfile({ email, password });
       // Token and profile data are already stored in the service
-      router.replace('/employee1/dashboard');
+      if(role === "employee") router.replace('/employee1/dashboard');
+      else if(role === "admin") router.replace("/Admin/dashboard");
+      else router.replace("/employee1/dashboard");
     } catch (err: any) {
       setError(err.message || 'Invalid credentials. Please try again.');
     } finally {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AnnouncementTable from "../component/AnnouncementTable";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 export interface AnnouncementUI {
   id: string;
   title: string;
@@ -36,7 +37,7 @@ export default function AnnouncementClient() {
         console.log(token);
 
         const res = await fetch(
-          "http://localhost:5000/api/v1/announcements",
+          `${apiUrl}/announcements`,
           {
             method: "GET",
             headers: {

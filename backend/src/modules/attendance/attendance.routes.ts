@@ -10,6 +10,7 @@ import {
   checkoutAttendanceController,
   getMonthlySummaryController,
 } from "./attendance.controller";
+import { checkInAttendanceController } from "./attendance.controller";
 
 import { updateAttendanceSchema } from "./attendance.validation";
 
@@ -20,6 +21,8 @@ const router: Router = Router();
  * Logged-in user can view their own attendance
  */
 router.get("/me", protect, getMyAttendanceController);
+router.post("/checkin", protect,  checkInAttendanceController);
+
 router.get(
   "/summary",
   protect,

@@ -4,39 +4,7 @@ import { Types } from "mongoose";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
 import { normalizeDate } from "./attendance.utils"; 
 
-/*
- * This function runs automatically during login.
- * - It prevents duplicate attendance marking.
- * - It creates a new attendance record if not already present.
- */
-export const markAttendance = async (employeeId: string) => {
-  try {
-    // Normalize today to 00:00:00 (start of day)
-    const today = normalizeDate(new Date());
-
-    // Check if attendance already exists for today
-    const existing = await Attendance.findOne({
-      employee: new Types.ObjectId(employeeId),
-      date: today,
-    });
-
-    // If already marked → return existing record
-    if (existing) return formatAttendance(existing);
-
-    // Create new attendance record (check-in)
-    const newAttendance = await Attendance.create({
-      employee: employeeId,
-      date: today,
-      checkInTime: new Date(),
-      status: "present",
-    });
-
-    return formatAttendance(newAttendance);
-  } catch (error) {
-    console.error("Error marking attendance:", error);
-    throw ApiError.internalServer("Failed to mark attendance");
-  }
-};
+// markAttendance function removed. Attendance is now only marked on explicit check-in.
 
 
 /*

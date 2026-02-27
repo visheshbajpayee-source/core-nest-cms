@@ -3,11 +3,11 @@ import {
   getMyAttendance,
   getAllAttendance,
   updateAttendanceStatus,
-  markAttendance,
   checkoutAttendance, 
 } from "./attendance.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { getMonthlySummary } from "./attendance.summary";
+import { Attendance } from "./attendance.model"; // Add this import if not present
 
 /*
  * GET /attendance/me
@@ -94,6 +94,49 @@ export const checkoutAttendanceController = async (
     next(error);
   }
 };
+
+/**
+ * POST /attendance/checkin
+ * Logged-in employee checks in for the day
+ */
+export const checkInAttendanceController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = (req as any).user;
+
+    // Use range for today
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const existing = await Attendance.findOne({
+      employee: user.id,
+      date: { $gte: startOfDay, $lte: endOfDay },
+    });
+    if (existing) {
+      return res.status(400).json({ message: "Already checked in today" });
+    }
+
+    // Mark check-in
+    const now = new Date();
+    const attendance = await Attendance.create({
+      employee: user.id,
+      date: now,
+      checkInTime: now,
+      status: "present",
+    });
+
+    return ApiResponse.sendSuccess(res, 200, "Checked in", attendance);
+  } catch (error) {
+    next(error);
+  }
+};
+
 /**
  * GET /attendance/summary
  * Returns monthly attendance summary

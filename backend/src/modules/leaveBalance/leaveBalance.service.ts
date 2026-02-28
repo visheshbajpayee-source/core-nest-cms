@@ -1,31 +1,53 @@
 import { LeaveBalance } from "./leaveBalance.model";
-import { ApiError } from "../../common/utils/ApiError";
+import { SystemSettings } from "../settings/settings.model";
 
-export const createLeaveBalance = async (data: {
-  employee: string;
-  year: number;
-  leaveType: string;
-  allocated: number;
-}) => {
-  const exists = await LeaveBalance.findOne({
-    employee: data.employee,
-    year: data.year,
-    leaveType: data.leaveType,
-  });
+/**
+ * create / ensure a balance document for each type defined in settings
+ */
+export const initLeaveBalancesForEmployee = async (
+  employeeId: string,
+  year: number = new Date().getFullYear()
+) => {
+  const settings = await SystemSettings.findOne();
+  if (!settings) return;
 
-  if (exists) {
-    throw ApiError.conflict(
-      "Leave balance already exists for this type and year"
-    );
+  const ops = settings.defaultLeaveAllocations.map((alloc) => ({
+    updateOne: {
+      filter: { employee: employeeId, year, leaveType: alloc.leaveType },
+      update: { $setOnInsert: { allocated: alloc.daysPerYear, used: 0 } },
+      upsert: true,
+    },
+  }));
+
+  if (ops.length) {
+    await LeaveBalance.bulkWrite(ops);
   }
+};
 
-  const balance = await LeaveBalance.create({
-    employee: data.employee,
-    year: data.year,
-    leaveType: data.leaveType,
-    allocated: data.allocated,
-    used: 0,
+export const getBalances = async (
+  employeeId: string,
+  year: number = new Date().getFullYear()
+) => {
+  return LeaveBalance.find({ employee: employeeId, year });
+};
+
+export const adjustBalance = async (
+  employeeId: string,
+  year: number,
+  leaveType: string,
+  days: number
+) => {
+  const bal = await LeaveBalance.findOne({
+    employee: employeeId,
+    year,
+    leaveType,
   });
-
-  return balance;
+  if (!bal) {
+    throw new Error("leave balance not found");
+  }
+  bal.used += days;
+  if (bal.used > bal.allocated) {
+    throw new Error("insufficient leave balance");
+  }
+  return bal.save();
 };

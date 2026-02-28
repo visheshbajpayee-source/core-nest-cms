@@ -13,12 +13,17 @@ import taskRoutes from "./modules/tasks/task.routes";
 import holidayRoutes from "./modules/holiday/holiday.routes";
 import documentRoutes from "./modules/documents/documents.routes";
 import settingsRoutes from "./modules/settings/settings.routes";
+<<<<<<< HEAD
+=======
+import leaveRoutes from "./modules/leaves/leave.routes";
+>>>>>>> 66cf4dbc786a79629489e24c2d9cddb19660c10a
 import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
 import leaveBalanceRoutes from "./modules/leaveBalance/leaveBalance.routes";
 const router: Router = Router();
 
 router.use("/login", authRoutes);
 router.use("/employees", employeeRoutes);
+router.use("/leave-balances", leaveBalanceRoutes);
 router.use("/attendance", attendanceRoutes);
 router.use("/holidays", holidayRoutes);
 

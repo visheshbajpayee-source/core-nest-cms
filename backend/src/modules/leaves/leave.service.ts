@@ -1,6 +1,5 @@
 import { Leave } from "./leave.model";
 import { LeaveType } from "../leaveTypes/leaveType.model";
-import { LeaveBalance } from "../leaveBalance/leaveBalance.model";
 import { ApiError } from "../../common/utils/ApiError";
 import { Types } from "mongoose";
 import { IApplyLeaveInput } from "./leave.interface";
@@ -100,30 +99,11 @@ export const updateLeaveStatus = async (
   if (status === "approved") {
     const year = new Date(leave.startDate).getFullYear();
 
-    // Find LeaveBalance record
-    const balance = await LeaveBalance.findOne({
-      employee: leave.employee,
-      year: year,
-      leaveType: leave.leaveType,
-    });
+    
 
-    if (!balance) {
-      throw ApiError.badRequest(
-        "Leave balance not found for this employee"
-      );
-    }
+    
 
-    // Prevent overuse
-    if (balance.used + leave.totalDays > balance.allocated) {
-      throw ApiError.badRequest(
-        "Insufficient leave balance"
-      );
-    }
-
-    // Increase used leave
-    balance.used += leave.totalDays;
-    await balance.save();
-
+    
     // Create attendance records for each working day
     let current = new Date(leave.startDate);
 

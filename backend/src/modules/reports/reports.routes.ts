@@ -5,6 +5,11 @@ import {
   departmentReportController,
   projectReportController,
   exportWorklogSummaryCsv,
+  attendanceMonthlyReportController,
+  attendanceDepartmentSummaryController,
+  lateCheckinReportController,
+  leaveBalanceSummaryController,
+  departmentLeaveUtilizationController,
 } from "./reports.controller";
 import { authorize } from "../../common/middlewares/role.middleware";
 
@@ -24,6 +29,30 @@ router.get(
   "/worklogs/summary/export/csv",
   authorize("admin", "manager", "employee"),
   exportWorklogSummaryCsv
+);
+
+// Attendance Reports
+router.get(
+  "/attendance/monthly",
+  attendanceMonthlyReportController
+);
+router.get(
+  "/attendance/department-summary",
+  attendanceDepartmentSummaryController
+);
+router.get(
+  "/attendance/late-checkin",
+  lateCheckinReportController
+);
+
+// Leave Reports
+router.get(
+  "/leave/balance-summary",
+  leaveBalanceSummaryController
+);
+router.get(
+  "/leave/department-utilization",
+  departmentLeaveUtilizationController
 );
 
 export default router;

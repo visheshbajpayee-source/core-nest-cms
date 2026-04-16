@@ -16,7 +16,7 @@ app.use(
 
       return callback(new Error("Not allowed by CORS"));
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })
 );

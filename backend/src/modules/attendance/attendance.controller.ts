@@ -3,11 +3,8 @@ import {
   getMyAttendance,
   getAllAttendance,
   updateAttendanceStatus,
-<<<<<<< HEAD
   createOrCorrectAttendance,
   markAttendance,
-=======
->>>>>>> 66cf4dbc786a79629489e24c2d9cddb19660c10a
   checkoutAttendance, 
 } from "./attendance.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";

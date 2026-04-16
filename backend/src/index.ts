@@ -4,7 +4,7 @@ import { connectDB } from "./config/database";
 
 dotenv.config();
 
-const PORT = 5000;
+const PORT = process.env.PORT || 6000;
 const MONGO_URI = process.env.MONGO_URI as string;
 
 const startServer = async (): Promise<void> => {

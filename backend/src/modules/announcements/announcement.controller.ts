@@ -65,7 +65,7 @@ export async function createAnnouncementController(
   }
 }
 
-export async function getAnnouncementsController(
+export async function  getAnnouncementsController(
   req: AuthRequest,
   res: Response,
   next: NextFunction

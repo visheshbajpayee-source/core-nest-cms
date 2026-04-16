@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { createEmployeeSchema } from "./employee.validation";
 import {
-    createEmployee,
+   createEmployee,
     getAllEmployees,
     getEmployeeById,
     updateEmployee,

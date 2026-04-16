@@ -45,7 +45,7 @@ export default function AdminLeavesPage() {
       const res = await fetch(`${API}/leaves?${params}`, { headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
-      setLeaves(json.data || []);
+      setLeaves(json.data.data || []);
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   }

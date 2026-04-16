@@ -6,7 +6,7 @@ import { AdminSidebar } from "@/app/(protect)/Admin/components";
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
 interface Department {
-  _id: string;
+  id: string;
   name: string;
   description?: string;
   head?: { fullName: string; employeeId: string };
@@ -49,13 +49,12 @@ export default function AdminDepartmentsPage() {
     setError(null);
     try {
       const url = editingId ? `${API}/departments/${editingId}` : `${API}/departments`;
-      const method = editingId ? "PUT" : "POST";
+      const method = editingId ? "PATCH" : "POST";
       const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
       await load();
       setForm(emptyForm);
-      setEditingId(null);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -66,17 +65,17 @@ export default function AdminDepartmentsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this department?")) return;
     try {
-      const res = await fetch(`${API}/departments/${id}`, { method: "DELETE", headers });
+      const res = await fetch(`${API}/departments/${id}/deactivate`, { method: "PATCH", headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
-      setDepartments((prev) => prev.filter((d) => d._id !== id));
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
     } catch (e: any) {
       setError(e.message);
     }
   };
 
   const startEdit = (dept: Department) => {
-    setEditingId(dept._id);
+    setEditingId(dept.id);
     setForm({ name: dept.name, description: dept.description || "" });
     setError(null);
   };
@@ -161,13 +160,13 @@ export default function AdminDepartmentsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-50 bg-white">
                   {departments.map((d) => (
-                    <tr key={d._id} className="hover:bg-slate-50">
+                    <tr key={d.id} className="hover:bg-slate-50">
                       <td className="px-4 py-2 font-medium text-slate-900">{d.name}</td>
                       <td className="px-4 py-2 text-slate-500">{d.description || "-"}</td>
                       <td className="px-4 py-2 text-slate-500">{d.head?.fullName || "-"}</td>
                       <td className="px-4 py-2 text-right">
                         <button onClick={() => startEdit(d)} className="mr-2 rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Edit</button>
-                        <button onClick={() => handleDelete(d._id)} className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50">Delete</button>
+                        <button onClick={() => handleDelete(d.id)} className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50">Delete</button>
                       </td>
                     </tr>
                   ))}

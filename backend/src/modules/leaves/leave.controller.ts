@@ -24,7 +24,7 @@ export const applyLeaveController = async (
  * GET /leaves/me
  */
 export const getMyLeavesController = async (
-  req: any,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {

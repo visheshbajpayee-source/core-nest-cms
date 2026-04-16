@@ -383,7 +383,6 @@ The system supports three distinct roles with varying levels of access:
 ### 11. Holiday Calendar
 
 **Holiday Management:**
-
 - Admin can create and manage a list of holidays for the year.
 - Each holiday has:
   - Holiday Name

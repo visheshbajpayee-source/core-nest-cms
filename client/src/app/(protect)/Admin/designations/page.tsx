@@ -5,7 +5,7 @@ import { AdminSidebar } from "@/app/(protect)/Admin/components";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
-interface Designation { _id: string; title: string; description?: string; }
+interface Designation { id: string; title: string; description?: string; isActive:boolean;}
 
 const emptyForm = { title: "", description: "" };
 
@@ -51,10 +51,10 @@ export default function AdminDesignationsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this designation?")) return;
     try {
-      const res = await fetch(`${API}/designations/${id}`, { method: "DELETE", headers });
+      const res = await fetch(`${API}/designations/${id}/deactivate`, { method: "PATCH", headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
-      setDesignations((prev) => prev.filter((d) => d._id !== id));
+      await load();
     } catch (e: any) { setError(e.message); }
   };
 
@@ -121,13 +121,13 @@ export default function AdminDesignationsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 bg-white">
-                  {designations.map((d) => (
-                    <tr key={d._id} className="hover:bg-slate-50">
+                  {designations.filter((d) => d.isActive).map((d)=>(
+                    <tr key={d.id} className="hover:bg-slate-50">
                       <td className="px-4 py-2 font-medium text-slate-900">{d.title}</td>
                       <td className="px-4 py-2 text-slate-500">{d.description || "-"}</td>
                       <td className="px-4 py-2 text-right">
-                        <button onClick={() => { setEditingId(d._id); setForm({ title: d.title, description: d.description || "" }); }} className="mr-2 rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Edit</button>
-                        <button onClick={() => handleDelete(d._id)} className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50">Delete</button>
+                        <button onClick={() => { setEditingId(d.id); setForm({ title: d.title, description: d.description || "" }); }} className="mr-2 rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Edit</button>
+                        <button onClick={() => handleDelete(d.id)} className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50">Delete</button>
                       </td>
                     </tr>
                   ))}

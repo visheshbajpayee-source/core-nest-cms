@@ -127,3 +127,29 @@ export const getArchivedAnnouncementsForUser = async (
     throw ApiError.internalServer("Failed to fetch archived announcements");
   }
 };
+
+export const deleteAnnouncementService = async (id: string) => {
+  const deleted = await Announcement.findByIdAndDelete(id);
+
+  if (!deleted) {
+    throw ApiError.notFound("Announcement not found");
+  }
+
+  return deleted;
+};
+
+export const updateAnnouncementService=async(
+  id:string,
+  data:any
+)=>{
+  const updated=await Announcement.findByIdAndUpdate(
+    id,
+    data,
+    {new:true}
+  );
+  if(!updated){
+    throw ApiError.notFound("Announcement not found");
+  }
+
+  return updated;
+};

@@ -1,8 +1,11 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../../common/utils/asyncHandler";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import * as holidayService from "./holiday.service";
 import { AuthRequest } from "../../common/middlewares/auth.middleware";
+import { deleteHolidayService } from "./holiday.service";
+import { de } from "zod/locales";
+import { success } from "zod";
 
 export const createHoliday = asyncHandler(
   async (req: Request, res: Response) => {
@@ -66,3 +69,23 @@ export const deactivateHoliday = asyncHandler(
     ).send(res);
   }
 );
+
+export async function deleteHoliday(
+  req: Request,
+  res: Response,
+  next: NextFunction
+)
+{
+  try{
+    const{id}=req.params;
+    await deleteHolidayService(id);
+    return res.status(200).json({
+      success:true,
+      message:"Holiday deleted succcessfully",
+    });
+  }
+  catch(error)
+  {
+    next(error);
+  }
+}

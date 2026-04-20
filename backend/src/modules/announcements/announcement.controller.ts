@@ -7,10 +7,14 @@ import {
   createAnnouncement,
   getActiveAnnouncementsForUser,
   getArchivedAnnouncementsForUser,
+  deleteAnnouncementService,
+  updateAnnouncementService,
 } from "./announcement.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
 import { AuthRequest } from "../../common/middlewares/auth.middleware";
+import { de } from "zod/locales";
+import { success } from "zod";
 
 /**
  * Controller: Create Announcement
@@ -102,3 +106,45 @@ export async function getArchivedAnnouncementsController(
     next(error);
   }
 }
+
+export async function deleteAnnouncementController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { id } = req.params;
+
+    await deleteAnnouncementService(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Announcement deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateAnnouncementController(
+  req:Request,
+  res:Response,
+  next:NextFunction
+){
+  try{
+    const{id}=req.params;
+    const body=req.body;
+
+    const updated=await updateAnnouncementService(id,body);
+
+    return res.status(200).json({
+      success:true,
+      message:"Announcement updated successfully",
+      data:updated,
+    });
+  }
+    catch(error){
+      next(error);
+    }
+  }
+

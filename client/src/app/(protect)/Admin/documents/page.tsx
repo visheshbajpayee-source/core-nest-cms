@@ -14,7 +14,7 @@ type DocType = typeof DOC_TYPES[number];
 
 interface Employee { _id: string; fullName: string; employeeId: string; }
 interface IDoc {
-  _id: string;
+  id: string;
   employee: { _id: string; fullName: string; employeeId: string };
   documentName: string;
   documentType: string;
@@ -56,6 +56,7 @@ export default function AdminDocumentsPage() {
       if (filterType !== "all") params.set("documentType", filterType);
       const res = await fetch(`${API}/documents?${params}`, { headers });
       const json = await res.json();
+      console.log("Documents API Response:", json);
       if (!res.ok) throw new Error(json.message);
       setDocs(json.data || []);
     } catch (e: any) { setError(e.message); }
@@ -101,13 +102,13 @@ export default function AdminDocumentsPage() {
       const res = await fetch(`${API}/documents/${id}`, { method: "DELETE", headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
-      setDocs((prev) => prev.filter((d) => d._id !== id));
+      setDocs((prev) => prev.filter((d) => d.id !== id));
     } catch (e: any) { setError(e.message); }
   };
 
   const handleDownload = async (doc: IDoc) => {
     try {
-      const res = await fetch(`${API}/documents/${doc._id}/download`, { headers });
+      const res = await fetch(`${API}/documents/${doc.id}/download`, { headers });
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = doc.documentName;
@@ -215,7 +216,7 @@ export default function AdminDocumentsPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {shown.map((doc) => (
-                      <tr key={doc._id} className="hover:bg-slate-50">
+                      <tr key={doc.id} className="hover:bg-slate-50">
                         <td className="px-4 py-3">
                           <div className="font-medium text-slate-900">{doc.employee?.fullName}</div>
                           <div className="text-xs text-slate-400">{doc.employee?.employeeId}</div>
@@ -237,7 +238,7 @@ export default function AdminDocumentsPage() {
                               className="rounded bg-indigo-50 px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-100">
                               Download
                             </button>
-                            <button onClick={() => handleDelete(doc._id)}
+                            <button onClick={() => handleDelete(doc.id)}
                               className="rounded bg-red-50 px-2 py-1 text-xs text-red-600 hover:bg-red-100">
                               Delete
                             </button>

@@ -39,7 +39,7 @@ export default function AdminDesignationsPage() {
     setSaving(true); setError(null);
     try {
       const url = editingId ? `${API}/designations/${editingId}` : `${API}/designations`;
-      const method = editingId ? "PUT" : "POST";
+      const method = editingId ? "PATCH" : "POST";
       const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");

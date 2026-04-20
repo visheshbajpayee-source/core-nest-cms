@@ -5,7 +5,7 @@ import { AdminSidebar } from "@/app/(protect)/Admin/components";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
-interface Holiday { _id: string; name: string; date: string; description?: string; type: "national" | "regional" | "company"; }
+interface Holiday { id: string; holidayName: string; date: string; description?: string; type: "national" | "regional" | "company"; }
 
 const TYPE_COLORS: Record<string, string> = {
   national: "bg-red-100 text-red-700",
@@ -13,7 +13,7 @@ const TYPE_COLORS: Record<string, string> = {
   company: "bg-indigo-100 text-indigo-700",
 };
 
-const emptyForm = { name: "", date: "", description: "", type: "company" };
+const emptyForm = { holidayName: "", date: "", description: "", type: "company" };
 
 export default function AdminHolidaysPage() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
@@ -42,11 +42,11 @@ export default function AdminHolidaysPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.date) return setError("Name and date are required");
+    if (!form.holidayName || !form.date) return setError("Name and date are required");
     setSaving(true); setError(null);
     try {
       const url = editingId ? `${API}/holidays/${editingId}` : `${API}/holidays`;
-      const method = editingId ? "PUT" : "POST";
+      const method = editingId ? "PATCH" : "POST";
       const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
@@ -61,7 +61,7 @@ export default function AdminHolidaysPage() {
       const res = await fetch(`${API}/holidays/${id}`, { method: "DELETE", headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
-      setHolidays((prev) => prev.filter((h) => h._id !== id));
+      setHolidays((prev) => prev.filter((h) => h.id !== id));
     } catch (e: any) { setError(e.message); }
   };
 
@@ -89,7 +89,7 @@ export default function AdminHolidaysPage() {
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-700">Name *</label>
-                <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                <input type="text" value={form.holidayName} onChange={(e) => setForm((p) => ({ ...p, holidayName: e.target.value }))}
                   className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" placeholder="e.g. Diwali" required />
               </div>
               <div>
@@ -143,19 +143,19 @@ export default function AdminHolidaysPage() {
                     <table className="min-w-full text-sm">
                       <tbody className="divide-y divide-slate-50">
                         {hs.map((h) => (
-                          <tr key={h._id} className="hover:bg-slate-50">
+                          <tr key={h.id} className="hover:bg-slate-50">
                             <td className="px-4 py-2 w-24 font-medium text-slate-900">
                               {new Date(h.date).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
                             </td>
-                            <td className="px-4 py-2 text-slate-800">{h.name}</td>
+                            <td className="px-4 py-2 text-slate-800">{h.holidayName}</td>
                             <td className="px-4 py-2 text-slate-400 text-xs">{h.description || "-"}</td>
                             <td className="px-4 py-2">
                               <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[h.type]}`}>{h.type}</span>
                             </td>
                             <td className="px-4 py-2 text-right">
-                              <button onClick={() => { setEditingId(h._id); setForm({ name: h.name, date: h.date.substring(0, 10), description: h.description || "", type: h.type }); }}
+                              <button onClick={() => { setEditingId(h.id); setForm({ holidayName: h.holidayName, date: h.date.substring(0, 10), description: h.description || "", type: h.type }); }}
                                 className="mr-2 rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Edit</button>
-                              <button onClick={() => handleDelete(h._id)}
+                              <button onClick={() => handleDelete(h.id)}
                                 className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50">Delete</button>
                             </td>
                           </tr>

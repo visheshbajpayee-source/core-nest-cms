@@ -5,6 +5,7 @@ import {
   HolidayResponseDto,
 } from "../../dto/holiday.dto";
 import { ApiError } from "../../common/utils/ApiError";
+import { de } from "zod/locales";
 
 /**
  * Create Holiday
@@ -135,3 +136,14 @@ const mapToResponse = (holiday: any): HolidayResponseDto => ({
   createdAt: holiday.createdAt,
   updatedAt: holiday.updatedAt,
 });
+
+export const deleteHolidayService = async (id: string)=>{
+  const deleted =await Holiday.findByIdAndDelete(id);
+
+  if(!deleted){
+    throw ApiError.notFound("Holiday not found");
+  }
+
+  return deleted;
+};
+

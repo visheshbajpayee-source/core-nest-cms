@@ -3,6 +3,8 @@ import {
   createAnnouncementController,
   getAnnouncementsController,
   getArchivedAnnouncementsController,
+  deleteAnnouncementController,
+  updateAnnouncementController,
 } from "./announcement.controller";
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
@@ -19,4 +21,7 @@ router.get("/", protect, getAnnouncementsController);
 // GET /archive - fetch expired/archived announcements relevant to the authenticated user
 router.get("/archive", protect, getArchivedAnnouncementsController);
 
+router.delete('/:id', protect, authorize("admin"), deleteAnnouncementController);
+
+router.patch('/:id',protect,authorize('admin'),updateAnnouncementController);
 export default router;

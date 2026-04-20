@@ -42,4 +42,6 @@ router.patch(
 router.get("/", protect, holidayController.getAllHolidays);
 router.get("/:id", protect, holidayController.getHolidayById);
 
+
+router.delete("/:id", protect, authorize("admin"), holidayController.deleteHoliday);
 export default router;

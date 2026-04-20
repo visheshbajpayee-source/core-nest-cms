@@ -6,7 +6,7 @@ import { AdminSidebar } from "@/app/(protect)/Admin/components";
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
 interface Announcement {
-  _id: string;
+  id: string;
   title: string;
   content: string;
   target: "all" | "department";
@@ -42,10 +42,11 @@ export default function AdminAnnouncementsPage() {
     setLoading(true);
     try {
       const [aRes, dRes] = await Promise.all([
-        fetch(`${API}/announcements/all`, { headers }),
+        fetch(`${API}/announcements`, { headers }),
         fetch(`${API}/departments`, { headers }),
       ]);
       const aJson = await aRes.json();
+      console.log("Announcements API Response:", aJson);
       const dJson = await dRes.json();
       if (!aRes.ok) throw new Error(aJson.message || "Failed");
       setAnnouncements(aJson.data || []);
@@ -65,7 +66,7 @@ export default function AdminAnnouncementsPage() {
       if (!payload.expiryDate) delete payload.expiryDate;
       if (payload.target !== "department") delete payload.department;
       const url = editingId ? `${API}/announcements/${editingId}` : `${API}/announcements`;
-      const method = editingId ? "PUT" : "POST";
+      const method = editingId ? "PATCH" : "POST";
       const res = await fetch(url, { method, headers, body: JSON.stringify(payload) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
@@ -75,12 +76,13 @@ export default function AdminAnnouncementsPage() {
   };
 
   const handleDelete = async (id: string) => {
+    console.log("Deleting ID:", id);
     if (!confirm("Delete this announcement?")) return;
     try {
       const res = await fetch(`${API}/announcements/${id}`, { method: "DELETE", headers });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed");
-      setAnnouncements((prev) => prev.filter((a) => a._id !== id));
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
     } catch (e: any) { setError(e.message); }
   };
 
@@ -163,7 +165,7 @@ export default function AdminAnnouncementsPage() {
               announcements.map((a) => {
                 const expired = a.expiryDate ? new Date(a.expiryDate) < now : false;
                 return (
-                  <div key={a._id} className={`rounded-lg bg-white p-5 shadow-sm ${expired ? "opacity-60" : ""}`}>
+                  <div key={a.id} className={`rounded-lg bg-white p-5 shadow-sm ${expired ? "opacity-60" : ""}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -181,10 +183,10 @@ export default function AdminAnnouncementsPage() {
                       </div>
                       <div className="flex gap-2 shrink-0">
                         <button onClick={() => {
-                          setEditingId(a._id);
+                          setEditingId(a.id);
                           setForm({ title: a.title, content: a.content, target: a.target, department: (a.department as any)?._id || "", priority: a.priority, expiryDate: a.expiryDate ? a.expiryDate.substring(0, 10) : "" });
                         }} className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Edit</button>
-                        <button onClick={() => handleDelete(a._id)} className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50">Delete</button>
+                        <button onClick={() => handleDelete(a.id)} className="rounded border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50">Delete</button> 
                       </div>
                     </div>
                   </div>

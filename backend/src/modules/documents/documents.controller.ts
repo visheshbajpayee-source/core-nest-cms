@@ -19,6 +19,7 @@ const getUserFromRequest = (req: AuthRequest) => {
   return req.user;
 };
 
+
 export const createDocumentController = async (
   req: Request,
   res: Response,
@@ -26,13 +27,30 @@ export const createDocumentController = async (
 ) => {
   try {
     const user = getUserFromRequest(req as AuthRequest);
-    const payload = req.body as CreateDocumentDto;
-    const doc = await createDocument(payload, user);
+
+    const file = req.file;
+
+    if (!file) {
+      throw new ApiError(400, "File is required");
+    }
+
+    
+    const payload = req.body as unknown as CreateDocumentDto;
+
+    const doc = await createDocument(
+      {
+        ...payload,
+        file,
+      },
+      user
+    );
+
     return ApiResponse.created("Document uploaded", doc).send(res);
   } catch (error) {
     next(error);
   }
 };
+
 
 export const getDocumentsController = async (
   req: Request,
@@ -41,15 +59,18 @@ export const getDocumentsController = async (
 ) => {
   try {
     const user = getUserFromRequest(req as AuthRequest);
+
     const docs = await getDocuments(user, {
       employeeId: req.query.employeeId as string | undefined,
       documentType: req.query.documentType as string | undefined,
     });
+
     return ApiResponse.sendSuccess(res, 200, "Documents fetched", docs);
   } catch (error) {
     next(error);
   }
 };
+
 
 export const getDocumentController = async (
   req: Request,
@@ -58,7 +79,9 @@ export const getDocumentController = async (
 ) => {
   try {
     const user = getUserFromRequest(req as AuthRequest);
+
     const doc = await getDocumentById(req.params.id, user);
+
     return ApiResponse.sendSuccess(res, 200, "Document fetched", doc);
   } catch (error) {
     next(error);
@@ -72,8 +95,11 @@ export const updateDocumentController = async (
 ) => {
   try {
     const user = getUserFromRequest(req as AuthRequest);
+
     const payload = req.body as UpdateDocumentDto;
+
     const doc = await updateDocument(req.params.id, payload, user);
+
     return ApiResponse.sendSuccess(res, 200, "Document updated", doc);
   } catch (error) {
     next(error);
@@ -87,7 +113,9 @@ export const deleteDocumentController = async (
 ) => {
   try {
     const user = getUserFromRequest(req as AuthRequest);
+
     await deleteDocument(req.params.id, user);
+
     return ApiResponse.sendSuccess(res, 200, "Document deleted", null);
   } catch (error) {
     next(error);
@@ -101,6 +129,7 @@ export const downloadDocumentController = async (
 ) => {
   try {
     const user = getUserFromRequest(req as AuthRequest);
+
     const { buffer, mimeType, fileName } = await getDocumentFileById(
       req.params.id,
       user

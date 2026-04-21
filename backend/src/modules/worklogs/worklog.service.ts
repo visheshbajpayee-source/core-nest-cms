@@ -50,6 +50,9 @@ export const getWorkLogs = async (filters: Record<string, any> = {}) => {
       const end = new Date(d.setHours(23, 59, 59, 999));
       query.date = { $gte: start, $lte: end };
     }
+    if (filters.status) {
+      query.status = filters.status;
+    }
 
     // return worklogs without populating employee (keep as ObjectId)
     const items = await WorkLog.find(query);

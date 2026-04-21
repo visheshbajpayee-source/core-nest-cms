@@ -12,26 +12,10 @@ const documentTypeSchema = z.enum([
 ]);
 
 export const createDocumentSchema = z.object({
-  employeeId: objectIdSchema,
-  documentName: z
-    .string()
-    .min(2, "Document name must be at least 2 characters")
-    .max(150, "Document name must be at most 150 characters"),
-  documentType: documentTypeSchema,
-  fileName: z
-    .string()
-    .min(1, "File name is required")
-    .max(255, "File name is too long"),
-  mimeType: z
-    .string()
-    .min(3, "MIME type is required")
-    .max(100, "MIME type is too long"),
-  fileContentBase64: z
-    .string()
-    .min(1, "File content is required")
-    .max(10_000_000, "Encoded file payload is too large"),
+  employeeId: z.string(),
+  documentName: z.string().min(2).max(150),
+  documentType: z.enum(["id_proof", "offer_letter", "certificate", "other"]),
 });
-
 export const updateDocumentSchema = z
   .object({
     documentName: z

@@ -2,7 +2,7 @@
 import { Attendance } from "./attendance.model";
 import { Types } from "mongoose";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
-import { normalizeDate } from "./attendance.utils"; 
+import { normalizeDate } from "./attendance.utils";
 import { Employee } from "../employees/employee.model";
 
 const resolveEmployeeObjectId = async (employeeInput: string): Promise<string> => {
@@ -66,7 +66,6 @@ export const checkoutAttendance = async (employeeId: string) => {
   return formatAttendance(attendance);
 };
 
-
 /*
  * - Supports optional month & year filtering
  * - Returns formatted records
@@ -95,18 +94,17 @@ export const getMyAttendance = async (
   return records.map(formatAttendance);
 };
 
-
 /*
  * - Populates employee basic info
  */
 export const getAllAttendance = async (query: unknown) => {
+  // query param nahi toh fetch all, otherwise apply filters (employee, date)
+  // query param  hai to filer apply karna hai, nahi toh sab fetch karna hai
   const records = await Attendance.find({})
     .populate("employee", "fullName email employeeId department")
     .sort({ date: -1 });
-
   return records;
 };
-
 export const createOrCorrectAttendance = async (payload: {
   employee: string;
   date: Date;

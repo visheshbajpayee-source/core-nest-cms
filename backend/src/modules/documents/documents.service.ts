@@ -108,7 +108,6 @@ const toResponse = (doc: IDocument): DocumentResponseDto => ({
   createdAt: doc.createdAt,
   updatedAt: doc.updatedAt,
 });
-
 export const createDocument = async (
   payload: CreateDocumentDto,
   user: AuthUser
@@ -123,11 +122,18 @@ export const createDocument = async (
     throw ApiError.forbidden("Managers are not allowed to upload documents");
   }
 
-  if (!ALLOWED_MIME_TYPES.has(payload.mimeType)) {
+  const file = payload.file;
+
+  if (!file) {
+    throw ApiError.badRequest("File is required");
+  }
+
+  if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
     throw ApiError.badRequest("Unsupported file type");
   }
 
-  const buffer = parseBase64Content(payload.fileContentBase64);
+  const buffer = file.buffer;
+
   if (buffer.length === 0) {
     throw ApiError.badRequest("File content cannot be empty");
   }
@@ -140,10 +146,12 @@ export const createDocument = async (
     employee: owner._id,
     documentName: payload.documentName,
     documentType: payload.documentType,
-    fileName: sanitizeFileName(payload.fileName),
+
+    fileName: file.originalname,
+    mimeType: file.mimetype,
     fileData: buffer,
-    mimeType: payload.mimeType,
     fileSize: buffer.length,
+
     uploadedBy: user.id,
     uploadDate: new Date(),
   });

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
 import { validate } from "../../common/middlewares/validate.middleware";
+import { upload } from "../../common/middlewares/upload.middleware";
 import {
   createDocumentController,
   deleteDocumentController,
@@ -21,11 +22,12 @@ router.use(protect);
 
 router.post(
   "/",
+  protect,
   authorize("admin", "employee"),
+  upload.single("file"),
   validate(createDocumentSchema),
   createDocumentController
 );
-
 router.get("/", authorize("admin", "manager", "employee"), getDocumentsController);
 router.get(
   "/:id/download",

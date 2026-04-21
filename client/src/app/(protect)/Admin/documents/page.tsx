@@ -71,30 +71,53 @@ export default function AdminDocumentsPage() {
     } catch {}
   };
 
-  useEffect(() => { fetchAll(); fetchEmployees(); }, []); // eslint-disable-line
+  useEffect(() => { fetchAll(); fetchEmployees(); }, []); 
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !empId || !docName) return;
-    setUploading(true); setError(null);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("employeeId", empId);
-      fd.append("documentName", docName);
-      fd.append("documentType", docType);
-      if (notes) fd.append("notes", notes);
+ const handleUpload = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-      const res = await fetch(`${API}/documents`, { method: "POST", headers, body: fd });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message);
-      setDocs((prev) => [json.data, ...prev]);
-      // reset form
-      setEmpId(""); setDocName(""); setDocType("offer_letter"); setNotes(""); setFile(null);
-      (document.getElementById("fileInput") as HTMLInputElement).value = "";
-    } catch (e: any) { setError(e.message); }
-    finally { setUploading(false); }
-  };
+  if (!file || !empId || !docName) return;
+
+  setUploading(true);
+  setError(null);
+
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("employeeId", empId);
+    fd.append("documentName", docName);
+    fd.append("documentType", docType);
+
+    if (notes) fd.append("notes", notes);
+
+    const res = await fetch(`${API}/documents`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token || ""}`,
+      },
+      body: fd,
+    });
+
+    const json = await res.json();
+
+    if (!res.ok) throw new Error(json.message);
+
+    setDocs((prev) => [json.data, ...prev]);
+
+    setEmpId("");
+    setDocName("");
+    setDocType("offer_letter");
+    setNotes("");
+    setFile(null);
+
+    const input = document.getElementById("fileInput") as HTMLInputElement;
+    if (input) input.value = "";
+  } catch (e: any) {
+    setError(e.message);
+  } finally {
+    setUploading(false);
+  }
+};
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this document?")) return;

@@ -4,9 +4,6 @@ export interface CreateDocumentDto {
   employeeId: string;
   documentName: string;
   documentType: DocumentType;
-  fileName: string;
-  mimeType: string;
-  fileContentBase64: string;
 }
 
 export interface UpdateDocumentDto {
@@ -27,4 +24,11 @@ export interface DocumentResponseDto {
   uploadDate: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CreateDocumentDto {
+  employeeId: string;
+  documentName: string;
+  documentType: string;
+  file?: Express.Multer.File; 
 }

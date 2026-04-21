@@ -176,7 +176,7 @@ export default function AdminReportsPage() {
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-700">Month & Year</label>
             <input type="month" value={`${year}-${month}`}
-              onChange={(e) => { const [y, m] = e.target.value.split("-"); setYear(y); setMonth(m); }}
+              onChange={(e) => { const [y, m] = e.target.value.split("-"); setYear(y); setMonth(m); }} // date 
               className="rounded border border-slate-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none" />
           </div>
           <button onClick={generate} disabled={loading}

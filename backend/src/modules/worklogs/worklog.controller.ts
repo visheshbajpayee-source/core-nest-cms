@@ -77,7 +77,7 @@ export async function createWorkLogController(req: Request, res: Response, next:
 export async function getWorkLogsController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const { date, project } = req.query;
+    const { date, project, status } = req.query;
     const paramEmployeeId = (req as any).params?.employeeId;
 
     // prefer employee id from URL if present
@@ -85,7 +85,7 @@ export async function getWorkLogsController(req: Request, res: Response, next: N
 
     // Employee: only their logs
     if (user.role === "employee") {
-      const items = await getWorkLogs({ employee: user.id, date: date as any, project: project as any });
+      const items = await getWorkLogs({ employee: user.id, date: date as any, project: project as any, status: status as any });
       return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", items);
     }
 
@@ -102,16 +102,17 @@ export async function getWorkLogsController(req: Request, res: Response, next: N
         : { $in: memberIds };
 
       const items = await getWorkLogs({
-        date: date as any,
-        employee: scopedEmployeeFilter,
-        project: project as any,
-      });
+  date: date as any,
+  employee: scopedEmployeeFilter,
+  project: project as any,
+  status: status as any,
+});
       const filtered = items.filter((i: any) => memberIds.includes(i.employee.toString()));
       return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", filtered);
     }
 
     // Admin: can filter
-    const items = await getWorkLogs({ employee: employeeQuery as any, date: date as any, project: project as any });
+    const items = await getWorkLogs({ employee: employeeQuery as any, date: date as any, project: project as any, status: status as any });
     return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", items);
   } catch (error) {
     next(error);
@@ -197,7 +198,7 @@ export async function dailySummaryController(req: Request, res: Response, next: 
   try {
     const user = (req as any).user;
     const paramEmployeeId = (req as any).params?.employeeId;
-    const { date } = req.query;
+    const { date, project, status } = req.query;
 
     if (!date) throw ApiError.badRequest("date query param is required (YYYY-MM-DD)");
     if (!isValidDate(date)) throw ApiError.badRequest("Invalid date format");

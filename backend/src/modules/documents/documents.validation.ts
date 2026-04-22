@@ -8,6 +8,9 @@ const documentTypeSchema = z.enum([
   "id_proof",
   "offer_letter",
   "certificate",
+  "contract",
+  "payslip",
+  "address_proof",
   "other",
 ]);
 

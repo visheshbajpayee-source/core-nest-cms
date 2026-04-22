@@ -6,9 +6,11 @@ import { AdminSidebar } from "@/app/(protect)/Admin/components";
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
 const DOC_TYPES = [
-  "offer_letter", "id_proof", "address_proof",
-  "certificate", "contract", "payslip", "other",
-] as const;
+  "offer_letter",
+  "id_proof",
+  "certificate",
+  "other",
+];
 
 type DocType = typeof DOC_TYPES[number];
 
@@ -146,7 +148,7 @@ export default function AdminDocumentsPage() {
     if (filterType !== "all" && d.documentType !== filterType) return false;
     return true;
   });
-
+    
   return (
     <div className="flex min-h-screen bg-slate-100">
       <AdminSidebar />

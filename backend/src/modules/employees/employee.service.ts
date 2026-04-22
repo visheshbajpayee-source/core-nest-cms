@@ -54,7 +54,7 @@ export const createEmployee = async (
     }
 
     return {
-      id: employee._id.toString(),
+      _id: employee._id.toString(),
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
@@ -90,7 +90,7 @@ export const getAllEmployees = async (filters: any): Promise<EmployeeResponseDto
     const employees = await Employee.find(queryObj);
 
     return employees.map((employee) => ({
-      id: employee._id.toString(),
+      _id: employee._id.toString(),
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,
@@ -150,7 +150,7 @@ export const getEmployeeById = async (id: string): Promise<EmployeeResponseDto |
     if (!employee) throw ApiError.notFound("Employee not found");
 
     return {
-      id: employee._id.toString(),
+      _id: employee._id.toString(),
       fullName: employee.fullName,
       email: employee.email,
       role: employee.role,

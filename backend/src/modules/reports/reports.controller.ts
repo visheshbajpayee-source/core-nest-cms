@@ -119,7 +119,7 @@ export async function employeeReportController(
     const logs = await WorkLog.find({
       employee: targetEmployeeId,
       date: { $gte: startDate, $lte: endDate },
-    });
+    }).populate("employee", "fullName employeeId");
     const totalHours = logs.reduce(
       (s: number, l: any) => s + (l.hoursSpent || 0),
       0
@@ -192,7 +192,7 @@ export async function departmentReportController(
     const logs = await WorkLog.find({
       employee: { $in: memberIds },
       date: { $gte: startDate, $lte: endDate },
-    });
+    }).populate("employee", "employeeId fullName");
     const totalHours = logs.reduce(
       (s: number, l: any) => s + (l.hoursSpent || 0),
       0
@@ -281,7 +281,8 @@ export async function projectReportController(
       match.employee = { $in: memberIds };
     }
 
-    const logs = await WorkLog.find(match);
+    const logs = await WorkLog.find(match)
+      .populate("employee", "employeeId fullName");
     const totalHours = logs.reduce(
       (s: number, l: any) => s + (l.hoursSpent || 0),
       0
@@ -458,8 +459,7 @@ export async function attendanceMonthlyReportController(
     const records = await Attendance.find({
       employee: targetEmployeeId,
       date: { $gte: startDate, $lte: endDate },
-    });
-
+    }).populate("employee", "fullName employeeId");
     return ApiResponse.sendSuccess(res, 200, "Monthly attendance report", {
       employeeId: targetEmployeeId,
       year: y,

@@ -26,15 +26,45 @@ export default function AdminReportsPage() {
   const generate = async () => {
     setLoading(true); setError(null); setGenerated(false);
     try {
-      const params = new URLSearchParams({ month, year });
-      const endpoint = reportType === "attendance" ? "attendance" : reportType === "worklogs" ? "worklogs" : "leaves";
+      let endpoint = "";
+      let params;
+
+      if (reportType === "attendance") {
+        endpoint = "reports/attendance/monthly";
+        params = new URLSearchParams({ month, year });
+
+      } else if (reportType === "worklogs") {
+        endpoint = "reports/employee";
+        params = new URLSearchParams({
+          period: "monthly",
+          date: `${year}-${month}-01`,
+        });
+
+      } else {
+        endpoint = "reports/employee";
+        params = new URLSearchParams({
+          period: "monthly",
+          date: `${year}-${month}-01`,
+        });
+      }
+
       const res = await fetch(`${API}/${endpoint}?${params}`, { headers });
       const json = await res.json();
+
       if (!res.ok) throw new Error(json.message || "Failed");
-      setData(json.data || []);
+
+      if (reportType === "attendance") {
+        setData(json.data?.records || []);
+      } else {
+        setData(json.data?.logs || []);
+      }
+
       setGenerated(true);
-    } catch (e: any) { setError(e.message); }
-    finally { setLoading(false); }
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const exportCSV = () => {
@@ -83,7 +113,8 @@ export default function AdminReportsPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
+  
+  
   const renderTable = () => {
     if (reportType === "attendance") {
       return (

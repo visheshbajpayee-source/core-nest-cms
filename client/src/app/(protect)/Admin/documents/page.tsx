@@ -20,7 +20,7 @@ interface IDoc {
   employee: { _id: string; fullName: string; employeeId: string };
   documentName: string;
   documentType: string;
-  filePath: string;
+  fileName: string;
   mimeType: string;
   fileSize: number;
   uploadedBy: { fullName: string };
@@ -133,13 +133,38 @@ export default function AdminDocumentsPage() {
 
   const handleDownload = async (doc: IDoc) => {
     try {
-      const res = await fetch(`${API}/documents/${doc.id}/download`, { headers });
+      const res = await fetch(`${API}/documents/${doc.id}/download`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token || ""}`,
+        },
+      }
+    );
+      if(!res.ok) {
+        const errorText = await res.text();
+        console.log(errorText);
+        throw new Error("Download failed");
+      }
+
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = doc.documentName;
-      a.click(); URL.revokeObjectURL(url);
-    } catch { alert("Download failed"); }
-  };
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const link= document.createElement("a");
+      link.href=downloadUrl;
+      link.download = doc.fileName || 'document';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(downloadUrl);
+      } 
+      catch (error) {
+      console.error(error);
+      alert("Download failed");
+  }
+};
 
   const inputClass = "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none";
 

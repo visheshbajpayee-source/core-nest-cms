@@ -24,7 +24,7 @@ export const createDepartment = asyncHandler(
 export const getAllDepartments = asyncHandler(
   async (req: AuthRequest, res: Response) => {
 
-    const includeInactive = req.user?.role === "admin";
+    const includeInactive = false;
 
     const result = await departmentService.getAllDepartments(includeInactive);
 

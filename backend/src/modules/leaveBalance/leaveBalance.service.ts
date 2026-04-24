@@ -51,3 +51,41 @@ export const adjustBalance = async (
   }
   return bal.save();
 };
+
+export const resetAllLeaveBalancesService = async () => {
+  const year = new Date().getFullYear();
+
+  const settings = await SystemSettings.findOne();
+  if (!settings) {
+    throw new Error("System settings not found");
+  }
+
+  const bulkOps: any[] = [];
+
+
+  const balances = await LeaveBalance.find({ year });
+
+  balances.forEach((bal) => {
+    const defaultAlloc = settings.defaultLeaveAllocations.find(
+      (a) => a.leaveType === bal.leaveType
+    );
+
+    if (defaultAlloc) {
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: bal._id },
+          update: {
+            $set: {
+              allocated: defaultAlloc.daysPerYear,
+              used: 0, 
+            },
+          },
+        },
+      });
+    }
+  });
+
+  if (bulkOps.length > 0) {
+    await LeaveBalance.bulkWrite(bulkOps);
+  }
+};

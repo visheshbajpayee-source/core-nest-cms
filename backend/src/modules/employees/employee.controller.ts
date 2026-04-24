@@ -12,6 +12,7 @@ import { ApiResponse } from "../../common/utils/ApiResponse";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
 import { Types } from "mongoose";
 
+
 export async function createEmployeeController(req: Request, res: Response, next: NextFunction) {
     try {
         const body = createEmployeeSchema.parse(req.body);
@@ -165,6 +166,31 @@ export async function deleteEmployeeController(req: Request, res: Response, next
         const deleted = await deleteEmployee(id);
         if (!deleted) throw ApiError.notFound(ErrorMessages.EMPLOYEE_NOT_FOUND);
         return ApiResponse.sendSuccess(res, 200, "Employee deleted", null);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function archiveInactiveEmployeesController(req: Request, res: Response, next: NextFunction) {
+    try {
+        const user = (req as any).user;
+
+        // only admin allowed (same pattern as delete)
+        if (user?.role !== "admin") {
+            throw ApiError.forbidden(ErrorMessages.ADMIN_ONLY);
+        }
+
+        const result = await Employee.updateMany(
+            { status: "inactive" },
+            { $set: { isArchived: true } }
+        );
+
+        return ApiResponse.sendSuccess(
+            res,
+            200,
+            "Inactive employees archived successfully",
+            { updatedCount: result.modifiedCount }
+        );
     } catch (error) {
         next(error);
     }

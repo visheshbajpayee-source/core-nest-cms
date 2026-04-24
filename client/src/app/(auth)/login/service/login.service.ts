@@ -29,9 +29,13 @@ interface EmployeeApi {
   profilePicture?: string;
 }
 
+// ⚠️ IMPORTANT: runtime variable export mat karo
 let role = "admin";
 
-export async function loginAndStoreProfile(payload: LoginPayload): Promise<LoginApiResponse> {
+export async function loginAndStoreProfile(
+  payload: LoginPayload
+): Promise<LoginApiResponse> {
+
   const loginRes = await fetch(`${API}/login`, {
     method: 'POST',
     headers: {
@@ -41,18 +45,22 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
   });
 
   const loginJson = await loginRes.json();
-  console.log("login json response - ", loginJson.data.user.role);
-  role = loginJson.data.user.role;
+
+  console.log("login json response - ", loginJson?.data?.user?.role);
+
   if (!loginRes.ok || !loginJson?.success) {
     throw new Error(loginJson?.message || 'Invalid credentials. Please try again.');
   }
 
+  role = loginJson.data.user.role;
+
   const data = loginJson.data as LoginApiResponse;
 
   localStorage.setItem('accessToken', data.accessToken);
-  // localStorage.setItem('user', JSON.stringify(data.user));
+  localStorage.setItem('role', data.user.role);
+  localStorage.setItem('user', JSON.stringify(data.user));
 
-  // Fetch full profile data using /me endpoint (works for all users)
+  // Fetch full profile data using /me endpoint
   try {
     const profileRes = await fetch(`${API}/employees/me`, {
       headers: {
@@ -63,8 +71,10 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
 
     if (profileRes.ok) {
       const profileJson = await profileRes.json();
+
       if (profileJson?.success && profileJson?.data) {
         const current = profileJson.data as EmployeeApi;
+
         localStorage.setItem(
           'profileData',
           JSON.stringify({
@@ -81,18 +91,20 @@ export async function loginAndStoreProfile(payload: LoginPayload): Promise<Login
             profilePicture: current.profilePicture,
           })
         );
-        console.log('✅ Profile data saved successfully');
+
+        console.log('Profile data saved successfully');
       } else {
-        console.warn('⚠️ Invalid profile response format');
+        console.warn(' Invalid profile response format');
       }
     } else {
-      console.warn('⚠️ Failed to fetch profile data:', profileRes.status);
+      console.warn(' Failed to fetch profile data:', profileRes.status);
     }
   } catch (error) {
-    console.error('⚠️ Error fetching profile data:', error);
+    console.error(' Error fetching profile data:', error);
   }
 
   return data;
 }
 
-export {role};
+
+export { role };

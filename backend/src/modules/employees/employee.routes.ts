@@ -8,6 +8,8 @@ import {
 } from "./employee.controller";
 import { protect } from "../../common/middlewares/auth.middleware";
 import { authorize } from "../../common/middlewares/role.middleware";
+import { archiveInactiveEmployeesController } from "./employee.controller";
+
 
 const router: Router = Router();
 
@@ -42,4 +44,10 @@ router.put("/:id", protect, authorize("admin", "manager", "employee"), updateEmp
 // Delete (admin only)
 router.delete("/:id", protect, authorize("admin"), deleteEmployeeController);
 
+router.post(
+  "/archive-inactive",
+  protect,
+  authorize("admin"),
+  archiveInactiveEmployeesController
+);
 export default router;

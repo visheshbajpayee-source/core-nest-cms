@@ -22,13 +22,17 @@ export const errorHandler = (
 
   // Handle Zod validation errors
   if (err?.name === "ZodError") {
-    const validationErrors = err.errors.map((e: any) => ({
-      field: e.path.join("."),
-      message: e.message,
-    }));
+  console.log("ZOD RAW ERROR:", err);
 
-    error = new ApiError(400, "Validation failed", validationErrors);
-  }
+  const issues = err.issues || err.errors || [];
+
+  const validationErrors = issues.map((e: any) => ({
+    field: e.path?.join("."),
+    message: e.message,
+  }));
+
+  error = new ApiError(400, "Validation failed", validationErrors);
+}
 
   // Handle MongoDB/Mongoose errors
   if (err?.name === "MongoError" || err?.name === "MongoServerError") {

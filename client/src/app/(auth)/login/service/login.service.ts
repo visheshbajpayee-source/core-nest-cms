@@ -30,7 +30,7 @@ interface EmployeeApi {
 }
 
 // ⚠️ IMPORTANT: runtime variable export mat karo
-let role = "admin";
+let role = "";
 
 export async function loginAndStoreProfile(
   payload: LoginPayload

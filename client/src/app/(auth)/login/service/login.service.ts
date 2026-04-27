@@ -29,7 +29,7 @@ interface EmployeeApi {
   profilePicture?: string;
 }
 
-let role = "admin";
+let role = "";
 
 export async function loginAndStoreProfile(payload: LoginPayload): Promise<LoginApiResponse> {
   const loginRes = await fetch(`${API}/login`, {

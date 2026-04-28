@@ -1,11 +1,12 @@
 const BASE_URL = 'http://localhost:5000/api/v1/worklogs';
 
 function getToken() {
-  return localStorage.getItem('accessToken') || '';
+  return localStorage.getItem('token') || '';
 }
 
 function getHeaders() {
   const token = getToken();
+  console.log("TOKEN USED:", getToken());
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };

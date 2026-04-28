@@ -30,14 +30,12 @@ const employeeSchema = new Schema<IEmployee>(
     },
 
     department: {
-      type: Schema.Types.ObjectId,
-      ref: "Department",
+      type: String,
       required: true,
     },
 
     designation: {
-      type: Schema.Types.ObjectId,
-      ref: "Designation",
+      type: String,
       required: true,
     },
 

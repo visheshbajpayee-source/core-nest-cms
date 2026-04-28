@@ -1,4 +1,5 @@
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
+const API =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
 export interface LoginPayload {
   email: string;
@@ -11,7 +12,7 @@ interface LoginApiResponse {
     id: string;
     fullName: string;
     email: string;
-    role: 'admin' | 'manager' | 'employee';
+    role: "admin" | "manager" | "employee";
   };
 }
 
@@ -24,75 +25,85 @@ interface EmployeeApi {
   designation: string;
   dateOfJoining: string;
   employeeId: string;
-  role: 'admin' | 'manager' | 'employee';
-  status: 'active' | 'inactive';
+  role: "admin" | "manager" | "employee";
+  status: "active" | "inactive";
   profilePicture?: string;
 }
 
 let role = "";
 
-export async function loginAndStoreProfile(payload: LoginPayload): Promise<LoginApiResponse> {
+export async function loginAndStoreProfile(
+  payload: LoginPayload
+): Promise<LoginApiResponse> {
   const loginRes = await fetch(`${API}/login`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
 
   const loginJson = await loginRes.json();
-  console.log("login json response - ", loginJson.data.user.role);
-  role = loginJson.data.user.role;
+
+  // ❌ handle login failure early
   if (!loginRes.ok || !loginJson?.success) {
-    throw new Error(loginJson?.message || 'Invalid credentials. Please try again.');
+    throw new Error(
+      loginJson?.message || "Invalid credentials. Please try again."
+    );
   }
 
+  // ✅ correct data extraction
   const data = loginJson.data as LoginApiResponse;
 
-  localStorage.setItem('accessToken', data.accessToken);
-  // localStorage.setItem('user', JSON.stringify(data.user));
+  console.log("login role -", data.user.role);
 
-  // Fetch full profile data using /me endpoint (works for all users)
+  // ✅ store token properly
+  localStorage.setItem("token", data.accessToken);
+
+  // optional: store role too
+  localStorage.setItem("role", data.user.role);
+  role = data.user.role;
+
+  // Fetch profile
   try {
     const profileRes = await fetch(`${API}/employees/me`, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${data.accessToken}`,
       },
     });
 
-    if (profileRes.ok) {
-      const profileJson = await profileRes.json();
-      if (profileJson?.success && profileJson?.data) {
-        const current = profileJson.data as EmployeeApi;
-        localStorage.setItem(
-          'profileData',
-          JSON.stringify({
-            id: current.id,
-            fullName: current.fullName,
-            email: current.email,
-            phoneNumber: current.phoneNumber ?? '',
-            department: current.department,
-            designation: current.designation,
-            dateOfJoining: current.dateOfJoining,
-            employeeId: current.employeeId,
-            role: current.role,
-            status: current.status,
-            profilePicture: current.profilePicture,
-          })
-        );
-        console.log('✅ Profile data saved successfully');
-      } else {
-        console.warn('⚠️ Invalid profile response format');
-      }
+    const profileJson = await profileRes.json();
+
+    if (profileRes.ok && profileJson?.success && profileJson?.data) {
+      const current = profileJson.data as EmployeeApi;
+
+      localStorage.setItem(
+        "profileData",
+        JSON.stringify({
+          id: current.id,
+          fullName: current.fullName,
+          email: current.email,
+          phoneNumber: current.phoneNumber ?? "",
+          department: current.department,
+          designation: current.designation,
+          dateOfJoining: current.dateOfJoining,
+          employeeId: current.employeeId,
+          role: current.role,
+          status: current.status,
+          profilePicture: current.profilePicture,
+        })
+      );
+
+      console.log("✅ Profile data saved successfully");
     } else {
-      console.warn('⚠️ Failed to fetch profile data:', profileRes.status);
+      console.warn("⚠️ Invalid profile response format");
     }
   } catch (error) {
-    console.error('⚠️ Error fetching profile data:', error);
+    console.error("⚠️ Error fetching profile data:", error);
   }
 
   return data;
 }
 
-export {role};
+export { role };

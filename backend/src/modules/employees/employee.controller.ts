@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { createEmployeeSchema } from "./employee.validation";
 import {
-   createEmployee,
+    createEmployee,
     getAllEmployees,
     getEmployeeById,
     updateEmployee,
@@ -17,6 +17,12 @@ export async function createEmployeeController(req: Request, res: Response, next
         const body = createEmployeeSchema.parse(req.body);
         // createEmployee expects `dateOfJoining` as a Date
         const payload: any = { ...body };
+
+        if (payload.password) {
+            const bcrypt = await import("bcrypt");
+            payload.password = await bcrypt.hash(payload.password, 10);
+        }
+
         if (typeof payload.dateOfJoining === "string") {
             payload.dateOfJoining = new Date(payload.dateOfJoining);
         }

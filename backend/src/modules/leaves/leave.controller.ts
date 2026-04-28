@@ -4,6 +4,7 @@ import { ApiResponse } from "../../common/utils/ApiResponse";
 import { updateLeaveStatus } from "./leave.service";
 import { getMyLeaves } from "./leave.service";
 import { getAllLeaves } from "./leave.service";
+import { Leave } from "./leave.model";
 export const applyLeaveController = async (
   req: Request,
   res: Response,
@@ -71,7 +72,24 @@ export const getAllLeavesController = async (
   next: NextFunction
 ) => {
   try {
-    const data = await getAllLeaves();
+    const { status, leaveType, employeeId } = req.query;
+    const filters: any = {};
+
+    // Apply filters
+    if (status) {
+      filters.status = status;
+    }
+    if (employeeId) {
+      filters.employee = employeeId;
+    }
+    if (leaveType) {
+      filters.leaveType = leaveType;
+    }
+
+    const data = await Leave.find(filters)
+      .populate("employee", "fullName email employeeId")
+      .populate("leaveType", "name code")
+      .sort({ createdAt: -1 });
 
     return ApiResponse.sendSuccess(
       res,

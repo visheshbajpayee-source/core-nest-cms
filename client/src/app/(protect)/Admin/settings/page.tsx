@@ -104,8 +104,8 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const inputClass =
-    "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+ const inputClass =
+  "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -245,14 +245,6 @@ export default function AdminSettingsPage() {
           <div className="flex flex-wrap gap-3">
             <button onClick={handleResetLeaves} className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
               Reset All Leave Balances
-            </button>
-<<<<<<< HEAD
-            <button onClick={handleArchiveEmployees} className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-=======
-
-            <button className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
->>>>>>> 5190c579127614abb9771b59e36fbc0961e1f317
-              Archive All Inactive Employees
             </button>
           </div>
 

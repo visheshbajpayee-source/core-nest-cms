@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logout } from "@/app/lib/logout";
 
 interface NavItemConfig {
 	label: string;
@@ -66,14 +67,26 @@ export default function AdminSidebar() {
 				))}
 			</nav>
 
-			<div className="flex items-center gap-3 border-t border-slate-800 p-4 text-sm">
-				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-semibold">
-					AD
+			<div className="border-t border-slate-800 p-4 text-sm">
+				<div className="flex items-center gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-semibold">
+						AD
+					</div>
+					<div>
+						<div className="font-medium">Admin User</div>
+						<p className="text-xs text-slate-400">admin@corenest.local</p>
+					</div>
 				</div>
-				<div>
-					<div className="font-medium">Admin User</div>
-					<p className="text-xs text-slate-400">admin@corenest.local</p>
-				</div>
+				<button
+					type="button"
+					onClick={() => logout("/login")}
+					className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+					</svg>
+					Log Out
+				</button>
 			</div>
 		</aside>
 	);

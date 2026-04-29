@@ -4,7 +4,6 @@ import {
   getAllAttendance,
   updateAttendanceStatus,
   createOrCorrectAttendance,
-  markAttendance,
   checkoutAttendance, 
 } from "./attendance.service";
 import { ApiResponse } from "../../common/utils/ApiResponse";
@@ -90,7 +89,13 @@ export const checkoutAttendanceController = async (
 
     const result = await checkoutAttendance(user.id);
 
-    return ApiResponse.sendSuccess(res, 200, "Checked out successfully", result);
+    // Check if already checked out (result will have checkOutTime)
+    if (result.checkOutTime) {
+      return ApiResponse.sendSuccess(res, 200, "Checked out successfully", result);
+    }
+    
+    // If no checkOutTime, something went wrong
+    return ApiResponse.sendSuccess(res, 400, "Unable to check out", result);
   } catch (error) {
     
     next(error);
@@ -120,8 +125,20 @@ export const checkInAttendanceController = async (
       employee: user.id,
       date: { $gte: startOfDay, $lte: endOfDay },
     });
+    
     if (existing) {
-      return res.status(400).json({ message: "Already checked in today" });
+      // If already checked in but not out, return success: false with message
+      if (existing.checkInTime && !existing.checkOutTime) {
+        return res.status(200).json({ 
+          success: false, 
+          message: "Already checked in today" 
+        });
+      }
+      // If already checked out, return success: false
+      return res.status(200).json({ 
+        success: false, 
+        message: "Already completed attendance today" 
+      });
     }
 
     // Mark check-in

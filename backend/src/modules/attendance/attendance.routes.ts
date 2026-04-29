@@ -9,6 +9,7 @@ import {
   updateAttendanceController,
   createAttendanceController,
   checkoutAttendanceController,
+  checkInAttendanceController,
   getMonthlySummaryController,
 } from "./attendance.controller";
 import { manualAttendanceSchema, updateAttendanceSchema } from "./attendance.validation";
@@ -32,6 +33,8 @@ router.patch(
   validate(updateAttendanceSchema),
   updateAttendanceController
 );
+
+router.post("/checkin", protect, checkInAttendanceController);
 router.post("/checkout", protect, checkoutAttendanceController);
 
 export default router;

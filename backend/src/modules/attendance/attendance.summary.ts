@@ -48,6 +48,28 @@ export const getMonthlySummary = async (
       ? ((presentDays + leaveDays) / workingDays) * 100
       : 0;
 
+  // Get today's attendance for check-in/check-out status
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const todayAttendance = await Attendance.findOne({
+    employee: employeeId,
+    date: { $gte: todayStart, $lte: todayEnd },
+  });
+
+  const todayCheckIn = todayAttendance?.checkInTime || null;
+  const todayCheckOut = todayAttendance?.checkOutTime || null;
+
+  // Determine current status
+  let currentStatus: 'Present' | 'Absent' | 'Active' = 'Absent';
+  if (todayCheckOut) {
+    currentStatus = 'Present';
+  } else if (todayCheckIn) {
+    currentStatus = 'Active';
+  }
+
   return {
     month: selectedMonth,
     year: selectedYear,
@@ -57,5 +79,8 @@ export const getMonthlySummary = async (
     absentDays,
     totalWorkHours: Number(totalWorkHours.toFixed(2)),
     attendancePercentage: Number(attendancePercentage.toFixed(2)),
+    todayCheckIn,
+    todayCheckOut,
+    currentStatus,
   };
 };

@@ -1,4 +1,3 @@
-
 import { Attendance } from "./attendance.model";
 import { Types } from "mongoose";
 import { ApiError, ErrorMessages } from "../../common/utils/ApiError";
@@ -29,6 +28,7 @@ const resolveEmployeeObjectId = async (employeeInput: string): Promise<string> =
  * - Calculates workHours
  * - Prevents multiple checkouts
  */
+
 export const checkoutAttendance = async (employeeId: string) => {
   const today = normalizeDate(new Date());
 
@@ -195,3 +195,4 @@ const formatAttendance = (record: any) => {
     status: record.status,
   };
 };
+

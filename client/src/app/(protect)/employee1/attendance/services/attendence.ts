@@ -199,13 +199,61 @@ export const getAttendanceSummary = async (): Promise<AttendanceSummaryResponse>
 // Legacy function for backward compatibility
 export const getAttendanceRecord = getAttendanceSummary;
 
+export const checkIn = async () => {
+  try {
+    const response = await api.post("/api/v1/attendance/checkin");
 
+    console.log("Check-in success:", response.data);
 
+    // Handle both response formats: { data: { success, data } } and { success, data }
+    const responseData = response.data.data || response.data;
+    
+    return {
+      success: responseData.success ?? true,
+      data: responseData.data,
+      message: responseData.message,
+    };
+  } catch (error: any) {
+    console.error("Check-in failed:", error.response?.data || error);
 
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || "Check-in failed",
+    };
+  }
+};
+
+export const checkOut = async () => {
+  try {
+   const response = await api.post("/api/v1/attendance/checkout");
+
+    console.log("Check-out success:", response.data);
+
+    // Handle both response formats: { data: { success, data } } and { success, data }
+    const responseData = response.data.data || response.data;
+
+    return {
+      success: responseData.success ?? true,
+      data: responseData.data,
+      message: responseData.message,
+    };
+  } catch (error: any) {
+    console.error("Check-out failed:", error.response?.data || error);
+
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || "Check-out failed",
+    };
+  }
+};
 
 export const attendanceService = {
   getAttendanceHistory,
   getAttendanceRecord,
-  getAttendanceSummary
+  getAttendanceSummary,
+  checkIn,
+  checkOut,
 };
 

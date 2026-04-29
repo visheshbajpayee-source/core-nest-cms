@@ -30,7 +30,6 @@ interface EmployeeApi {
   profilePicture?: string;
 }
 
-
 let role = "";
 
 export async function loginAndStoreProfile(
@@ -46,6 +45,7 @@ export async function loginAndStoreProfile(
 
   const loginJson = await loginRes.json();
 
+  console.log("login json response - ", loginJson?.data?.user?.role);
 
   if (!loginRes.ok || !loginJson?.success) {
     throw new Error(
@@ -53,16 +53,16 @@ export async function loginAndStoreProfile(
     );
   }
 
- 
   const data = loginJson.data as LoginApiResponse;
+
+  role = data.user.role;
 
   console.log("login role -", data.user.role);
 
+  // store auth data
   localStorage.setItem("accessToken", data.accessToken);
   localStorage.setItem("role", data.user.role);
   localStorage.setItem("user", JSON.stringify(data.user));
-
-  role = data.user.role;
 
   // Fetch profile
   try {
@@ -73,31 +73,35 @@ export async function loginAndStoreProfile(
       },
     });
 
-    const profileJson = await profileRes.json();
+    if (profileRes.ok) {
+      const profileJson = await profileRes.json();
 
-    if (profileRes.ok && profileJson?.success && profileJson?.data) {
-      const current = profileJson.data as EmployeeApi;
+      if (profileJson?.success && profileJson?.data) {
+        const current = profileJson.data as EmployeeApi;
 
-      localStorage.setItem(
-        "profileData",
-        JSON.stringify({
-          id: current.id,
-          fullName: current.fullName,
-          email: current.email,
-          phoneNumber: current.phoneNumber ?? "",
-          department: current.department,
-          designation: current.designation,
-          dateOfJoining: current.dateOfJoining,
-          employeeId: current.employeeId,
-          role: current.role,
-          status: current.status,
-          profilePicture: current.profilePicture,
-        })
-      );
+        localStorage.setItem(
+          "profileData",
+          JSON.stringify({
+            id: current.id,
+            fullName: current.fullName,
+            email: current.email,
+            phoneNumber: current.phoneNumber ?? "",
+            department: current.department,
+            designation: current.designation,
+            dateOfJoining: current.dateOfJoining,
+            employeeId: current.employeeId,
+            role: current.role,
+            status: current.status,
+            profilePicture: current.profilePicture,
+          })
+        );
 
-      console.log("✅ Profile data saved successfully");
+        console.log("Profile data saved successfully");
+      } else {
+        console.warn("Invalid profile response format");
+      }
     } else {
-      console.warn("Invalid profile response format");
+      console.warn("Failed to fetch profile data:", profileRes.status);
     }
   } catch (error) {
     console.error("Error fetching profile data:", error);

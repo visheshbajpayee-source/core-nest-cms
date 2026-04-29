@@ -10,7 +10,6 @@ import {
   NoticeBoard,
 } from './components';
 import api from '@/app/lib/api';
-import { logout } from '@/app/lib/logout';
 
 type ApiResponse<T> = {
   success: boolean;
@@ -304,21 +303,6 @@ export default function DashboardContent() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-
-      {/* Top bar with logout */}
-      <div className="mb-4 flex items-center justify-between sm:mb-6">
-        <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Employee Dashboard</h1>
-        <button
-          type="button"
-          onClick={() => logout('/login')}
-          className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Log Out
-        </button>
-      </div>
 
       {/* Header Section */}
       {/* <h1 className="text-2xl font-bold mb-4"> I M under Employee Dashboard </h1> */}

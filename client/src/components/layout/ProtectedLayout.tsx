@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { logout } from "@/app/lib/logout";
 
 const navItems = [
   { href: "/employee1/dashboard",    label: "Dashboard",     icon: "🏠" },
@@ -101,13 +102,25 @@ export default function ProtectedLayout({ children }: Props) {
         </nav>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 border-t border-slate-700 p-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-500 text-sm font-semibold">
-            E
+        <div className="border-t border-slate-700 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-500 text-sm font-semibold">
+              E
+            </div>
+            <Link href="/employee1/profile" className="text-slate-300 hover:text-white">
+              View Profile
+            </Link>
           </div>
-          <Link href="/employee1/profile" className="text-slate-300 hover:text-white">
-            View Profile
-          </Link>
+          <button
+            type="button"
+            onClick={() => logout("/login")}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-slate-600 bg-slate-700/60 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Log Out
+          </button>
         </div>
       </aside>
 

@@ -52,12 +52,12 @@ export async function loginAndStoreProfile(
     );
   }
 
-  // ✅ correct data extraction
+  // correct data extraction
   const data = loginJson.data as LoginApiResponse;
 
   console.log("login role -", data.user.role);
 
-  // ✅ store token properly
+  //  store token properly
   localStorage.setItem("token", data.accessToken);
 
   // optional: store role too
@@ -95,12 +95,12 @@ export async function loginAndStoreProfile(
         })
       );
 
-      console.log("✅ Profile data saved successfully");
+      console.log("Profile data saved successfully");
     } else {
-      console.warn("⚠️ Invalid profile response format");
+      console.warn("Invalid profile response format");
     }
   } catch (error) {
-    console.error("⚠️ Error fetching profile data:", error);
+    console.error("Error fetching profile data:", error);
   }
 
   return data;

@@ -55,7 +55,9 @@ export const getWorkLogs = async (filters: Record<string, any> = {}) => {
     }
 
     // return worklogs without populating employee (keep as ObjectId)
-    const items = await WorkLog.find(query);
+   const items = await WorkLog.find(query)
+  .populate("employee", "fullName employeeId")
+  .populate("project", "name");
     return items;
   } catch (error: any) {
     if (error instanceof ApiError) throw error;

@@ -48,10 +48,64 @@ export default function AdminSettingsPage() {
   const handleSave = (section: string) => {
     setSaved(section);
     setTimeout(() => setSaved(null), 2500);
+
   };
 
-  const inputClass =
-    "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+  const handleResetLeaves = async () => {
+  const confirmAction = window.confirm(
+    "Are you sure you want to reset ALL leave balances? This cannot be undone."
+  );
+
+  if (!confirmAction) return;
+
+  try {
+    const token = localStorage.getItem("accessToken");
+
+    const res = await fetch("http://localhost:5000/api/v1/leave-balances/reset-all", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed");
+
+    alert("All leave balances reset successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong!");
+  }
+};
+
+  const handleArchiveEmployees = async () => {
+    const confirmAction = window.confirm(
+      "Archive all inactive employees? This cannot be undone."
+    );
+
+    if (!confirmAction) return;
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch("http://localhost:5000/api/v1/employees/archive-inactive", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed");
+
+      alert("Inactive employees archived successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong!");
+    }
+  };
+
+ const inputClass =
+  "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 
   return (
     <div className="flex min-h-screen bg-slate-100">
@@ -189,12 +243,8 @@ export default function AdminSettingsPage() {
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <button className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+            <button onClick={handleResetLeaves} className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
               Reset All Leave Balances
-            </button>
-
-            <button className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-              Archive All Inactive Employees
             </button>
           </div>
 

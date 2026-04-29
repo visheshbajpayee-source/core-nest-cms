@@ -3,7 +3,10 @@ interface WorkLogEntry {
   date: string;
   title: string;
   description: string;
-  project: string;
+  project: {
+    _id: string;
+    name: string;
+  };
   hoursSpent: number;
   status: 'In Progress' | 'Completed' | 'Blocked';
 }
@@ -58,7 +61,7 @@ export default function WorkLogEntryCard({ entry, onEdit, onDelete }: WorkLogEnt
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7 12a5 5 0 1110 0A5 5 0 017 12z" />
               </svg>
-              {entry.project}
+              {entry.project?.name ?? "No Project"}
             </span>
           </div>
         </div>

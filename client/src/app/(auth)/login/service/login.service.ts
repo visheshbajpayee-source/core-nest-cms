@@ -1,5 +1,4 @@
-const API =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "../../../lib/api";
 
 export interface LoginPayload {
   email: string;
@@ -35,19 +34,20 @@ let role = "";
 export async function loginAndStoreProfile(
   payload: LoginPayload
 ): Promise<LoginApiResponse> {
-  const loginRes = await fetch(`${API}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const loginJson = await loginRes.json();
+  let loginJson: any;
+  try {
+    const loginRes = await api.post("/api/v1/login", payload);
+    loginJson = loginRes.data;
+  } catch (err: any) {
+    loginJson = err?.response?.data;
+    if (!loginJson) {
+      throw new Error("Invalid credentials. Please try again.");
+    }
+  }
 
   console.log("login json response - ", loginJson?.data?.user?.role);
 
-  if (!loginRes.ok || !loginJson?.success) {
+  if (!loginJson?.success) {
     throw new Error(
       loginJson?.message || "Invalid credentials. Please try again."
     );
@@ -59,49 +59,37 @@ export async function loginAndStoreProfile(
 
   console.log("login role -", data.user.role);
 
-  // store auth data
   localStorage.setItem("accessToken", data.accessToken);
   localStorage.setItem("role", data.user.role);
   localStorage.setItem("user", JSON.stringify(data.user));
 
-  // Fetch profile
   try {
-    const profileRes = await fetch(`${API}/employees/me`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${data.accessToken}`,
-      },
-    });
+    const profileRes = await api.get("/api/v1/employees/me");
+    const profileJson = profileRes.data;
 
-    if (profileRes.ok) {
-      const profileJson = await profileRes.json();
+    if (profileJson?.success && profileJson?.data) {
+      const current = profileJson.data as EmployeeApi;
 
-      if (profileJson?.success && profileJson?.data) {
-        const current = profileJson.data as EmployeeApi;
+      localStorage.setItem(
+        "profileData",
+        JSON.stringify({
+          id: current.id,
+          fullName: current.fullName,
+          email: current.email,
+          phoneNumber: current.phoneNumber ?? "",
+          department: current.department,
+          designation: current.designation,
+          dateOfJoining: current.dateOfJoining,
+          employeeId: current.employeeId,
+          role: current.role,
+          status: current.status,
+          profilePicture: current.profilePicture,
+        })
+      );
 
-        localStorage.setItem(
-          "profileData",
-          JSON.stringify({
-            id: current.id,
-            fullName: current.fullName,
-            email: current.email,
-            phoneNumber: current.phoneNumber ?? "",
-            department: current.department,
-            designation: current.designation,
-            dateOfJoining: current.dateOfJoining,
-            employeeId: current.employeeId,
-            role: current.role,
-            status: current.status,
-            profilePicture: current.profilePicture,
-          })
-        );
-
-        console.log("Profile data saved successfully");
-      } else {
-        console.warn("Invalid profile response format");
-      }
+      console.log("Profile data saved successfully");
     } else {
-      console.warn("Failed to fetch profile data:", profileRes.status);
+      console.warn("Invalid profile response format");
     }
   } catch (error) {
     console.error("Error fetching profile data:", error);

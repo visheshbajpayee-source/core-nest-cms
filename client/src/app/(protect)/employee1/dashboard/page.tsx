@@ -9,8 +9,7 @@ import {
   MyFocus,
   NoticeBoard,
 } from './components';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
+import api from '@/app/lib/api';
 
 type ApiResponse<T> = {
   success: boolean;
@@ -120,18 +119,20 @@ export default function DashboardContent() {
 
   const isObjectIdLike = (value?: string) => /^[a-fA-F0-9]{24}$/.test((value ?? '').trim());
 
-  const resolveDepartmentName = async (id: string, headers: Record<string, string>) => {
-    const response = await fetch(`${API_BASE}/departments/${id}`, { headers });
-    if (!response.ok) return null;
-    const data = (await response.json()) as ApiResponse<{ name?: string }>;
-    return data?.data?.name ?? null;
+  const resolveDepartmentName = async (id: string) => {
+    try {
+      const response = await api.get(`/api/v1/departments/${id}`);
+      const data = response.data as ApiResponse<{ name?: string }>;
+      return data?.data?.name ?? null;
+    } catch { return null; }
   };
 
-  const resolveDesignationTitle = async (id: string, headers: Record<string, string>) => {
-    const response = await fetch(`${API_BASE}/designations/${id}`, { headers });
-    if (!response.ok) return null;
-    const data = (await response.json()) as ApiResponse<{ title?: string }>;
-    return data?.data?.title ?? null;
+  const resolveDesignationTitle = async (id: string) => {
+    try {
+      const response = await api.get(`/api/v1/designations/${id}`);
+      const data = response.data as ApiResponse<{ title?: string }>;
+      return data?.data?.title ?? null;
+    } catch { return null; }
   };
 
   useEffect(() => {
@@ -140,44 +141,37 @@ export default function DashboardContent() {
       return;
     }
 
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    };
-
     const now = new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
     const requests = [
-      fetch(`${API_BASE}/employees/me`, { headers }),
-      fetch(`${API_BASE}/attendance/summary?month=${month}&year=${year}`, { headers }),
-      fetch(`${API_BASE}/attendance/me?month=${month}&year=${year}`, { headers }),
-      fetch(`${API_BASE}/tasks`, { headers }),
-      fetch(`${API_BASE}/announcements`, { headers }),
-      fetch(`${API_BASE}/holidays?year=${year}`, { headers }),
-      fetch(`${API_BASE}/leave-types`, { headers }),
-      fetch(`${API_BASE}/leaves`, { headers }),
-      fetch(`${API_BASE}/worklogs`, { headers }),
+      api.get(`/api/v1/employees/me`),
+      api.get(`/api/v1/attendance/summary`, { params: { month, year } }),
+      api.get(`/api/v1/attendance/me`, { params: { month, year } }),
+      api.get(`/api/v1/tasks`),
+      api.get(`/api/v1/announcements`),
+      api.get(`/api/v1/holidays`, { params: { year } }),
+      api.get(`/api/v1/leave-types`),
+      api.get(`/api/v1/leaves`),
+      api.get(`/api/v1/worklogs`),
     ];
 
     Promise.allSettled(requests).then(async (results) => {
-      const parse = async <T,>(idx: number) => {
+      const parse = <T,>(idx: number): ApiResponse<T> | null => {
         const result = results[idx];
         if (result.status !== 'fulfilled') return null;
-        const res = result.value;
-        if (!res.ok) return null;
-        return (await res.json()) as ApiResponse<T>;
+        return result.value.data as ApiResponse<T>;
       };
 
-      const meRes = await parse<EmployeeProfile>(0);
-      const summaryRes = await parse<Summary>(1);
-      const attendanceRes = await parse<AttendanceRecord[]>(2);
-      const taskRes = await parse<TaskRecord[]>(3);
-      const announcementRes = await parse<AnnouncementRecord[]>(4);
-      const holidayRes = await parse<HolidayRecord[]>(5);
-      const leaveTypesRes = await parse<LeaveTypeRecord[]>(6);
-      const leaveRes = await parse<LeaveRecord[]>(7);
-      const worklogRes = await parse<WorkLogRecord[]>(8);
+      const meRes = parse<EmployeeProfile>(0);
+      const summaryRes = parse<Summary>(1);
+      const attendanceRes = parse<AttendanceRecord[]>(2);
+      const taskRes = parse<TaskRecord[]>(3);
+      const announcementRes = parse<AnnouncementRecord[]>(4);
+      const holidayRes = parse<HolidayRecord[]>(5);
+      const leaveTypesRes = parse<LeaveTypeRecord[]>(6);
+      const leaveRes = parse<LeaveRecord[]>(7);
+      const worklogRes = parse<WorkLogRecord[]>(8);
 
       if (meRes?.data) {
         const employee = { ...meRes.data };
@@ -185,11 +179,11 @@ export default function DashboardContent() {
         const desigLookupId = isObjectIdLike(employee.designation) ? employee.designation : employee.designationId;
 
         if (deptLookupId && isObjectIdLike(deptLookupId)) {
-          const name = await resolveDepartmentName(deptLookupId, headers);
+          const name = await resolveDepartmentName(deptLookupId);
           if (name) employee.department = name;
         }
         if (desigLookupId && isObjectIdLike(desigLookupId)) {
-          const title = await resolveDesignationTitle(desigLookupId, headers);
+          const title = await resolveDesignationTitle(desigLookupId);
           if (title) employee.designation = title;
         }
 

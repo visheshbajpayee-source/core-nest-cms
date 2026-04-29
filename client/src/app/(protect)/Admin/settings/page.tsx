@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
+import api from "@/app/lib/api";
 
 const LEAVE_TYPES = [
   { key: "annual", label: "Annual Leave" },
@@ -59,18 +60,7 @@ export default function AdminSettingsPage() {
   if (!confirmAction) return;
 
   try {
-    const token = localStorage.getItem("accessToken");
-
-    const res = await fetch("http://localhost:5000/api/v1/leave-balances/reset-all", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) throw new Error("Failed");
-
+    await api.post("/api/v1/leave-balances/reset-all");
     alert("All leave balances reset successfully!");
   } catch (err) {
     console.error(err);
@@ -86,17 +76,7 @@ export default function AdminSettingsPage() {
     if (!confirmAction) return;
 
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:5000/api/v1/employees/archive-inactive", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Failed");
-
+      await api.post("/api/v1/employees/archive-inactive");
       alert("Inactive employees archived successfully!");
     } catch (err) {
       console.error(err);

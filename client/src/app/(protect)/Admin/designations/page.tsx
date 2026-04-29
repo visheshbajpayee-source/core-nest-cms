@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 interface Designation { id: string; title: string; description?: string; isActive:boolean;}
 
@@ -17,17 +16,12 @@ export default function AdminDesignationsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/designations`, { headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed to load");
-      setDesignations(json.data || []);
-    } catch (e: any) { setError(e.message); }
+      const res = await api.get(`/api/v1/designations`);
+      setDesignations(res.data?.data || []);
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setLoading(false); }
   }
 
@@ -38,24 +32,22 @@ export default function AdminDesignationsPage() {
     if (!form.title.trim()) return setError("Title is required");
     setSaving(true); setError(null);
     try {
-      const url = editingId ? `${API}/designations/${editingId}` : `${API}/designations`;
-      const method = editingId ? "PATCH" : "POST";
-      const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      if (editingId) {
+        await api.patch(`/api/v1/designations/${editingId}`, form);
+      } else {
+        await api.post(`/api/v1/designations`, form);
+      }
       await load(); setForm(emptyForm); setEditingId(null);
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this designation?")) return;
     try {
-      const res = await fetch(`${API}/designations/${id}/deactivate`, { method: "PATCH", headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      await api.patch(`/api/v1/designations/${id}/deactivate`);
       await load();
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
   };
 
   return (

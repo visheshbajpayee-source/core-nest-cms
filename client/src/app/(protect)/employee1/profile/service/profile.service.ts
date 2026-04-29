@@ -1,4 +1,4 @@
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
+import api from '@/app/lib/api';
 
 type AuthUser = { id?: string; email?: string };
 
@@ -60,41 +60,28 @@ function normalizeProfile(employee: EmployeeApi): ProfileData {
   };
 }
 
-async function getDepartmentNameById(id: string, token: string): Promise<string | null> {
-  const response = await fetch(`${API}/departments/${id}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) return null;
-  const json = await response.json();
-  const data = (json?.data ?? null) as DepartmentApi | null;
-  return data?.name ?? null;
+async function getDepartmentNameById(id: string): Promise<string | null> {
+  try {
+    const response = await api.get(`/api/v1/departments/${id}`);
+    const data = (response.data?.data ?? null) as DepartmentApi | null;
+    return data?.name ?? null;
+  } catch { return null; }
 }
 
-async function getDesignationTitleById(id: string, token: string): Promise<string | null> {
-  const response = await fetch(`${API}/designations/${id}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) return null;
-  const json = await response.json();
-  const data = (json?.data ?? null) as DesignationApi | null;
-  return data?.title ?? null;
+async function getDesignationTitleById(id: string): Promise<string | null> {
+  try {
+    const response = await api.get(`/api/v1/designations/${id}`);
+    const data = (response.data?.data ?? null) as DesignationApi | null;
+    return data?.title ?? null;
+  } catch { return null; }
 }
 
-async function hydrateReferenceNames(profile: ProfileData, token: string): Promise<ProfileData> {
-  return hydrateReferenceNamesWithIds(profile, token, {});
+async function hydrateReferenceNames(profile: ProfileData): Promise<ProfileData> {
+  return hydrateReferenceNamesWithIds(profile, {});
 }
 
 async function hydrateReferenceNamesWithIds(
   profile: ProfileData,
-  token: string,
   ids: { departmentId?: string; designationId?: string }
 ): Promise<ProfileData> {
   const next = { ...profile };
@@ -104,7 +91,7 @@ async function hydrateReferenceNamesWithIds(
     : (isObjectIdLike(ids.departmentId) ? ids.departmentId : undefined);
 
   if (departmentLookupId) {
-    const departmentName = await getDepartmentNameById(departmentLookupId, token);
+    const departmentName = await getDepartmentNameById(departmentLookupId);
     if (departmentName) next.department = departmentName;
   }
 
@@ -113,7 +100,7 @@ async function hydrateReferenceNamesWithIds(
     : (isObjectIdLike(ids.designationId) ? ids.designationId : undefined);
 
   if (designationLookupId) {
-    const designationTitle = await getDesignationTitleById(designationLookupId, token);
+    const designationTitle = await getDesignationTitleById(designationLookupId);
     if (designationTitle) next.designation = designationTitle;
   }
 
@@ -174,21 +161,21 @@ export async function fetchMyProfile(): Promise<ProfileData> {
     throw new Error('Please login first.');
   }
 
-  const response = await fetch(`${API}/employees/me`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  let json: any;
+  try {
+    const response = await api.get(`/api/v1/employees/me`);
+    json = response.data;
+  } catch (err: any) {
+    throw new Error(err?.response?.data?.message || 'Failed to load profile');
+  }
 
-  const json = await response.json();
-  if (!response.ok || !json.success) {
+  if (!json.success) {
     throw new Error(json.message || 'Failed to load profile');
   }
 
   const employee = (json.data ?? {}) as EmployeeApi;
   const rawProfile = normalizeProfile(employee);
-  const profile = await hydrateReferenceNamesWithIds(rawProfile, token, {
+  const profile = await hydrateReferenceNamesWithIds(rawProfile, {
     departmentId: employee.departmentId,
     designationId: employee.designationId,
   });
@@ -206,20 +193,18 @@ export async function updateMyProfile(
     throw new Error('Please login again');
   }
 
-  const response = await fetch(`${API}/employees/${currentProfile.employeeId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
+  let json: any;
+  try {
+    const response = await api.put(`/api/v1/employees/${currentProfile.employeeId}`, {
       phoneNumber: updates.phoneNumber,
       profilePicture: updates.profilePicture,
-    }),
-  });
+    });
+    json = response.data;
+  } catch (err: any) {
+    throw new Error(err?.response?.data?.message || 'Failed to update profile');
+  }
 
-  const json = await response.json();
-  if (!response.ok || !json.success) {
+  if (!json.success) {
     throw new Error(json.message || 'Failed to update profile');
   }
 
@@ -239,7 +224,7 @@ export async function updateMyProfile(
     profilePicture: saved.profilePicture ?? updates.profilePicture ?? currentProfile.profilePicture,
   };
 
-  const hydrated = await hydrateReferenceNamesWithIds(next, token, {
+  const hydrated = await hydrateReferenceNamesWithIds(next, {
     departmentId: saved.departmentId,
     designationId: saved.designationId,
   });

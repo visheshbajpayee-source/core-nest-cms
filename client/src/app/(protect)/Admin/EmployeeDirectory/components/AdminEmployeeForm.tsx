@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import type { EmployeeFormState } from "../../types/adminTypes";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 interface AdminEmployeeFormProps {
 	form: EmployeeFormState;
@@ -35,11 +34,9 @@ export default function AdminEmployeeForm({
 	const [designations, setDesignations] = useState<{ _id: string; title: string }[]>([]);
 
 	useEffect(() => {
-		const t = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-		const h = { "Content-Type": "application/json", Authorization: `Bearer ${t}` };
 		Promise.all([
-			fetch(`${API}/departments`, { headers: h }).then((r) => r.json()),
-			fetch(`${API}/designations`, { headers: h }).then((r) => r.json()),
+			api.get("/api/v1/departments").then((r) => r.data),
+			api.get("/api/v1/designations").then((r) => r.data),
 		]).then(([depts, desigs]) => {
 			void depts;
 			if (desigs.success && Array.isArray(desigs.data)) setDesignations(desigs.data);

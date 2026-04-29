@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 interface Announcement {
   id: string;
@@ -35,23 +34,17 @@ export default function AdminAnnouncementsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
   async function load() {
     setLoading(true);
     try {
       const [aRes, dRes] = await Promise.all([
-        fetch(`${API}/announcements`, { headers }),
-        fetch(`${API}/departments`, { headers }),
+        api.get(`/api/v1/announcements`),
+        api.get(`/api/v1/departments`),
       ]);
-      const aJson = await aRes.json();
-      console.log("Announcements API Response:", aJson);
-      const dJson = await dRes.json();
-      if (!aRes.ok) throw new Error(aJson.message || "Failed");
-      setAnnouncements(aJson.data || []);
-      setDepartments(dJson.data || []);
-    } catch (e: any) { setError(e.message); }
+      console.log("Announcements API Response:", aRes.data);
+      setAnnouncements(aRes.data?.data || []);
+      setDepartments(dRes.data?.data || []);
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setLoading(false); }
   }
 
@@ -65,13 +58,13 @@ export default function AdminAnnouncementsPage() {
       const payload: any = { ...form };
       if (!payload.expiryDate) delete payload.expiryDate;
       if (payload.target !== "department") delete payload.department;
-      const url = editingId ? `${API}/announcements/${editingId}` : `${API}/announcements`;
-      const method = editingId ? "PATCH" : "POST";
-      const res = await fetch(url, { method, headers, body: JSON.stringify(payload) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      if (editingId) {
+        await api.patch(`/api/v1/announcements/${editingId}`, payload);
+      } else {
+        await api.post(`/api/v1/announcements`, payload);
+      }
       await load(); setForm(emptyForm); setEditingId(null);
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setSaving(false); }
   };
 
@@ -79,11 +72,9 @@ export default function AdminAnnouncementsPage() {
     console.log("Deleting ID:", id);
     if (!confirm("Delete this announcement?")) return;
     try {
-      const res = await fetch(`${API}/announcements/${id}`, { method: "DELETE", headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      await api.delete(`/api/v1/announcements/${id}`);
       setAnnouncements((prev) => prev.filter((a) => a.id !== id));
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
   };
 
   const now = new Date();

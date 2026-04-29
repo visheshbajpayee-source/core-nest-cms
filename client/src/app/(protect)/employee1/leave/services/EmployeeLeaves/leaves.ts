@@ -1,4 +1,5 @@
-import axios, { AxiosError, AxiosInstance } from "axios";
+import { AxiosError } from "axios";
+import api from "@/app/lib/api";
 
 /* ================================
    Types
@@ -51,37 +52,6 @@ export interface CreateLeaveResponse {
 }
 
 /* ================================
-   Axios Setup
-================================ */
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
-
-const leaveAPI: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Request Interceptor
-leaveAPI.interceptors.request.use(
-  (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("accessToken");
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-/* ================================
    Dummy Data
 ================================ */
 
@@ -124,8 +94,8 @@ export const getLeaveHistory = async (
 
     console.log("📞 Fetching leave history with:", { month, year });
 
-    const response = await leaveAPI.get<LeaveHistoryResponse>(
-      `/v1/leaves/me`,
+    const response = await api.get<LeaveHistoryResponse>(
+      `/api/v1/leaves/me`,
       {
         params,
       }
@@ -154,11 +124,10 @@ export const submitLeave = async (
 ): Promise<CreateLeaveResponse> => {
   try {
      console.log("🚀 submitLeave called with data:", leaveData);
-     console.log("🔗 API URL:", `${API_BASE_URL}/v1/leaves`);
      console.log("🔑 Token exists:", !!localStorage.getItem("accessToken"));
 
-    const response = await leaveAPI.post<CreateLeaveResponse>(
-      `/v1/leaves`,
+    const response = await api.post<CreateLeaveResponse>(
+      `/api/v1/leaves`,
       leaveData
     );
 

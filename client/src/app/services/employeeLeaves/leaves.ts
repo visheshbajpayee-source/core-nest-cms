@@ -1,6 +1,3 @@
-import axios from "axios";
-// import { dummyLeaveData } from "./data";
-
 // Types for Leave Management
 export interface LeaveRecord {
   id: string;
@@ -20,41 +17,12 @@ export interface LeaveHistoryResponse {
 }
 
 export interface LeaveFilters {
-  month?: string; // e.g. '2'
-  year?: string; // e.g. '2026'
-  status?: string; // 'pending', 'approved', 'rejected'
-  leaveType?: string; // 'sick', 'casual', 'earned', 'other'
+  month?: string;
+  year?: string;
+  status?: string;
+  leaveType?: string;
 }
 
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
-const leaveAPI = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add request interceptor for auth tokens
-leaveAPI.interceptors.request.use(
-  (config) => {
-    // Only access localStorage in browser environment
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Dummy data for development
 const dummyLeaveData: LeaveRecord[] = [
   {
     id: "1",
@@ -103,49 +71,20 @@ const dummyLeaveData: LeaveRecord[] = [
 ];
 
 /**
- * Fetch leave history for an employee
+ * Fetch leave history for an employee.
+ * Currently returns dummy data; the live API is wired in
+ * src/app/(protect)/employee1/leave/services/EmployeeLeaves/leaves.ts.
  */
 export const getLeaveHistory = async (
-  employeeId: string,
-  filters?: LeaveFilters
+  _employeeId: string,
+  _filters?: LeaveFilters
 ): Promise<LeaveHistoryResponse> => {
-  try {
-    const now = new Date();
-
-    const month = filters?.month || String(now.getMonth() + 1);
-    const year = filters?.year || String(now.getFullYear());
-
-    const query = new URLSearchParams({
-      month,
-      year
-    }).toString();
-
-    // Uncomment when API is ready
-    // const response = await leaveAPI.get(
-    //   `/leaves/${employeeId}/history?${query}`
-    // );
-    // return response.data;
-      
-    // Filter dummy data based on filters
-    let filteredData = dummyLeaveData;
-;
-
-    return {
-      success: true,
-      data: filteredData
-    }; 
-
-  } catch (error) {
-    console.warn("API call failed, returning empty data:", error);
-    return {
-      success: false,
-      data: [],
-    };  
-  }
+  return {
+    success: true,
+    data: dummyLeaveData,
+  };
 };
-
 
 export const leaveService = {
   getLeaveHistory,
 };
-

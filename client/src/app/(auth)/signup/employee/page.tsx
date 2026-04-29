@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '../../../lib/api';
 
 export default function EmployeeSignupPage() {
     const router = useRouter();
@@ -40,28 +41,19 @@ export default function EmployeeSignupPage() {
                 dateOfJoining,
             });
 
-            const response = await fetch(
-                'http://localhost:5000/api/v1/login/register',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        fullName,
-                        email,
-                        password,
-                        department,
-                        designation,
-                        dateOfJoining,
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Signup failed');
+            try {
+                await api.post('/api/v1/login/register', {
+                    fullName,
+                    email,
+                    password,
+                    department,
+                    designation,
+                    dateOfJoining,
+                });
+            } catch (apiErr: any) {
+                throw new Error(
+                    apiErr?.response?.data?.message || 'Signup failed'
+                );
             }
 
             router.replace('/login/employee');

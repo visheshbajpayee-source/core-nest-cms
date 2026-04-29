@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { AdminEmployeeTable, AdminSidebar } from "../components";
 import type { Employee, EmployeeFormState } from "@/app/(protect)/Admin/types/adminTypes";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 const emptyForm: EmployeeFormState = {
 	fullName: "",
@@ -34,11 +33,9 @@ function EmployeeModal({
 
 	useEffect(() => {
 		if (!open) return;
-		const t = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-		const h = { "Content-Type": "application/json", Authorization: `Bearer ${t}` };
 		Promise.all([
-			fetch(`${API}/departments`, { headers: h }).then((r) => r.json()),
-			fetch(`${API}/designations`, { headers: h }).then((r) => r.json()),
+			api.get("/api/v1/departments").then((r) => r.data),
+			api.get("/api/v1/designations").then((r) => r.data),
 		]).then(([depts, desigs]) => {
 			if (depts.success && Array.isArray(depts.data)) setDepartments(depts.data);
 			if (desigs.success && Array.isArray(desigs.data)) setDesignations(desigs.data);
@@ -159,9 +156,6 @@ export default function EmployeeDirectoryPage() {
 	const [search, setSearch] = useState("");
 	const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
 
-	const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-	const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
 	const mapEmployee = (e: any): Employee => {
 		const departmentId = e.departmentId ?? (isObjectIdLike(e.department) ? e.department : undefined);
 		const designationId = e.designationId ?? (isObjectIdLike(e.designation) ? e.designation : undefined);
@@ -199,9 +193,9 @@ export default function EmployeeDirectoryPage() {
 		if (!t) { setError("Not authenticated. Please log in."); setLoading(false); return; }
 		setLoading(true);
 		Promise.all([
-			fetch(`${API}/departments`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then((r) => r.json()),
-			fetch(`${API}/designations`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then((r) => r.json()),
-			fetch(`${API}/employees`, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` } }).then(async (r) => ({ ok: r.ok, status: r.status, body: await r.json() })),
+			api.get("/api/v1/departments").then((r) => r.data),
+			api.get("/api/v1/designations").then((r) => r.data),
+			api.get("/api/v1/employees").then((r) => ({ ok: true, status: r.status, body: r.data })).catch((err) => ({ ok: false, status: err?.response?.status ?? 0, body: err?.response?.data ?? {} })),
 		])
 			.then(([deptJson, desigJson, employeesRes]) => {
 				const deptList: { id: string; name: string }[] = Array.isArray(deptJson?.data)
@@ -285,50 +279,42 @@ export default function EmployeeDirectoryPage() {
 		setSaving(true); setError(null);
 		try {
 			if (editingId) {
-				const res = await fetch(`${API}/employees/${editingId}`, {
-					method: "PUT", headers,
-					body: JSON.stringify({
-						fullName: form.fullName,
-						phoneNumber: form.phoneNumber || undefined,
-						designation: selectedDesignationId || undefined,
-						status: form.status,
-					}),
+				const res = await api.put(`/api/v1/employees/${editingId}`, {
+					fullName: form.fullName,
+					phoneNumber: form.phoneNumber || undefined,
+					designation: selectedDesignationId || undefined,
+					status: form.status,
 				});
-				const json = await res.json();
-				if (!res.ok) throw new Error(json.message || "Failed");
+				const json = res.data;
 				const updated = mapEmployee(json.data);
 				setEmployees((prev) => prev.map((emp) => emp.employeeId === editingId ? updated : emp));
 			} else {
-				const res = await fetch(`${API}/employees`, {
-					method: "POST", headers,
-					body: JSON.stringify({
-						fullName: form.fullName,
-						email: form.email,
-						password: form.password,
-						phoneNumber: form.phoneNumber || undefined,
-						role: form.role,
-						department: selectedDepartmentId,
-						designation: selectedDesignationId,
-						departmentId: selectedDepartmentId,
-						designationId: selectedDesignationId,
-						dateOfJoining: form.dateOfJoining,
-					}),
+				const res = await api.post(`/api/v1/employees`, {
+					fullName: form.fullName,
+					email: form.email,
+					password: form.password,
+					phoneNumber: form.phoneNumber || undefined,
+					role: form.role,
+					department: selectedDepartmentId,
+					designation: selectedDesignationId,
+					departmentId: selectedDepartmentId,
+					designationId: selectedDesignationId,
+					dateOfJoining: form.dateOfJoining,
 				});
-				const json = await res.json();
-				if (!res.ok) throw new Error(json.message || "Failed");
+				const json = res.data;
 				const created = mapEmployee(json.data);
 				setEmployees((prev) => [created, ...prev]);
 			}
 			closeModal();
 		} catch (err: any) {
-			setError(err?.message || "Something went wrong. Please try again.");
+			setError(err?.response?.data?.message || err?.message || "Something went wrong. Please try again.");
 		} finally { setSaving(false); }
 	};
 
 	const handleDelete = (id: string) => {
 		if (!confirm("Are you sure you want to delete this employee?")) return;
 		setEmployees((prev) => prev.filter((emp) => emp.employeeId !== id));
-		fetch(`${API}/employees/${id}`, { method: "DELETE", headers }).catch(() => {});
+		api.delete(`/api/v1/employees/${id}`).catch(() => {});
 	};
 
 	const shown = employees.filter((emp) => {

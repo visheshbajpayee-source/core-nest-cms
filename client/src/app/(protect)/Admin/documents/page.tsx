@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 const DOC_TYPES = [
   "offer_letter",
@@ -47,29 +46,23 @@ export default function AdminDocumentsPage() {
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const headers = { Authorization: `Bearer ${token}` };
-
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (filterEmp !== "all") params.set("employeeId", filterEmp);
-      if (filterType !== "all") params.set("documentType", filterType);
-      const res = await fetch(`${API}/documents?${params}`, { headers });
-      const json = await res.json();
-      console.log("Documents API Response:", json);
-      if (!res.ok) throw new Error(json.message);
-      setDocs(json.data || []);
-    } catch (e: any) { setError(e.message); }
+      const params: Record<string, string> = {};
+      if (filterEmp !== "all") params.employeeId = filterEmp;
+      if (filterType !== "all") params.documentType = filterType;
+      const res = await api.get(`/api/v1/documents`, { params });
+      console.log("Documents API Response:", res.data);
+      setDocs(res.data?.data || []);
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setLoading(false); }
   };
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch(`${API}/employees`, { headers });
-      const json = await res.json();
-      setEmployees(json.data || []);
+      const res = await api.get(`/api/v1/employees`);
+      setEmployees(res.data?.data || []);
     } catch {}
   };
 
@@ -92,17 +85,8 @@ export default function AdminDocumentsPage() {
 
     if (notes) fd.append("notes", notes);
 
-    const res = await fetch(`${API}/documents`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token || ""}`,
-      },
-      body: fd,
-    });
-
-    const json = await res.json();
-
-    if (!res.ok) throw new Error(json.message);
+    const res = await api.post(`/api/v1/documents`, fd);
+    const json = res.data;
 
     setDocs((prev) => [json.data, ...prev]);
 
@@ -115,7 +99,7 @@ export default function AdminDocumentsPage() {
     const input = document.getElementById("fileInput") as HTMLInputElement;
     if (input) input.value = "";
   } catch (e: any) {
-    setError(e.message);
+    setError(e?.response?.data?.message || e.message);
   } finally {
     setUploading(false);
   }
@@ -124,47 +108,32 @@ export default function AdminDocumentsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this document?")) return;
     try {
-      const res = await fetch(`${API}/documents/${id}`, { method: "DELETE", headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message);
+      await api.delete(`/api/v1/documents/${id}`);
       setDocs((prev) => prev.filter((d) => d.id !== id));
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
   };
 
   const handleDownload = async (doc: IDoc) => {
     try {
-      const res = await fetch(`${API}/documents/${doc.id}/download`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token || ""}`,
-        },
-      }
-    );
-      if(!res.ok) {
-        const errorText = await res.text();
-        console.log(errorText);
-        throw new Error("Download failed");
-      }
+      const res = await api.get(`/api/v1/documents/${doc.id}/download`, { responseType: "blob" });
 
-      const blob = await res.blob();
+      const blob = res.data as Blob;
       const downloadUrl = window.URL.createObjectURL(blob);
 
-      const link= document.createElement("a");
-      link.href=downloadUrl;
+      const link = document.createElement("a");
+      link.href = downloadUrl;
       link.download = doc.fileName || 'document';
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
       window.URL.revokeObjectURL(downloadUrl);
-      } 
-      catch (error) {
+    } catch (error) {
       console.error(error);
       alert("Download failed");
-  }
-};
+    }
+  };
 
   const inputClass = "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none";
 

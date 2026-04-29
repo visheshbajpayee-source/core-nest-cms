@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 interface Department {
   id: string;
@@ -22,19 +21,13 @@ export default function AdminDepartmentsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/departments`, { headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed to load");
-      setDepartments(json.data || []);
+      const res = await api.get(`/api/v1/departments`);
+      setDepartments(res.data?.data || []);
     } catch (e: any) {
-      setError(e.message);
+      setError(e?.response?.data?.message || e.message);
     } finally {
       setLoading(false);
     }
@@ -48,15 +41,15 @@ export default function AdminDepartmentsPage() {
     setSaving(true);
     setError(null);
     try {
-      const url = editingId ? `${API}/departments/${editingId}` : `${API}/departments`;
-      const method = editingId ? "PATCH" : "POST";
-      const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      if (editingId) {
+        await api.patch(`/api/v1/departments/${editingId}`, form);
+      } else {
+        await api.post(`/api/v1/departments`, form);
+      }
       await load();
       setForm(emptyForm);
     } catch (e: any) {
-      setError(e.message);
+      setError(e?.response?.data?.message || e.message);
     } finally {
       setSaving(false);
     }
@@ -65,12 +58,10 @@ export default function AdminDepartmentsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this department?")) return;
     try {
-      const res = await fetch(`${API}/departments/${id}/deactivate`, { method: "PATCH", headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      await api.patch(`/api/v1/departments/${id}/deactivate`);
       setDepartments((prev) => prev.filter((d) => d.id !== id));
     } catch (e: any) {
-      setError(e.message);
+      setError(e?.response?.data?.message || e.message);
     }
   };
 

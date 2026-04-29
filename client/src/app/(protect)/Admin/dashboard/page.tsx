@@ -3,8 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 type Employee = { status?: "active" | "inactive" | string };
 type Leave = { status?: "pending" | "approved" | "rejected" | string; employee?: { fullName?: string }; leaveType?: string; startDate?: string; };
@@ -35,42 +34,29 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
-
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const year = String(now.getFullYear());
 
     Promise.allSettled([
-      fetch(`${API}/employees`, { headers }),
-      fetch(`${API}/leaves?status=pending`, { headers }),
-      fetch(`${API}/announcements`, { headers }),
-      fetch(`${API}/projects`, { headers }),
-      fetch(`${API}/attendance?month=${month}&year=${year}`, { headers }),
-    ]).then(async (results) => {
-      const parse = async <T,>(index: number) => {
+      api.get(`/api/v1/employees`),
+      api.get(`/api/v1/leaves`, { params: { status: "pending" } }),
+      api.get(`/api/v1/announcements`),
+      api.get(`/api/v1/projects`),
+      api.get(`/api/v1/attendance`, { params: { month, year } }),
+    ]).then((results) => {
+      const parse = <T,>(index: number): T | null => {
         const result = results[index];
         if (result.status !== "fulfilled") return null;
-        const res = result.value;
-        if (!res.ok) return null;
-        const json = (await res.json()) as ApiPayload<T>;
+        const json = result.value.data as ApiPayload<T>;
         return json?.data ?? null;
       };
 
-      const employeeData = await parse<Employee[]>(0);
-      const leaveData = await parse<Leave[]>(1);
-      const announcementData = await parse<Announcement[]>(2);
-      const projectData = await parse<Project[]>(3);
-      const attendanceData = await parse<Attendance[]>(4);
-
-      setEmployees(asArray<Employee>(employeeData));
-      setPendingLeaves(asArray<Leave>(leaveData));
-      setAnnouncements(asArray<Announcement>(announcementData));
-      setProjects(asArray<Project>(projectData));
-      setAttendance(asArray<Attendance>(attendanceData));
+      setEmployees(asArray<Employee>(parse<Employee[]>(0)));
+      setPendingLeaves(asArray<Leave>(parse<Leave[]>(1)));
+      setAnnouncements(asArray<Announcement>(parse<Announcement[]>(2)));
+      setProjects(asArray<Project>(parse<Project[]>(3)));
+      setAttendance(asArray<Attendance>(parse<Attendance[]>(4)));
       setLoading(false);
     }).catch((e: unknown) => {
       setError(e instanceof Error ? e.message : "Failed to load dashboard data.");

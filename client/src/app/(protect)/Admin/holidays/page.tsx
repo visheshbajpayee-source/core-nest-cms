@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 interface Holiday { id: string; holidayName: string; date: string; description?: string; type: "national" | "regional" | "company"; }
 
@@ -24,17 +23,12 @@ export default function AdminHolidaysPage() {
   const [error, setError] = useState<string | null>(null);
   const [year, setYear] = useState(String(new Date().getFullYear()));
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/holidays?year=${year}`, { headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
-      setHolidays(json.data || []);
-    } catch (e: any) { setError(e.message); }
+      const res = await api.get(`/api/v1/holidays`, { params: { year } });
+      setHolidays(res.data?.data || []);
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setLoading(false); }
   }
 
@@ -45,24 +39,22 @@ export default function AdminHolidaysPage() {
     if (!form.holidayName || !form.date) return setError("Name and date are required");
     setSaving(true); setError(null);
     try {
-      const url = editingId ? `${API}/holidays/${editingId}` : `${API}/holidays`;
-      const method = editingId ? "PATCH" : "POST";
-      const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      if (editingId) {
+        await api.patch(`/api/v1/holidays/${editingId}`, form);
+      } else {
+        await api.post(`/api/v1/holidays`, form);
+      }
       await load(); setForm(emptyForm); setEditingId(null);
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this holiday?")) return;
     try {
-      const res = await fetch(`${API}/holidays/${id}`, { method: "DELETE", headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      await api.delete(`/api/v1/holidays/${id}`);
       setHolidays((prev) => prev.filter((h) => h.id !== id));
-    } catch (e: any) { setError(e.message); }
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
   };
 
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];

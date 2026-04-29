@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 type ReportType = "attendance" | "worklogs" | "leaves";
 
@@ -20,38 +19,22 @@ export default function AdminReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const headers = { Authorization: `Bearer ${token}` };
-
   const generate = async () => {
     setLoading(true); setError(null); setGenerated(false);
     try {
       let endpoint = "";
-      let params;
+      let params: Record<string, string>;
 
       if (reportType === "attendance") {
-        endpoint = "reports/attendance/monthly";
-        params = new URLSearchParams({ month, year });
-
-      } else if (reportType === "worklogs") {
-        endpoint = "reports/employee";
-        params = new URLSearchParams({
-          period: "monthly",
-          date: `${year}-${month}-01`,
-        });
-
+        endpoint = "/api/v1/reports/attendance/monthly";
+        params = { month, year };
       } else {
-        endpoint = "reports/employee";
-        params = new URLSearchParams({
-          period: "monthly",
-          date: `${year}-${month}-01`,
-        });
+        endpoint = "/api/v1/reports/employee";
+        params = { period: "monthly", date: `${year}-${month}-01` };
       }
 
-      const res = await fetch(`${API}/${endpoint}?${params}`, { headers });
-      const json = await res.json();
-
-      if (!res.ok) throw new Error(json.message || "Failed");
+      const res = await api.get(endpoint, { params });
+      const json = res.data;
 
       if (reportType === "attendance") {
         setData(json.data?.records || []);
@@ -61,7 +44,7 @@ export default function AdminReportsPage() {
 
       setGenerated(true);
     } catch (e: any) {
-      setError(e.message);
+      setError(e?.response?.data?.message || e.message);
     } finally {
       setLoading(false);
     }

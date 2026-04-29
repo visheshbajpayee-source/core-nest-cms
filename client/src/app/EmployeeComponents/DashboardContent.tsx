@@ -9,8 +9,7 @@ import {
   MyFocus,
   NoticeBoard,
 } from '.';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
+import api from '@/app/lib/api';
 
 type ApiResponse<T> = {
   success: boolean;
@@ -93,44 +92,37 @@ export default function DashboardContent() {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    };
-
     const now = new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
     const today = now.toISOString().slice(0, 10);
 
     const requests = [
-      fetch(`${API_BASE}/employees/me`, { headers }),
-      fetch(`${API_BASE}/attendance/summary?month=${month}&year=${year}`, { headers }),
-      fetch(`${API_BASE}/attendance/me?month=${month}&year=${year}`, { headers }),
-      fetch(`${API_BASE}/tasks`, { headers }),
-      fetch(`${API_BASE}/announcements`, { headers }),
-      fetch(`${API_BASE}/holidays?year=${year}`, { headers }),
-      fetch(`${API_BASE}/leaves`, { headers }),
-      fetch(`${API_BASE}/worklogs?date=${today}`, { headers }),
+      api.get(`/api/v1/employees/me`),
+      api.get(`/api/v1/attendance/summary`, { params: { month, year } }),
+      api.get(`/api/v1/attendance/me`, { params: { month, year } }),
+      api.get(`/api/v1/tasks`),
+      api.get(`/api/v1/announcements`),
+      api.get(`/api/v1/holidays`, { params: { year } }),
+      api.get(`/api/v1/leaves`),
+      api.get(`/api/v1/worklogs`, { params: { date: today } }),
     ];
 
-    Promise.allSettled(requests).then(async (results) => {
-      const parse = async <T,>(idx: number) => {
+    Promise.allSettled(requests).then((results) => {
+      const parse = <T,>(idx: number): ApiResponse<T> | null => {
         const result = results[idx];
         if (result.status !== 'fulfilled') return null;
-        const res = result.value;
-        if (!res.ok) return null;
-        return (await res.json()) as ApiResponse<T>;
+        return result.value.data as ApiResponse<T>;
       };
 
-      const meRes = await parse<{ fullName?: string }>(0);
-      const summaryRes = await parse<Summary>(1);
-      const attendanceRes = await parse<AttendanceRecord[]>(2);
-      const taskRes = await parse<TaskRecord[]>(3);
-      const announcementRes = await parse<AnnouncementRecord[]>(4);
-      const holidayRes = await parse<HolidayRecord[]>(5);
-      const leaveRes = await parse<LeaveRecord[]>(6);
-      const worklogRes = await parse<WorkLogRecord[]>(7);
+      const meRes = parse<{ fullName?: string }>(0);
+      const summaryRes = parse<Summary>(1);
+      const attendanceRes = parse<AttendanceRecord[]>(2);
+      const taskRes = parse<TaskRecord[]>(3);
+      const announcementRes = parse<AnnouncementRecord[]>(4);
+      const holidayRes = parse<HolidayRecord[]>(5);
+      const leaveRes = parse<LeaveRecord[]>(6);
+      const worklogRes = parse<WorkLogRecord[]>(7);
 
       if (meRes?.data?.fullName) setUserName(meRes.data.fullName);
       if (summaryRes?.data) setSummary(summaryRes.data);

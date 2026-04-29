@@ -3,8 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
 import { dummyProjects, dummyEmployees, type Project, type TeamMember } from "./projectdata";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 interface Dept { _id: string; name: string; }
 
@@ -331,13 +330,9 @@ export default function AdminProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState("");
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-
   useEffect(() => {
-    fetch(`${API}/departments`, { headers })
-      .then((r) => r.json())
-      .then((j) => { if (j.data) setDepartments(j.data); })
+    api.get(`/api/v1/departments`)
+      .then((r) => { if (r.data?.data) setDepartments(r.data.data); })
       .catch(() => {});
   }, []); // eslint-disable-line
 
@@ -356,11 +351,11 @@ export default function AdminProjectsPage() {
     if (!form.name || !form.startDate || !form.expectedEndDate) { setError("Name, start date and end date are required"); return; }
     setSaving(true); setError(null);
     try {
-      const url = editingId ? `${API}/projects/${editingId}` : `${API}/projects`;
-      const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, { method, headers, body: JSON.stringify({ ...form, teamMembers: members.map((m) => m._id) }) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
+      const body = { ...form, teamMembers: members.map((m) => m._id) };
+      const res = editingId
+        ? await api.put(`/api/v1/projects/${editingId}`, body)
+        : await api.post(`/api/v1/projects`, body);
+      const json = res.data;
       const saved: Project = { ...json.data, teamMembers: members };
       if (editingId) setProjects((prev) => prev.map((p) => (p._id === editingId ? saved : p)));
       else setProjects((prev) => [saved, ...prev]);
@@ -378,7 +373,7 @@ export default function AdminProjectsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this project?")) return;
     setProjects((prev) => prev.filter((p) => p._id !== id));
-    try { await fetch(`${API}/projects/${id}`, { method: "DELETE", headers }); } catch {}
+    try { await api.delete(`/api/v1/projects/${id}`); } catch {}
   };
 
   const shown = filterStatus ? projects.filter((p) => p.status === filterStatus) : projects;

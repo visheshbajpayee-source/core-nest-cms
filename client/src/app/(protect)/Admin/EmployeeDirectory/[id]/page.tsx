@@ -4,10 +4,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AdminSidebar } from "../../components";
+import api from "@/app/lib/api";
 
 type EmployeeDetail = Record<string, unknown>;
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
 export default function AdminEmployeeDetailPage() {
   const params = useParams<{ id: string }>();
@@ -27,15 +26,9 @@ export default function AdminEmployeeDetailPage() {
       return;
     }
 
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
-
-    fetch(`${API}/employees/${encodeURIComponent(employeeLookupId)}`, { headers })
+    api.get(`/api/v1/employees/${encodeURIComponent(employeeLookupId)}`)
       .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json?.message || "Failed to fetch employee details");
+        const json = res.data;
 
         const payload = (json?.data ?? null) as EmployeeDetail | null;
         setEmployee(payload);
@@ -45,13 +38,13 @@ export default function AdminEmployeeDetailPage() {
 
         const requests: Promise<any>[] = [];
         if (deptId && /^[a-fA-F0-9]{24}$/.test(deptId)) {
-          requests.push(fetch(`${API}/departments`, { headers }).then((r) => r.json()));
+          requests.push(api.get(`/api/v1/departments`).then((r) => r.data));
         } else {
           requests.push(Promise.resolve(null));
         }
 
         if (desigId && /^[a-fA-F0-9]{24}$/.test(desigId)) {
-          requests.push(fetch(`${API}/designations`, { headers }).then((r) => r.json()));
+          requests.push(api.get(`/api/v1/designations`).then((r) => r.data));
         } else {
           requests.push(Promise.resolve(null));
         }
@@ -72,8 +65,8 @@ export default function AdminEmployeeDetailPage() {
           setDesignationName(desigId ?? "-");
         }
       })
-      .catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : "Failed to load employee details.");
+      .catch((e: any) => {
+        setError(e?.response?.data?.message || (e instanceof Error ? e.message : "Failed to load employee details."));
       })
       .finally(() => setLoading(false));
   }, [employeeLookupId]);

@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+import api from "@/app/lib/api";
 
 interface WorkLog {
   _id: string;
@@ -33,19 +32,14 @@ export default function AdminWorklogsPage() {
   const [month, setMonth] = useState(String(now.getMonth() + 1).padStart(2, "0"));
   const [year, setYear] = useState(String(now.getFullYear()));
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const headers = { Authorization: `Bearer ${token}` };
-
   async function load() {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ month, year });
-      if (filterStatus) params.set("status", filterStatus);
-      const res = await fetch(`${API}/worklogs?${params}`, { headers });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed");
-      setLogs(json.data || []);
-    } catch (e: any) { setError(e.message); }
+      const params: Record<string, string> = { month, year };
+      if (filterStatus) params.status = filterStatus;
+      const res = await api.get(`/api/v1/worklogs`, { params });
+      setLogs(res.data?.data || []);
+    } catch (e: any) { setError(e?.response?.data?.message || e.message); }
     finally { setLoading(false); }
   }
 

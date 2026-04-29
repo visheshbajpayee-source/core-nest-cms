@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "@/app/lib/api";
 
 // Types for Attendance
 
@@ -51,8 +51,6 @@ export interface AttendanceFilters {
   year?: string; // e.g. '2024'
 }
 
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
 // Helper function to format date
 const formatDate = (isoDate: string): string => {
@@ -129,31 +127,6 @@ const transformAttendanceRecord = (apiRecord: AttendanceApiRecord): AttendanceRe
 };
 
 
-const attendanceAPI = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add request interceptor for auth tokens
-attendanceAPI.interceptors.request.use(
-  (config) => {
-    // Only access localStorage in browser environment
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 /**
  * Fetch attendance history for an employee
  */
@@ -168,19 +141,13 @@ export const getAttendanceHistory = async (
     const year =
       filters?.year || String(now.getFullYear());
 
-    const query = new URLSearchParams({
-      month,
-      year,
-    }).toString();
-
-    const response = await attendanceAPI.get<{
+    const response = await api.get<{
       success: boolean;
       data: AttendanceApiRecord[];
-    }>(`/attendance/me?${query}`);
+    }>(`/api/v1/attendance/me`, { params: { month, year } });
 
     console.log("Raw API response:", response.data);
 
-    // Transform the data
     const transformedData = response.data.data.map(transformAttendanceRecord);
     console.log("Transformed data:", transformedData);
 
@@ -199,10 +166,10 @@ export const getAttendanceHistory = async (
 };
 export const getAttendanceSummary = async (): Promise<AttendanceSummaryResponse> => {
   try {
-    const response = await attendanceAPI.get<{
+    const response = await api.get<{
       success: boolean;
       data: AttendanceSummary;
-    }>(`/attendance/summary`);
+    }>(`/api/v1/attendance/summary`);
 
     console.log("API response for attendance summary:", response.data);
 

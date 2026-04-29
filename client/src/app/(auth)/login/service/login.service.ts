@@ -30,7 +30,6 @@ interface EmployeeApi {
   profilePicture?: string;
 }
 
-// ⚠️ IMPORTANT: runtime variable export mat karo
 let role = "";
 
 export async function loginAndStoreProfile(

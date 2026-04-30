@@ -2,23 +2,45 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { AdminSidebar } from "@/app/(protect)/Admin/components";
-import { dummyProjects, dummyEmployees, type Project, type TeamMember } from "./projectdata";
+import { dummyProjects } from "./projectdata";
 import api from "@/app/lib/api";
 
-interface Dept { _id: string; name: string; }
+type TeamMember = {
+  _id: string;
+  fullName: string;
+  email: string;
+  employeeId: string;
+  designation?: string;
+};
+
+type Project = {
+  _id: string;
+  name: string;
+  description?: string;
+  startDate: string;
+  expectedEndDate: string;
+  status: "not_started" | "in_progress" | "completed" | "on_hold";
+  department?: { _id: string; name: string };
+  teamMembers: TeamMember[];
+};
+
+interface Dept {
+  _id: string;
+  name: string;
+}
 
 const STATUS_COLORS: Record<string, string> = {
   not_started: "bg-slate-100 text-slate-600",
-  in_progress:  "bg-blue-100 text-blue-700",
-  completed:    "bg-green-100 text-green-700",
-  on_hold:      "bg-yellow-100 text-yellow-700",
+  in_progress: "bg-blue-100 text-blue-700",
+  completed: "bg-green-100 text-green-700",
+  on_hold: "bg-yellow-100 text-yellow-700",
 };
 
 const STATUS_BAR: Record<string, string> = {
   not_started: "bg-slate-300",
-  in_progress:  "bg-blue-400",
-  completed:    "bg-green-400",
-  on_hold:      "bg-yellow-400",
+  in_progress: "bg-blue-400",
+  completed: "bg-green-400",
+  on_hold: "bg-yellow-400",
 };
 
 const STATUSES = ["not_started", "in_progress", "completed", "on_hold"] as const;
@@ -27,15 +49,29 @@ const emptyForm = {
   status: "not_started", department: "",
 };
 
-// ─── Avatar initials helper ───────────────────────────────────────────────────
-function Avatar({ name, size = "sm" }: { name: string; size?: "sm" | "md" }) {
-  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-  const colours = ["bg-indigo-100 text-indigo-700", "bg-rose-100 text-rose-700",
-    "bg-emerald-100 text-emerald-700", "bg-amber-100 text-amber-700", "bg-violet-100 text-violet-700"];
-  const colour = colours[name.charCodeAt(0) % colours.length];
+function Avatar({ name, size = "sm" }: { name?: string; size?: "sm" | "md" }) {
+  const safeName = name || "User";
+
+  const initials = safeName
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  const colours = [
+    "bg-indigo-100 text-indigo-700",
+    "bg-rose-100 text-rose-700",
+    "bg-emerald-100 text-emerald-700",
+    "bg-amber-100 text-amber-700",
+    "bg-violet-100 text-violet-700"
+  ];
+
+  const colour = colours[safeName.charCodeAt(0) % colours.length];
   const sz = size === "md" ? "h-9 w-9 text-sm" : "h-7 w-7 text-xs";
+
   return (
-    <span className={`inline-flex shrink-0 items-center justify-center rounded-full font-semibold ${sz} ${colour}`}>
+    <span className={`inline-flex items-center justify-center rounded-full font-semibold ${sz} ${colour}`}>
       {initials}
     </span>
   );
@@ -55,12 +91,17 @@ function MemberSearch({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const filtered = pool.filter((e) =>
-    !selected.find((s) => s._id === e._id) &&
-    (e.fullName.toLowerCase().includes(query.toLowerCase()) ||
-      e.employeeId.toLowerCase().includes(query.toLowerCase()) ||
-      e.email.toLowerCase().includes(query.toLowerCase()))
-  );
+  const filtered =
+    query.trim() === ""
+      ? pool
+      : pool.filter((e) =>
+        !selected.find((s) => s._id === e._id) &&
+        (
+          e.fullName.toLowerCase().includes(query.toLowerCase()) ||
+          e.employeeId.toLowerCase().includes(query.toLowerCase()) ||
+          e.email.toLowerCase().includes(query.toLowerCase())
+        )
+      );
 
   const add = (emp: TeamMember) => { onChange([...selected, emp]); setQuery(""); };
   const remove = (id: string) => onChange(selected.filter((s) => s._id !== id));
@@ -94,7 +135,7 @@ function MemberSearch({
         className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
       />
       {/* Dropdown */}
-      {open && filtered.length > 0 && (
+      {open && (
         <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
           {filtered.map((emp) => (
             <li key={emp._id}>
@@ -112,7 +153,7 @@ function MemberSearch({
           ))}
         </ul>
       )}
-      {open && query.length > 0 && filtered.length === 0 && (
+      {open && query.trim() !== "" && filtered.length === 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-400 shadow-lg">
           No matching employees found.
         </div>
@@ -227,13 +268,25 @@ function DetailModal({ project, onClose, onEdit }: { project: Project; onClose: 
 // ─── Create / Edit Modal ──────────────────────────────────────────────────────
 function ProjectModal({
   open, onClose, form, setForm, members, setMembers,
-  departments, saving, error, editingId, onSubmit,
+  departments, employees, saving, error, editingId, onSubmit,
 }: {
-  open: boolean; onClose: () => void;
-  form: typeof emptyForm; setForm: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
-  members: TeamMember[]; setMembers: React.Dispatch<React.SetStateAction<TeamMember[]>>;
-  departments: Dept[]; saving: boolean; error: string | null;
-  editingId: string | null; onSubmit: (e: React.FormEvent) => void;
+  open: boolean;
+  onClose: () => void;
+
+  form: typeof emptyForm;
+  setForm: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
+
+  members: TeamMember[];
+  setMembers: React.Dispatch<React.SetStateAction<TeamMember[]>>;
+
+  departments: Dept[];
+  employees: TeamMember[];   // ✅ THIS IS CORRECT
+
+  saving: boolean;
+  error: string | null;
+
+  editingId: string | null;
+  onSubmit: (e: React.FormEvent) => void;
 }) {
   if (!open) return null;
   const inputClass = "w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-200";
@@ -298,7 +351,7 @@ function ProjectModal({
               Assign Team Members
               <span className="ml-1 text-slate-400">(search by name, ID or email)</span>
             </label>
-            <MemberSearch selected={members} onChange={setMembers} pool={dummyEmployees} />
+            <MemberSearch selected={members} onChange={setMembers} pool={employees} />
           </div>
 
           <div className="flex justify-end gap-3 pt-1">
@@ -319,8 +372,11 @@ function ProjectModal({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AdminProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(dummyProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [departments, setDepartments] = useState<Dept[]>([]);
+
+  const [employees, setEmployees] = useState<TeamMember[]>([]); // ✅ FIXED
+
   const [form, setForm] = useState(emptyForm);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -332,26 +388,90 @@ export default function AdminProjectsPage() {
 
   useEffect(() => {
     api.get(`/api/v1/departments`)
-      .then((r) => { if (r.data?.data) setDepartments(r.data.data); })
-      .catch(() => {});
-  }, []); // eslint-disable-line
+      .then((r) => {
+        if (r.data?.data) setDepartments(r.data.data);
+      })
+      .catch(() => { });
+  }, []);
 
-  const openCreate = () => { setForm(emptyForm); setMembers([]); setEditingId(null); setError(null); setModalOpen(true); };
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const res = await api.get("/api/v1/employees");
+        setEmployees(res.data.data);
+      } catch (err) {
+        console.log("Failed to fetch employees", err);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await api.get("/api/v1/projects");
+        setProjects(res.data.data);
+      } catch (err) {
+        console.log("Failed to fetch projects", err);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  const openCreate = () => {
+    setForm(emptyForm);
+    setMembers([]);
+    setEditingId(null);
+    setError(null);
+    setModalOpen(true);
+  };
+
   const openEdit = (p: Project) => {
-    setEditingId(p._id); setError(null);
-    setForm({ name: p.name, description: p.description || "", startDate: p.startDate?.substring(0, 10), expectedEndDate: p.expectedEndDate?.substring(0, 10), status: p.status, department: p.department?._id || "" });
+    setEditingId(p._id);
+    setError(null);
+    setForm({
+      name: p.name,
+      description: p.description || "",
+      startDate: p.startDate?.substring(0, 10),
+      expectedEndDate: p.expectedEndDate?.substring(0, 10),
+      status: p.status,
+      department: p.department?._id || ""
+    });
     setMembers(p.teamMembers);
     setDetailProject(null);
     setModalOpen(true);
   };
-  const closeModal = () => { setModalOpen(false); setEditingId(null); setForm(emptyForm); setMembers([]); setError(null); };
 
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setMembers([]);
+    setError(null);
+  };
+
+  console.log("FINAL FORM STATE:", form);
+  console.log("DEPARTMENT ONLY:", form.department);
+console.log("SUBMIT CLICKED");
+console.log(form);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.startDate || !form.expectedEndDate) { setError("Name, start date and end date are required"); return; }
     setSaving(true); setError(null);
     try {
-      const body = { ...form, teamMembers: members.map((m) => m._id) };
+      console.log("FORM DEPARTMENT VALUE:", form.department);
+      const body = {
+        name: form.name,
+        description: form.description,
+        startDate: form.startDate,
+        expectedEndDate: form.expectedEndDate,
+        status: form.status,
+        department: form.department,
+        teamMembers: members.map(m => m._id)
+      };
+      console.log("SENDING BODY:", body);
       const res = editingId
         ? await api.put(`/api/v1/projects/${editingId}`, body)
         : await api.post(`/api/v1/projects`, body);
@@ -360,20 +480,38 @@ export default function AdminProjectsPage() {
       if (editingId) setProjects((prev) => prev.map((p) => (p._id === editingId ? saved : p)));
       else setProjects((prev) => [saved, ...prev]);
       closeModal();
-    } catch {
-      // Optimistic update when backend is down
+      console.log("FINAL BODY:", body);
+    } catch (err: any) {
+      console.log("ERROR RESPONSE:", err.response?.data);
+
       const dept = departments.find((d) => d._id === form.department);
-      const pseudo: Project = { _id: editingId ?? `local-${Date.now()}`, name: form.name, description: form.description, startDate: form.startDate, expectedEndDate: form.expectedEndDate, status: form.status as Project["status"], department: dept ? { _id: dept._id, name: dept.name } : undefined, teamMembers: members };
-      if (editingId) setProjects((prev) => prev.map((p) => (p._id === editingId ? pseudo : p)));
-      else setProjects((prev) => [pseudo, ...prev]);
+      const pseudo: Project = {
+        _id: editingId ?? `local-${Date.now()}`,
+        name: form.name,
+        description: form.description,
+        startDate: form.startDate,
+        expectedEndDate: form.expectedEndDate,
+        status: form.status as Project["status"],
+        department: dept ? { _id: dept._id, name: dept.name } : undefined,
+        teamMembers: members
+      };
+      
+      console.log("ERROR:", err.response?.data);
+      if (editingId)
+        setProjects((prev) => prev.map((p) => (p._id === editingId ? pseudo : p)));
+      else
+        setProjects((prev) => [pseudo, ...prev]);
+      
       closeModal();
-    } finally { setSaving(false); }
+    }
+    finally { setSaving(false); }
+    console.log(api.defaults.baseURL);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this project?")) return;
     setProjects((prev) => prev.filter((p) => p._id !== id));
-    try { await api.delete(`/api/v1/projects/${id}`); } catch {}
+    try { await api.delete(`/api/v1/projects/${id}`); } catch { }
   };
 
   const shown = filterStatus ? projects.filter((p) => p.status === filterStatus) : projects;
@@ -484,11 +622,18 @@ export default function AdminProjectsPage() {
 
       {/* Create / Edit modal */}
       <ProjectModal
-        open={modalOpen} onClose={closeModal}
-        form={form} setForm={setForm}
-        members={members} setMembers={setMembers}
-        departments={departments} saving={saving} error={error}
-        editingId={editingId} onSubmit={handleSubmit}
+        open={modalOpen}
+        onClose={closeModal}
+        form={form}
+        setForm={setForm}
+        members={members}
+        setMembers={setMembers}
+        departments={departments}
+        employees={employees}
+        saving={saving}
+        error={error}
+        editingId={editingId}
+        onSubmit={handleSubmit}
       />
     </div>
   );

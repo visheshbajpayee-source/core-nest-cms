@@ -4,10 +4,15 @@ import React, { useState, useEffect } from "react";
 import {getAttendanceHistory} from "../../services/attendence/attendence"
 import {AttendanceRecord} from "../../services/attendence/attendence"
 
-export default function Attendance() {
+interface AttendanceHistoryProps {
+  selectedDate?: Date | null;
+}
+
+export default function Attendance({ selectedDate }: AttendanceHistoryProps) {
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1–12
-  const currentYear = now.getFullYear();
+  const currentMonth = selectedDate ? selectedDate.getMonth() + 1 : now.getMonth() + 1; // 1–12
+  const currentYear = selectedDate ? selectedDate.getFullYear() : now.getFullYear();
+  const currentDay = selectedDate ? selectedDate.getDate() : null;
 
   const startYear = 2026;
   const futureYears = 5;
@@ -25,6 +30,7 @@ export default function Attendance() {
 const [dateFilter, setDateFilter] = useState({
   month: currentMonth,
   year: currentYear,
+  day: currentDay,
 });
   const [attendanceHistory, setAttendanceHistory] = useState<AttendanceRecord[]>([]);
 
@@ -48,6 +54,18 @@ const [dateFilter, setDateFilter] = useState({
     fetchAttendance(currentMonth, currentYear);
   }, []);
 
+  // 🔹 Update date filter when selectedDate changes
+  useEffect(() => {
+    if (selectedDate) {
+      setDateFilter({
+        month: selectedDate.getMonth() + 1,
+        year: selectedDate.getFullYear(),
+        day: selectedDate.getDate(),
+      });
+      fetchAttendance(selectedDate.getMonth() + 1, selectedDate.getFullYear());
+    }
+  }, [selectedDate]);
+
   // 🔹 Apply button handler
   const handleApply = () => {
     console.log(dateFilter.month, dateFilter.year);
@@ -56,6 +74,21 @@ const [dateFilter, setDateFilter] = useState({
 
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl p-3 sm:p-4 md:p-6 border border-gray-100 mb-6 sm:mb-8 transition-all duration-300">
+      {/* Header with selected date info */}
+      {selectedDate && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-700 font-medium">
+            📅 Showing attendance for <span className="font-bold">{selectedDate.toLocaleDateString()}</span>
+            <button 
+              onClick={() => {}}
+              className="ml-2 px-2 py-1 text-xs bg-blue-200 hover:bg-blue-300 rounded transition-all"
+            >
+              Clear Selection
+            </button>
+          </p>
+        </div>
+      )}
+      
       {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 flex-1">

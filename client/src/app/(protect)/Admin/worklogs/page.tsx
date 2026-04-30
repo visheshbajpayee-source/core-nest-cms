@@ -23,19 +23,34 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function AdminWorklogsPage() {
   const [logs, setLogs] = useState<WorkLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [employees, setEmployees] = useState<Array<{ _id: string; fullName: string }>>([]);
 
   const now = new Date();
   const [month, setMonth] = useState(String(now.getMonth() + 1).padStart(2, "0"));
   const [year, setYear] = useState(String(now.getFullYear()));
 
+  async function loadEmployees() {
+    try {
+      const res = await api.get(`/api/v1/employees`);
+      setEmployees(res.data?.data || []);
+    } catch (e: any) {
+      console.error("Error loading employees:", e);
+    }
+  }
+
   async function load() {
+    if (!selectedEmployee) {
+      setLogs([]);
+      return;
+    }
     setLoading(true);
     try {
-      const params: Record<string, string> = { month, year };
+      const params: Record<string, string> = { month, year, employeeId: selectedEmployee };
       if (filterStatus) params.status = filterStatus;
       const res = await api.get(`/api/v1/worklogs`, { params });
       setLogs(res.data?.data || []);
@@ -43,7 +58,11 @@ export default function AdminWorklogsPage() {
     finally { setLoading(false); }
   }
 
-  useEffect(() => { load(); }, [month, year, filterStatus]);
+  useEffect(() => {
+    loadEmployees();
+  }, []);
+
+  useEffect(() => { load(); }, [month, year, filterStatus, selectedEmployee]);
 
   const filtered = logs.filter((l) => {
     const q = search.toLowerCase();
@@ -79,22 +98,34 @@ export default function AdminWorklogsPage() {
 
         {/* Filters */}
         <div className="mb-4 flex flex-wrap gap-3">
+          <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)}
+            className="rounded border border-slate-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none font-medium">
+            <option value="">Select an Employee</option>
+            {employees.map((emp) => (
+              <option key={emp._id} value={emp._id}>{emp.fullName}</option>
+            ))}
+          </select>
           <input type="month" value={`${year}-${month}`}
             onChange={(e) => { const [y, m] = e.target.value.split("-"); setYear(y); setMonth(m); }}
             className="rounded border border-slate-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
+            disabled={!selectedEmployee}
           />
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded border border-slate-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none">
+            className="rounded border border-slate-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
+            disabled={!selectedEmployee}>
             <option value="">All Statuses</option>
             {["in_progress", "completed", "blocked"].map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
           </select>
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search employee / task…"
-            className="rounded border border-slate-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search task…"
+            className="rounded border border-slate-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
+            disabled={!selectedEmployee} />
         </div>
 
-        {/* Table */}
+        {/* Table or Empty State */}
         <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-          {loading ? (
+          {!selectedEmployee ? (
+            <div className="p-10 text-center text-sm text-slate-400">Select an employee to view their work logs.</div>
+          ) : loading ? (
             <div className="p-10 text-center text-sm text-slate-400">Loading…</div>
           ) : filtered.length === 0 ? (
             <div className="p-10 text-center text-sm text-slate-400">No work logs found.</div>

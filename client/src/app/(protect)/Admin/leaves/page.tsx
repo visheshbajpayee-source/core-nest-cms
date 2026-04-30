@@ -205,11 +205,19 @@ export default function AdminLeavesPage() {
                       <td className="px-4 py-3">
                         {leave.status === "pending" && (
                           <div className="flex gap-2">
-                            <button onClick={() => handleAction(leave._id, "approve")}>
-                              Approve
+                            <button 
+                              onClick={() => handleAction(leave._id, "approve")}
+                              disabled={processing === leave._id}
+                              className="px-3 py-1.5 text-sm font-semibold bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+                            >
+                              {processing === leave._id ? "..." : "Approve"}
                             </button>
-                            <button onClick={() => handleAction(leave._id, "reject")}>
-                              Reject
+                            <button 
+                              onClick={() => handleAction(leave._id, "reject")}
+                              disabled={processing === leave._id}
+                              className="px-3 py-1.5 text-sm font-semibold bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+                            >
+                              {processing === leave._id ? "..." : "Reject"}
                             </button>
                           </div>
                         )}

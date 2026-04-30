@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react'
 
-const AttendanceCalender = () => {
+interface AttendanceCalenderProps {
+  onDateSelect?: (date: Date | null) => void;
+  selectedDate?: Date | null;
+}
+
+const AttendanceCalender = ({ onDateSelect, selectedDate }: AttendanceCalenderProps) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [attendanceData, setAttendanceData] = useState<{[key: string]: 'present' | 'absent' | 'today'}>({});
 
@@ -79,10 +84,17 @@ const AttendanceCalender = () => {
 
     const getDayClasses = (date: Date, status: string | null) => {
         const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+        const isSelected = selectedDate && 
+          date.getDate() === selectedDate.getDate() && 
+          date.getMonth() === selectedDate.getMonth() && 
+          date.getFullYear() === selectedDate.getFullYear();
+        
         let classes = "w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 flex items-center justify-center text-xs sm:text-sm md:text-base rounded-full transition-all duration-200 cursor-pointer touch-manipulation ";
 
         if (!isCurrentMonth) {
             classes += "text-slate-300 hover:text-slate-400 ";
+        } else if (isSelected) {
+            classes += "bg-blue-600 text-white shadow-lg ring-2 ring-blue-300 font-semibold ";
         } else {
             switch (status) {
                 case 'today':
@@ -141,14 +153,22 @@ const AttendanceCalender = () => {
             <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center">
                 {days.map((date, index) => {
                     const status = getAttendanceStatus(date);
+                    const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+                    
                     return (
-                        <div 
+                        <button
                             key={index}
+                            onClick={() => {
+                              if (isCurrentMonth && onDateSelect) {
+                                onDateSelect(date);
+                              }
+                            }}
+                            disabled={!isCurrentMonth}
                             className={getDayClasses(date, status)}
                             title={`${date.getDate()} ${monthNames[date.getMonth()]} - ${status || 'No data'}`}
                         >
                             {date.getDate()}
-                        </div>
+                        </button>
                     );
                 })}
             </div>

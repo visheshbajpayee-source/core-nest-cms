@@ -24,19 +24,19 @@ const toResponse = (project: any): ProjectResponseDto => ({
   expectedEndDate: project.expectedEndDate,
   status: project.status,
   department: project.department.toString(),
-  teamMembers: project.teamMembers.map((member: Types.ObjectId) =>
-    member.toString()
-  ),
+  teamMembers: project.teamMembers.map((member: any) => ({
+    id: member._id.toString(),
+    fullName: member.fullName,
+    employeeId: member.employeeId,
+    email: member.email,
+    designation: member.designation,
+  })),
   createdAt: project.createdAt,
   updatedAt: project.updatedAt,
 });
 
-/**
- * Validate team members:
- * - Remove duplicates
- * - Ensure they exist
- * - Ensure they belong to same department
- */
+/* ---------------- TEAM MEMBER VALIDATION ---------------- */
+
 const validateTeamMembers = async (
   teamMembers: string[] | undefined,
   department: string
@@ -47,7 +47,7 @@ const validateTeamMembers = async (
 
   const employees = await Employee.find({
     _id: { $in: uniqueIds },
-    department,
+    department: new Types.ObjectId(department), // ✅ FIX
   }).select("_id");
 
   if (employees.length !== uniqueIds.length) {
@@ -58,6 +58,8 @@ const validateTeamMembers = async (
 
   return employees.map((emp) => emp._id);
 };
+
+/* ---------------- CREATE ---------------- */
 
 export const createProject = async (
   payload: CreateProjectDto
@@ -70,6 +72,7 @@ export const createProject = async (
 
     const project = await Project.create({
       ...payload,
+      department: new Types.ObjectId(payload.department), // ✅ FIX
       startDate: new Date(payload.startDate),
       expectedEndDate: new Date(payload.expectedEndDate),
       teamMembers: validatedTeamMembers,
@@ -87,28 +90,40 @@ export const createProject = async (
   }
 };
 
+/* ---------------- GET ALL (ADMIN / MANAGER) ---------------- */
+
 export const getProjects = async (
   filters: Record<string, string | undefined> = {}
 ): Promise<ProjectResponseDto[]> => {
   try {
     const query: any = {};
-    if (filters.department) query.department = filters.department;
-    if (filters.status) query.status = filters.status;
 
-    const projects = await Project.find(query).sort({ createdAt: -1 });
+    if (filters.department) {
+      query.department = new Types.ObjectId(filters.department); // ✅ FIX
+    }
 
+    if (filters.status) {
+      query.status = filters.status;
+    }
+    console.log("Filters:", filters);
+console.log("Query:", query);
+
+    const projects = await Project.find();
+   console.log("Projects found:", projects);
     return projects.map(toResponse);
   } catch {
     throw ApiError.internalServer("Failed to fetch projects");
   }
 };
 
+/* ---------------- GET BY ID ---------------- */
 
 export const getProjectById = async (
   id: string
 ): Promise<ProjectResponseDto | null> => {
   try {
     const project = await Project.findById(id);
+
     if (!project) {
       throw ApiError.notFound("Project not found");
     }
@@ -123,13 +138,21 @@ export const getProjectById = async (
   }
 };
 
+/* ---------------- GET EMPLOYEE PROJECTS ---------------- */
+
 export const getProjectsForEmployee = async (
   employeeId: string
 ): Promise<ProjectResponseDto[]> => {
   try {
+    console.log("Employee ID:", employeeId);
+
     const projects = await Project.find({
-      teamMembers: employeeId,
-    }).sort({ createdAt: -1 });
+      teamMembers: { $in: [new Types.ObjectId(employeeId)] },
+    })
+      .populate("teamMembers", "fullName employeeId email designation")
+      .sort({ createdAt: -1 });
+
+    console.log("Employee projects:", projects);
 
     return projects.map(toResponse);
   } catch {
@@ -137,19 +160,21 @@ export const getProjectsForEmployee = async (
   }
 };
 
+/* ---------------- UPDATE ---------------- */
+
 export const updateProject = async (
   id: string,
   payload: UpdateProjectDto
 ): Promise<ProjectResponseDto> => {
   try {
     const existing = await Project.findById(id);
+
     if (!existing) {
       throw ApiError.notFound("Project not found");
     }
 
     const updates: any = {};
 
-    // Date updates
     if (payload.startDate) {
       updates.startDate = new Date(payload.startDate);
     }
@@ -158,7 +183,6 @@ export const updateProject = async (
       updates.expectedEndDate = new Date(payload.expectedEndDate);
     }
 
-    // Team member validation
     if (payload.teamMembers) {
       updates.teamMembers = await validateTeamMembers(
         payload.teamMembers,
@@ -166,7 +190,6 @@ export const updateProject = async (
       );
     }
 
-    // Status transition enforcement
     if (payload.status) {
       const allowedTransitions =
         statusTransitions[existing.status] || [];
@@ -177,7 +200,6 @@ export const updateProject = async (
         );
       }
 
-      // Prevent completion if tasks incomplete
       if (payload.status === "completed") {
         const incompleteTasks = await Task.countDocuments({
           project: existing._id,
@@ -222,6 +244,8 @@ export const updateProject = async (
     );
   }
 };
+
+/* ---------------- DELETE ---------------- */
 
 export const deleteProject = async (id: string): Promise<boolean> => {
   try {

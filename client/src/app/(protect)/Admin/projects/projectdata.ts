@@ -4,6 +4,7 @@ export interface TeamMember {
   employeeId: string;
   email: string;
   designation: string;
+  department?: string;
 }
 
 export interface Project {

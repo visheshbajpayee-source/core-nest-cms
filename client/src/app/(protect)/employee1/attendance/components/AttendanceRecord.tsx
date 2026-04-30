@@ -51,12 +51,10 @@ const AttendanceRecord = () => {
     fetchAttendanceSummary();
   }, []);
 
-  // ---------------- ACTION (FIXED) ----------------
   const handleAttendanceAction = async () => {
     setLoading(true);
 
     try {
-      // 🔥 ALWAYS GET FRESH STATE FIRST (IMPORTANT FIX)
       const res = await getAttendanceSummary();
 
       if (!res.success || !res.data) {
@@ -70,17 +68,14 @@ const AttendanceRecord = () => {
 
       let response;
 
-      // CASE 1: Check-out
       if (isCheckedIn && !isCheckedOut) {
         response = await checkOut();
       }
 
-      // CASE 2: Check-in
       else if (!isCheckedIn) {
         response = await checkIn();
       }
 
-      // CASE 3: Already done
       else {
         alert('Attendance already completed for today');
         await fetchAttendanceSummary();
@@ -88,7 +83,6 @@ const AttendanceRecord = () => {
         return;
       }
 
-      // SUCCESS HANDLING
       if (response?.success) {
         await fetchAttendanceSummary();
       } else {
@@ -117,7 +111,6 @@ const AttendanceRecord = () => {
     }
   };
 
-  // ---------------- UI CALC (UNCHANGED) ----------------
   const percentage =
     attendanceSummary.attendancePercentage || 0;
 
@@ -137,7 +130,6 @@ const AttendanceRecord = () => {
     )}`;
   };
 
-  // ---------------- UI (NO CHANGE) ----------------
   return (
     <div className="flex flex-col gap-6 mb-8">
       <div className="bg-white rounded-2xl shadow p-8 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 border border-gray-100">
@@ -185,7 +177,6 @@ const AttendanceRecord = () => {
           </div>
         </div>
 
-        {/* STATUS */}
         <div className="flex flex-col sm:flex-row gap-4 items-center">
 
           <div
@@ -208,8 +199,6 @@ const AttendanceRecord = () => {
             {attendanceSummary.currentStatus ||
               'Not Checked In'}
           </div>
-
-          {/* BUTTON (UNCHANGED UI) */}
           <button
             onClick={handleAttendanceAction}
             disabled={loading || attendanceSummary.todayCheckOut}

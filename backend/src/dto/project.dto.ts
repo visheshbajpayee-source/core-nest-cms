@@ -25,7 +25,13 @@ export interface ProjectResponseDto {
   expectedEndDate: Date;
   status: string;
   department: string;
-  teamMembers: string[];
+  teamMembers: {
+    id: string;
+    fullName: string;
+    employeeId: string;
+    email: string;
+    designation: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }

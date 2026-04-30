@@ -8,7 +8,13 @@ export interface Project {
   expectedEndDate: string;
   status: "not_started" | "in_progress" | "completed" | "on_hold";
   department: string;
-  teamMembers: string[];
+  teamMembers: {
+    id: string;
+    fullName: string;
+    employeeId: string;
+    email: string;
+    designation: string;
+  }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -24,9 +30,8 @@ export interface CreateProjectPayload {
 
 export const fetchProjects = async (): Promise<Project[]> => {
   try {
-    // employees should fetch their own projects using the /me route
     const response = await api.get<{ success: boolean; data: Project[] }>(
-      "/api/v1/projects/me"
+      "/api/v1/projects/me"   
     );
     return response.data.data || [];
   } catch (error: any) {

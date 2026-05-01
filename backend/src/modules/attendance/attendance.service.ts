@@ -30,24 +30,36 @@ const resolveEmployeeObjectId = async (employeeInput: string): Promise<string> =
  */
 
 export const checkoutAttendance = async (employeeId: string) => {
-  const today = normalizeDate(new Date());
+  // Use date range for today (same as check-in)
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
 
-  // Find today's attendance
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
+
+  console.log(`[Checkout] Looking for attendance - Employee: ${employeeId}, Date Range: ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
+
+  // Find today's attendance using date range
   const attendance = await Attendance.findOne({
     employee: employeeId,
-    date: today,
+    date: { $gte: startOfDay, $lte: endOfDay },
   });
 
   if (!attendance) {
+    console.log(`[Checkout] No attendance found for employee ${employeeId} today`);
     throw ApiError.notFound("No attendance found for today");
   }
 
+  console.log(`[Checkout] Found attendance record: ${attendance._id}, CheckInTime: ${attendance.checkInTime}, CheckOutTime: ${attendance.checkOutTime}`);
+
   // Prevent multiple checkouts
   if (attendance.checkOutTime) {
+    console.log(`[Checkout] Already checked out`);
     return formatAttendance(attendance);
   }
 
   if (!attendance.checkInTime) {
+    console.log(`[Checkout] No check-in time found`);
     throw ApiError.badRequest("Check-in time not found");
   }
 
@@ -62,6 +74,8 @@ export const checkoutAttendance = async (employeeId: string) => {
   attendance.workHours = Number(hours.toFixed(2));
 
   await attendance.save();
+
+  console.log(`[Checkout] Successfully checked out. Hours: ${attendance.workHours}`);
 
   return formatAttendance(attendance);
 };

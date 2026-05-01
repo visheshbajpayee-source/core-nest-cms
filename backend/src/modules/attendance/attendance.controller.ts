@@ -87,17 +87,21 @@ export const checkoutAttendanceController = async (
   try {
     const user = (req as any).user;
 
+    console.log(`[CheckoutController] Checkout requested by employee: ${user.id}`);
+
     const result = await checkoutAttendance(user.id);
 
     // Check if already checked out (result will have checkOutTime)
     if (result.checkOutTime) {
+      console.log(`[CheckoutController] Checkout successful`);
       return ApiResponse.sendSuccess(res, 200, "Checked out successfully", result);
     }
     
     // If no checkOutTime, something went wrong
+    console.log(`[CheckoutController] Checkout failed - no checkOutTime in result`);
     return ApiResponse.sendSuccess(res, 400, "Unable to check out", result);
   } catch (error) {
-    
+    console.error(`[CheckoutController] Error:`, error);
     next(error);
   }
 };
@@ -114,6 +118,8 @@ export const checkInAttendanceController = async (
   try {
     const user = (req as any).user;
 
+    console.log(`[CheckinController] Check-in requested by employee: ${user.id}`);
+
     // Use range for today
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
@@ -129,12 +135,14 @@ export const checkInAttendanceController = async (
     if (existing) {
       // If already checked in but not out, return success: false with message
       if (existing.checkInTime && !existing.checkOutTime) {
+        console.log(`[CheckinController] Already checked in today`);
         return res.status(200).json({ 
           success: false, 
           message: "Already checked in today" 
         });
       }
       // If already checked out, return success: false
+      console.log(`[CheckinController] Already completed attendance today`);
       return res.status(200).json({ 
         success: false, 
         message: "Already completed attendance today" 
@@ -150,8 +158,11 @@ export const checkInAttendanceController = async (
       status: "present",
     });
 
+    console.log(`[CheckinController] Check-in successful. Record ID: ${attendance._id}`);
+
     return ApiResponse.sendSuccess(res, 200, "Checked in", attendance);
   } catch (error) {
+    console.error(`[CheckinController] Error:`, error);
     next(error);
   }
 };

@@ -33,7 +33,7 @@ export default function ProjectCard({
 
   return (
     <div
-      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition cursor-pointer"
+      className="group rounded-lg border border-gray-200 bg-white p-4 transition cursor-pointer hover:border-teal-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-teal-400/60 dark:hover:bg-slate-800/60 dark:hover:shadow-teal-500/10"
       onClick={() => onSelect(project)}
     >
       <div className="flex justify-between items-start mb-2">

@@ -116,7 +116,7 @@ export default function ReportsPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Attendance Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+        <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-700 text-sm font-medium">Attendance</p>
@@ -131,7 +131,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Tasks Card */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+        <div className="bg-linear-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
           <div>
             <p className="text-gray-700 text-sm font-medium">Task Completion</p>
             <p className="text-3xl font-bold text-green-600 mt-2">
@@ -144,7 +144,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Work Hours Card */}
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+        <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
           <div>
             <p className="text-gray-700 text-sm font-medium">Total Work Hours</p>
             <p className="text-3xl font-bold text-purple-600 mt-2">{totalWorkHours.toFixed(1)}</p>
@@ -153,7 +153,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Leave Balance Card */}
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-6 border border-orange-200">
+        <div className="bg-linear-to-br from-orange-50 to-orange-100 rounded-lg p-6 border border-orange-200">
           <div>
             <p className="text-gray-700 text-sm font-medium">Leave Status</p>
             <p className="text-3xl font-bold text-orange-600 mt-2">{leaveStats.pending}</p>

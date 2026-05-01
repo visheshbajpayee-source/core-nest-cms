@@ -2,8 +2,518 @@
 
 @source "../../**/*.{js,ts,jsx,tsx}";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* -------------------------------------------------------------------------- */
+/*  Design tokens                                                             */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  --bg-app: #f4f6fb;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f8fafc;
+  --bg-surface-3: #eef2f7;
+  --bg-muted: #f1f5f9;
+
+  --fg-primary: #0f172a;
+  --fg-secondary: #334155;
+  --fg-muted: #64748b;
+  --fg-subtle: #94a3b8;
+  --fg-inverse: #ffffff;
+
+  --border-subtle: #e5e7eb;
+  --border-default: #d1d5db;
+  --border-strong: #cbd5e1;
+
+  --accent-500: #14b8a6;
+  --accent-600: #0d9488;
+  --accent-soft: rgba(20, 184, 166, 0.12);
+
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-elev: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg-app: #0a0f1c;
+  --bg-surface: #111827;
+  --bg-surface-2: #0f172a;
+  --bg-surface-3: #1e293b;
+  --bg-muted: #1e293b;
+
+  --fg-primary: #f1f5f9;
+  --fg-secondary: #cbd5e1;
+  --fg-muted: #94a3b8;
+  --fg-subtle: #64748b;
+  --fg-inverse: #0f172a;
+
+  --border-subtle: #1f2937;
+  --border-default: #334155;
+  --border-strong: #475569;
+
+  --accent-500: #2dd4bf;
+  --accent-600: #14b8a6;
+  --accent-soft: rgba(45, 212, 191, 0.14);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-elev: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Base                                                                      */
+/* -------------------------------------------------------------------------- */
+
 html,
 body {
   overflow-x: hidden;
   max-width: 100vw;
+  background-color: var(--bg-app);
+  color: var(--fg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+}
+
+/* Smooth theme switch — only animate the body/html roots, not every node.
+   Animating every element caused light-gray hover halos on cards. */
+html.theme-ready,
+html.theme-ready body {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--fg-primary);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--fg-subtle);
+  background-clip: content-box;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Dark-mode utility retargeting                                             */
+/*                                                                            */
+/*  Existing components use Tailwind light surface utilities (bg-white,       */
+/*  bg-slate-50, text-gray-700, etc.). Rather than retrofit ~90 files, we     */
+/*  remap the most common ones so they pick up themed tokens automatically.   */
+/*  Components that opt in with explicit `dark:` classes still win, because   */
+/*  our overrides only target the light utilities.                            */
+/* -------------------------------------------------------------------------- */
+
+.dark .bg-white,
+.dark .bg-slate-50,
+.dark .bg-gray-50,
+.dark .bg-neutral-50,
+.dark .bg-zinc-50,
+.dark .bg-gray-100,
+.dark .bg-slate-100 {
+  background-color: var(--bg-surface) !important;
+}
+
+.dark .bg-slate-200,
+.dark .bg-gray-200,
+.dark .bg-neutral-100,
+.dark .bg-zinc-100 {
+  background-color: var(--bg-surface-3) !important;
+}
+
+.dark .bg-slate-300,
+.dark .bg-gray-300 {
+  background-color: var(--border-default) !important;
+}
+
+/* Text */
+.dark .text-black,
+.dark .text-slate-900,
+.dark .text-gray-900,
+.dark .text-neutral-900,
+.dark .text-zinc-900,
+.dark .text-slate-800,
+.dark .text-gray-800 {
+  color: var(--fg-primary) !important;
+}
+
+.dark .text-slate-700,
+.dark .text-gray-700,
+.dark .text-neutral-700,
+.dark .text-zinc-700,
+.dark .text-slate-600,
+.dark .text-gray-600 {
+  color: var(--fg-secondary) !important;
+}
+
+.dark .text-slate-500,
+.dark .text-gray-500,
+.dark .text-neutral-500,
+.dark .text-zinc-500 {
+  color: var(--fg-muted) !important;
+}
+
+.dark .text-slate-400,
+.dark .text-gray-400,
+.dark .text-neutral-400 {
+  color: var(--fg-subtle) !important;
+}
+
+/* Borders */
+.dark .border,
+.dark .border-t,
+.dark .border-b,
+.dark .border-l,
+.dark .border-r,
+.dark .border-x,
+.dark .border-y {
+  border-color: var(--border-subtle);
+}
+
+.dark .border-gray-100,
+.dark .border-slate-100,
+.dark .border-gray-200,
+.dark .border-slate-200,
+.dark .border-neutral-200,
+.dark .border-zinc-200 {
+  border-color: var(--border-subtle) !important;
+}
+
+.dark .border-gray-300,
+.dark .border-slate-300,
+.dark .border-neutral-300 {
+  border-color: var(--border-default) !important;
+}
+
+/* Divider lines */
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-subtle) !important;
+}
+
+/* Hover states for surfaces — keep them subtly elevated, not light gray. */
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-gray-100:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-gray-200:hover,
+.dark .hover\:bg-slate-200:hover,
+.dark tr.cursor-pointer:hover {
+  background-color: rgba(45, 212, 191, 0.06) !important;
+}
+
+.dark .hover\:bg-red-50:hover,
+.dark .hover\:bg-rose-50:hover {
+  background-color: rgba(244, 63, 94, 0.14) !important;
+}
+.dark .hover\:bg-green-50:hover,
+.dark .hover\:bg-emerald-50:hover {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
+.dark .hover\:bg-blue-50:hover,
+.dark .hover\:bg-indigo-50:hover {
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+
+/* Soft tinted backgrounds — keep the hue, just darken & desaturate. */
+.dark .bg-blue-50,
+.dark .bg-blue-100,
+.dark .bg-indigo-50,
+.dark .bg-indigo-100,
+.dark .bg-sky-50,
+.dark .bg-sky-100 {
+  background-color: rgba(59, 130, 246, 0.16) !important;
+}
+.dark .bg-teal-50,
+.dark .bg-teal-100,
+.dark .bg-emerald-50,
+.dark .bg-emerald-100,
+.dark .bg-green-50,
+.dark .bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+}
+.dark .bg-amber-50,
+.dark .bg-amber-100,
+.dark .bg-yellow-50,
+.dark .bg-yellow-100,
+.dark .bg-orange-50,
+.dark .bg-orange-100 {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+}
+.dark .bg-red-50,
+.dark .bg-red-100,
+.dark .bg-rose-50,
+.dark .bg-rose-100,
+.dark .bg-pink-50,
+.dark .bg-pink-100 {
+  background-color: rgba(244, 63, 94, 0.18) !important;
+}
+.dark .bg-purple-50,
+.dark .bg-purple-100,
+.dark .bg-violet-50,
+.dark .bg-violet-100,
+.dark .bg-fuchsia-50,
+.dark .bg-fuchsia-100 {
+  background-color: rgba(168, 85, 247, 0.18) !important;
+}
+
+/* Tinted ring borders (used by chips like ring-1 ring-green-100) */
+.dark .ring-blue-100,
+.dark .ring-indigo-100,
+.dark .ring-sky-100 {
+  --tw-ring-color: rgba(59, 130, 246, 0.35) !important;
+}
+.dark .ring-teal-100,
+.dark .ring-emerald-100,
+.dark .ring-green-100 {
+  --tw-ring-color: rgba(16, 185, 129, 0.35) !important;
+}
+.dark .ring-amber-100,
+.dark .ring-yellow-100,
+.dark .ring-orange-100 {
+  --tw-ring-color: rgba(245, 158, 11, 0.35) !important;
+}
+.dark .ring-red-100,
+.dark .ring-rose-100,
+.dark .ring-pink-100 {
+  --tw-ring-color: rgba(244, 63, 94, 0.35) !important;
+}
+.dark .ring-slate-100,
+.dark .ring-gray-100,
+.dark .ring-slate-200,
+.dark .ring-gray-200 {
+  --tw-ring-color: var(--border-subtle) !important;
+}
+
+/* Gradient stops used in light-card patterns (e.g. from-blue-50 to-blue-100).
+   Tailwind v4 sets --tw-gradient-from / --tw-gradient-to on the element, so we
+   override those custom properties under .dark to retint the entire gradient. */
+.dark .from-blue-50,
+.dark .from-indigo-50,
+.dark .from-sky-50 {
+  --tw-gradient-from: rgba(59, 130, 246, 0.12) !important;
+}
+.dark .to-blue-100,
+.dark .to-indigo-100,
+.dark .to-sky-100 {
+  --tw-gradient-to: rgba(59, 130, 246, 0.22) !important;
+}
+.dark .from-green-50,
+.dark .from-emerald-50,
+.dark .from-teal-50 {
+  --tw-gradient-from: rgba(16, 185, 129, 0.12) !important;
+}
+.dark .to-green-100,
+.dark .to-emerald-100,
+.dark .to-teal-100 {
+  --tw-gradient-to: rgba(16, 185, 129, 0.22) !important;
+}
+.dark .from-purple-50,
+.dark .from-violet-50,
+.dark .from-fuchsia-50 {
+  --tw-gradient-from: rgba(168, 85, 247, 0.12) !important;
+}
+.dark .to-purple-100,
+.dark .to-violet-100,
+.dark .to-fuchsia-100 {
+  --tw-gradient-to: rgba(168, 85, 247, 0.22) !important;
+}
+.dark .from-orange-50,
+.dark .from-amber-50,
+.dark .from-yellow-50 {
+  --tw-gradient-from: rgba(245, 158, 11, 0.12) !important;
+}
+.dark .to-orange-100,
+.dark .to-amber-100,
+.dark .to-yellow-100 {
+  --tw-gradient-to: rgba(245, 158, 11, 0.22) !important;
+}
+.dark .from-red-50,
+.dark .from-rose-50,
+.dark .from-pink-50 {
+  --tw-gradient-from: rgba(244, 63, 94, 0.12) !important;
+}
+.dark .to-red-100,
+.dark .to-rose-100,
+.dark .to-pink-100 {
+  --tw-gradient-to: rgba(244, 63, 94, 0.22) !important;
+}
+.dark .from-slate-50,
+.dark .from-gray-50,
+.dark .from-white {
+  --tw-gradient-from: var(--bg-surface) !important;
+}
+.dark .to-slate-100,
+.dark .to-gray-100 {
+  --tw-gradient-to: var(--bg-surface-3) !important;
+}
+
+/* Lighten dark color text inside soft tinted chips for legibility */
+.dark .text-blue-600,
+.dark .text-blue-700,
+.dark .text-blue-800,
+.dark .text-blue-900,
+.dark .text-indigo-600,
+.dark .text-indigo-700,
+.dark .text-indigo-800,
+.dark .text-sky-600,
+.dark .text-sky-700 {
+  color: #93c5fd !important;
+}
+.dark .text-teal-600,
+.dark .text-teal-700,
+.dark .text-teal-800,
+.dark .text-emerald-600,
+.dark .text-emerald-700,
+.dark .text-emerald-800,
+.dark .text-green-600,
+.dark .text-green-700,
+.dark .text-green-800 {
+  color: #6ee7b7 !important;
+}
+.dark .text-amber-600,
+.dark .text-amber-700,
+.dark .text-amber-800,
+.dark .text-yellow-600,
+.dark .text-yellow-700,
+.dark .text-yellow-800,
+.dark .text-orange-600,
+.dark .text-orange-700,
+.dark .text-orange-800 {
+  color: #fcd34d !important;
+}
+.dark .text-red-600,
+.dark .text-red-700,
+.dark .text-red-800,
+.dark .text-rose-600,
+.dark .text-rose-700,
+.dark .text-pink-600,
+.dark .text-pink-700 {
+  color: #fca5a5 !important;
+}
+.dark .text-purple-600,
+.dark .text-purple-700,
+.dark .text-purple-800,
+.dark .text-violet-600,
+.dark .text-violet-700,
+.dark .text-fuchsia-600 {
+  color: #d8b4fe !important;
+}
+
+/* Inputs / form fields commonly use bg-white + border-gray-300 */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--bg-surface-2);
+  color: var(--fg-primary);
+  border-color: var(--border-default);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--fg-subtle);
+}
+
+.dark input[type="checkbox"],
+.dark input[type="radio"] {
+  accent-color: var(--accent-500);
+}
+
+/* Tables */
+.dark table {
+  color: var(--fg-secondary);
+}
+.dark thead {
+  background-color: var(--bg-surface-3);
+  color: var(--fg-primary);
+}
+.dark tbody tr {
+  border-color: var(--border-subtle);
+}
+.dark tbody tr:hover {
+  background-color: var(--bg-surface-3);
+}
+
+/* Card-like shadows feel flat on dark — give them some depth */
+.dark .shadow,
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl {
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Collapsible sidebar — global offset retargeting                           */
+/*                                                                            */
+/*  Pages render <main className="lg:ml-64 lg:w-[calc(100%-16rem)]">. When    */
+/*  the sidebar is collapsed, retarget those exact utilities so we don't have */
+/*  to edit every page individually.                                          */
+/* -------------------------------------------------------------------------- */
+
+@media (min-width: 1024px) {
+  html.sidebar-collapsed .lg\:ml-64 {
+    margin-left: 4.5rem !important;
+  }
+  html.sidebar-collapsed .lg\:w-\[calc\(100\%-16rem\)\] {
+    width: calc(100% - 4.5rem) !important;
+  }
+  html.sidebar-collapsed .lg\:pl-64 {
+    padding-left: 4.5rem !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Reusable surface helpers (opt-in, for new/refactored components)          */
+/* -------------------------------------------------------------------------- */
+
+.surface {
+  background-color: var(--bg-surface);
+  color: var(--fg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.surface-muted {
+  background-color: var(--bg-surface-2);
+  color: var(--fg-secondary);
+}
+
+.text-muted {
+  color: var(--fg-muted);
 }

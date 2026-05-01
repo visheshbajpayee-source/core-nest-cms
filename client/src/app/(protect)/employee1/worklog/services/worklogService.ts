@@ -48,8 +48,14 @@ function mapWorklog(w: WorklogResponse) {
   };
 }
 
-export async function getWorklogs() {
-  const res = await api.get('/api/v1/worklogs');
+function formatToday(): string {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+}
+
+export async function getWorklogs(filters?: { date?: string }) {
+  const date = filters?.date || formatToday();
+  const res = await api.get('/api/v1/worklogs', { params: { date } });
   const list = (res.data?.data ?? []) as WorklogResponse[];
   return list.map(mapWorklog);
 }

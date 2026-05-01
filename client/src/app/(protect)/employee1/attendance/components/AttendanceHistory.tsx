@@ -54,8 +54,8 @@ const [dateFilter, setDateFilter] = useState({
 const fetchAttendance = async (m: number, y: number) => {
   try {
     const response = await getAttendanceHistory({
-      month: String(m).padStart(2, "0"),
-      year: String(y),
+      month: m === 0 ? 0 : String(m).padStart(2, "0"),
+      year: m === 0 ? 2026 : String(y), // year doesn't matter for all time
     });
 
     console.log("Fetched attendance history:", response);
@@ -80,7 +80,6 @@ const fetchAttendance = async (m: number, y: number) => {
 
   // 🔹 Apply button handler
   const handleApply = () => {
-    console.log(dateFilter.month, dateFilter.year);
     fetchAttendance(dateFilter.month, dateFilter.year);
   };
 
@@ -117,7 +116,7 @@ const fetchAttendance = async (m: number, y: number) => {
               }}
               className="w-full border border-gray-300 p-2.5 sm:p-3 rounded-md text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 bg-white cursor-pointer text-left flex items-center justify-between hover:bg-gray-50"
             >
-              <span>{months[dateFilter.month - 1]}</span>
+              <span>{dateFilter.month === 0 ? "All Time" : months[dateFilter.month - 1]}</span>
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
@@ -144,6 +143,27 @@ const fetchAttendance = async (m: number, y: number) => {
                   ))}
                 </div>
                 <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      console.log("All time button clicked");
+                      setDateFilter({ month: 0, year: 2026 }); // Special value for all time
+                      setShowMonthPicker(false);
+                    }}
+                    className="flex-1 text-xs py-1.5 px-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+                  >
+                    All time
+                  </button>
+                  <button
+                    onClick={() => {
+                      const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+                      const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+                      setDateFilter({ month: lastMonth, year: lastMonthYear });
+                      setShowMonthPicker(false);
+                    }}
+                    className="flex-1 text-xs py-1.5 px-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+                  >
+                    Last month
+                  </button>
                   <button
                     onClick={() => {
                       setDateFilter({...dateFilter, month: currentMonth});
@@ -203,6 +223,15 @@ const fetchAttendance = async (m: number, y: number) => {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setDateFilter({...dateFilter, year: currentYear - 1});
+                      setShowYearPicker(false);
+                    }}
+                    className="flex-1 text-xs py-1.5 px-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
+                  >
+                    Last year
+                  </button>
                   <button
                     onClick={() => {
                       setDateFilter({...dateFilter, year: currentYear});

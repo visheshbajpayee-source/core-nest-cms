@@ -47,7 +47,7 @@ export interface AttendanceSummaryResponse {
 }
 
 export interface AttendanceFilters {
-  month?: string; // e.g. '11'
+  month?: string | number; // e.g. '11' or 0 for all time
   year?: string; // e.g. '2024'
 }
 
@@ -141,12 +141,24 @@ export const getAttendanceHistory = async (
     const year =
       filters?.year || String(now.getFullYear());
 
+    // Prepare params - don't send month/year if month is 0 (all time view)
+    const params: any = {};
+    if (filters?.month !== 0) {
+      params.month = month;
+      params.year = year;
+    }
+
     const response = await api.get<{
       success: boolean;
       data: AttendanceApiRecord[];
-    }>(`/api/v1/attendance/me`, { params: { month, year } });
+    }>(`/api/v1/attendance/me`, { params });
 
     console.log("Raw API response:", response.data);
+    
+    // Debug: Log the actual record data
+    if (response.data.data && response.data.data.length > 0) {
+      console.log("First attendance record details:", response.data.data[0]);
+    }
 
     const transformedData = response.data.data.map(transformAttendanceRecord);
     console.log("Transformed data:", transformedData);

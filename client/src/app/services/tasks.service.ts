@@ -54,8 +54,10 @@ export const getTasks = async (filters?: {
  */
 export const getMyTasks = async (): Promise<Task[]> => {
   try {
+    // The server already scopes task visibility by the authenticated user
+    // for employee roles, so use the standard tasks list endpoint.
     const response = await api.get<ApiResponse<Task[]>>(
-      "/api/v1/tasks/me"
+      "/api/v1/tasks"
     );
     return response.data.data;
   } catch (error: any) {

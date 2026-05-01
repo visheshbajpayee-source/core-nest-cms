@@ -78,7 +78,7 @@ export const getMyAttendance = async (
   const query: any = { employee: employeeId };
 
   // Apply month/year filter if provided
-  if (month !== undefined && year !== undefined) {
+  if (month !== undefined && year !== undefined && month !== 0) {
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 1);
 
@@ -92,7 +92,7 @@ export const getMyAttendance = async (
 
   // Format response before sending
   return records.map(formatAttendance);
-};
+};;
 
 /*
  * - Populates employee basic info

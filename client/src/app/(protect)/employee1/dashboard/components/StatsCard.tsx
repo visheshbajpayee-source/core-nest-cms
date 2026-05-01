@@ -38,11 +38,32 @@ export default function StatsCard({
   remaining = '3',
   todayStatus = '08:30 AM',
 }: StatsCardProps) {
-  const [timer, setTimer] = useState(0);
+  const [timer, setTimer] = useState(() => {
+    // Load timer from localStorage on initial render
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('stats-timer');
+        return saved ? parseInt(saved, 10) : 0;
+      } catch (error) {
+        console.warn('Failed to load timer from localStorage:', error);
+        return 0;
+      }
+    }
+    return 0;
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimer((prev) => prev + 1);
+      setTimer((prev) => {
+        const newValue = prev + 1;
+        // Save to localStorage
+        try {
+          localStorage.setItem('stats-timer', newValue.toString());
+        } catch (error) {
+          console.warn('Failed to save timer to localStorage:', error);
+        }
+        return newValue;
+      });
     }, 1000);
     return () => clearInterval(interval);
   }, []);

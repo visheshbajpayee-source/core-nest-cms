@@ -65,8 +65,10 @@ export function useWorkLogForm(
       } else {
         await onAddEntry(data);
       }
-    } catch (err) {
-      alert('Failed to save work log entry');
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || err?.message || 'Failed to save work log entry';
+      alert(message);
       console.error(err);
       return;
     }

@@ -77,15 +77,17 @@ export async function createWorkLogController(req: Request, res: Response, next:
 export async function getWorkLogsController(req: Request, res: Response, next: NextFunction) {
   try {
     const user = (req as any).user;
-    const { date, project, status } = req.query;
+    const { date, project, status, month, year } = req.query;
     const paramEmployeeId = (req as any).params?.employeeId;
 
-    // prefer employee id from URL if present
-    const employeeQuery = paramEmployeeId || (req.query.employee as any) || undefined;
+    // prefer employee id from URL if present, then query.employeeId, then query.employee
+    const employeeQuery = paramEmployeeId || (req.query.employeeId as any) || (req.query.employee as any) || undefined;
+
+    console.log(`[WorkLogs] Fetching worklogs - Role: ${user.role}, EmployeeQuery: ${employeeQuery}, Month: ${month}, Year: ${year}`);
 
     // Employee: only their logs
     if (user.role === "employee") {
-      const items = await getWorkLogs({ employee: user.id, date: date as any, project: project as any, status: status as any });
+      const items = await getWorkLogs({ employee: user.id, date, project: project as any, status: status as any, month, year });
       return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", items);
     }
 
@@ -102,17 +104,21 @@ export async function getWorkLogsController(req: Request, res: Response, next: N
         : { $in: memberIds };
 
       const items = await getWorkLogs({
-  date: date as any,
+  date,
   employee: scopedEmployeeFilter,
   project: project as any,
   status: status as any,
+  month,
+  year,
 });
       const filtered = items.filter((i: any) => memberIds.includes(i.employee.toString()));
       return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", filtered);
     }
 
-    // Admin: can filter
-    const items = await getWorkLogs({ employee: employeeQuery as any, date: date as any, project: project as any, status: status as any });
+    // Admin: can filter by employee, date (or month/year), project, status
+    console.log(`[WorkLogs] Admin fetching - EmployeeQuery: ${employeeQuery}, Month: ${month}, Year: ${year}`);
+    const items = await getWorkLogs({ employee: employeeQuery as any, date, project: project as any, status: status as any, month, year });
+    console.log(`[WorkLogs] Found ${items.length} worklogs for employee ${employeeQuery}`);
     return ApiResponse.sendSuccess(res, 200, "Worklogs fetched", items);
   } catch (error) {
     next(error);

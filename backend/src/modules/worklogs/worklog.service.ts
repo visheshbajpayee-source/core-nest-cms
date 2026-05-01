@@ -43,21 +43,38 @@ export const getWorkLogs = async (filters: Record<string, any> = {}) => {
     const query: any = {};
     if (filters.employee) query.employee = filters.employee;
     if (filters.project) query.project = filters.project;
-    if (filters.date) {
+    
+    // Handle date/month/year filtering
+    if (filters.month && filters.year) {
+      // Month/year based filtering - filter entire month
+      const monthNum = parseInt(filters.month, 10);
+      const yearNum = parseInt(filters.year, 10);
+      const start = new Date(yearNum, monthNum - 1, 1);
+      const end = new Date(yearNum, monthNum, 1);
+      query.date = { $gte: start, $lt: end };
+      console.log(`[WorkLogs Service] Filtering by month: ${monthNum}/${yearNum}, Range: ${start.toISOString()} to ${end.toISOString()}`);
+    } else if (filters.date) {
+      // Single date filtering - filter entire day
       const d = new Date(filters.date);
       if (Number.isNaN(d.getTime())) throw ApiError.badRequest("Invalid date");
       const start = new Date(d.setHours(0, 0, 0, 0));
       const end = new Date(d.setHours(23, 59, 59, 999));
       query.date = { $gte: start, $lte: end };
     }
+    
     if (filters.status) {
       query.status = filters.status;
     }
+
+    console.log(`[WorkLogs Service] Query:`, query);
 
     // return worklogs without populating employee (keep as ObjectId)
    const items = await WorkLog.find(query)
   .populate("employee", "fullName employeeId")
   .populate("project", "name");
+    
+    console.log(`[WorkLogs Service] Found ${items.length} items`);
+    
     return items;
   } catch (error: any) {
     if (error instanceof ApiError) throw error;

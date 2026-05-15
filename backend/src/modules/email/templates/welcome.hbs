@@ -1,0 +1,28 @@
+<html>
+<head>
+    <style>
+        .container { font-family: Arial; padding: 20px; }
+        .discount { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hi {{name}},</h1>
+        
+        <!-- Conditional Logic inside .hbs -->
+        {{#if isPremium}}
+            <p>Thank you for being a Premium member! Enjoy 20% off today.</p>
+        {{else}}
+            <p>Welcome to our standard tier!</p>
+        {{/if}}
+
+        <!-- Looping through an array inside .hbs -->
+        <h3>Your recommended items:</h3>
+        <ul>
+            {{#each items}}
+                <li>{{this}}</li>
+            {{/each}}
+        </ul>
+    </div>
+</body>
+</html>

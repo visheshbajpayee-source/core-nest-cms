@@ -1,7 +1,7 @@
 import { Router } from "express";
 import authRoutes from "./modules/auth/auth.routes";
 import employeeRoutes from "./modules/employees/employee.routes";
-import attendanceRoutes from "./modules/attendance/attendance.routes"; 
+import attendanceRoutes from "./modules/attendance/attendance.routes";
 import departmentRoutes from "./modules/department/department.routes";
 import designationRoutes from "./modules/designation/designation.routes";
 import leaveRoutes from "./modules/leaves/leave.routes";
@@ -14,6 +14,7 @@ import holidayRoutes from "./modules/holiday/holiday.routes";
 import documentRoutes from "./modules/documents/documents.routes";
 import settingsRoutes from "./modules/settings/settings.routes";
 import leaveTypeRoutes from "./modules/leaveTypes/leaveType.routes";
+import emailRoutes from "./modules/email/email.routes";
 import leaveBalanceRoutes from "./modules/leaveBalance/leaveBalance.routes";
 const router: Router = Router();
 
@@ -40,4 +41,5 @@ router.use("/settings", settingsRoutes);
 
 router.use("/designations", designationRoutes);
 router.use("/announcements", announcementRoutes);
+router.use("/email", emailRoutes);
 export default router;

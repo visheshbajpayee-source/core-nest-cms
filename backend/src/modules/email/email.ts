@@ -11,7 +11,7 @@ export const sendMail = async (req: Request, res: Response) => {
     const templatePath = path.join(__dirname, "templates", "welcome.hbs");
     const source = fs.readFileSync(templatePath, "utf-8");
     const template = Handlebars.compile(source);
-    const htmlToSend = template({ name: "John Doe" });
+    const htmlToSend = template({ name: "John Doe" }); // for static data, you can replace it with dynamic data as needed
 
     const mailOptions = {
       from: `"startappss system" <${process.env.MAIL_FROM}>`,
@@ -21,7 +21,7 @@ export const sendMail = async (req: Request, res: Response) => {
       html: htmlToSend,
     };
 
-    await send_Mail(mailOptions); // now properly awaited
+    await send_Mail(mailOptions);
     res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error(error);
